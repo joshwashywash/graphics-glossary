@@ -1,0 +1,30 @@
+---
+import createTabItems from "@utils/createExampleTabs";
+import type { CodeExampleTabItem } from "@types";
+import { Code, Tabs, TabItem } from "@astrojs/starlight/components";
+
+type Props = {
+	items?: CodeExampleTabItem[];
+};
+
+const { items = [] } = Astro.props;
+
+console.log(items);
+---
+
+<Tabs>
+	<slot />
+	{
+		items.map((item) => {
+			return (
+				<TabItem label={item.label}>
+					<Code
+						code={item.code}
+						icon={item.icon}
+						lang={item.lang}
+					/>
+				</TabItem>
+			);
+		})
+	}
+</Tabs>
