@@ -39,11 +39,12 @@ const action: Action<HTMLCanvasElement> = (canvas) => {
 	camera.position.set(2, 2, 2);
 	camera.lookAt(mesh.position);
 
-	const angle = (1 / (1 << 9)) * Math.PI;
+	const angleY = (1 / (1 << 9)) * Math.PI;
+	const angleZ = angleY / 3;
 
 	renderer.setAnimationLoop(() => {
 		renderer.render(scene, camera);
-		mesh.rotateY(angle);
+		mesh.rotateY(angleY).rotateZ(angleZ);
 	});
 
 	$effect(() => {

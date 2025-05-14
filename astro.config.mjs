@@ -28,9 +28,9 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
-					label: "Guides",
+					label: "Materials",
 					autogenerate: {
-						directory: "guides",
+						directory: "materials",
 					},
 				},
 			],
@@ -45,4 +45,3 @@ export default defineConfig({
 
 	adapter: vercel(),
 });
-
