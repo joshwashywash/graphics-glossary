@@ -8,8 +8,6 @@ import svelte from "@astrojs/svelte";
 
 import sitemap from "@astrojs/sitemap";
 
-import vercel from "@astrojs/vercel";
-
 // https://astro.build/config
 export default defineConfig({
 	integrations: [
@@ -42,6 +40,4 @@ export default defineConfig({
 	vite: {
 		plugins: [tailwindcss()],
 	},
-
-	adapter: vercel(),
 });
