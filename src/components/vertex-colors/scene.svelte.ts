@@ -23,6 +23,7 @@ const action: Action<HTMLCanvasElement> = (canvas) => {
 	const position = geometry.getAttribute("position");
 
 	// the default box geometry's vertex positions range from -0.5 -> 0.5
+	// f remaps this range to 0 -> 1
 	const f = (n: number): number => 0.5 + n;
 	const colorAttribute = createColorAttribute(position, f, f, f);
 	geometry.setAttribute("color", colorAttribute);
