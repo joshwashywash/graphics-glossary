@@ -10,30 +10,34 @@ import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-    integrations: [starlight({
-        customCss: ["./src/styles/global.css"],
-        expressiveCode: {
-            themes: ["rose-pine", "rose-pine-dawn"],
-        },
-        title: "My Docs",
-        social: [
-            {
-                icon: "github",
-                label: "GitHub",
-                href: "https://github.com/withastro/starlight",
-            },
-        ],
-        sidebar: [
-            {
-                label: "Guides",
-                autogenerate: {
-                    directory: "guides",
-                },
-            },
-        ],
-		}), svelte(), sitemap()],
-
-    vite: {
-        plugins: [tailwindcss()],
-    },
+	integrations: [
+		starlight({
+			customCss: ["./src/styles/global.css"],
+			expressiveCode: {
+				themes: ["rose-pine", "rose-pine-dawn"],
+			},
+			title: "3d graphics glossary",
+			social: [
+				{
+					icon: "github",
+					label: "GitHub",
+					href: "https://github.com/withastro/starlight",
+				},
+			],
+			sidebar: [
+				{
+					label: "Guides",
+					autogenerate: {
+						directory: "guides",
+					},
+				},
+			],
+		}),
+		svelte(),
+		sitemap(),
+	],
+	vite: {
+		plugins: [tailwindcss()],
+	},
 });
+
