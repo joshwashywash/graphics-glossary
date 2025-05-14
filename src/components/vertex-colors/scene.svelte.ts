@@ -1,4 +1,5 @@
-import type { Action } from "svelte/action";
+import createColorAttribute from "./createColorAttribute";
+import type { Attachment } from "svelte/attachments";
 import {
 	BoxGeometry,
 	Mesh,
@@ -7,16 +8,14 @@ import {
 	Scene,
 	WebGLRenderer,
 } from "three";
-import createColorAttribute from "./createColorAttribute";
 
-const action: Action<HTMLCanvasElement> = (canvas) => {
+const scene: Attachment<HTMLCanvasElement> = (canvas) => {
 	const renderer = new WebGLRenderer({
 		antialias: true,
 		canvas,
 	});
 
 	const width = canvas.parentElement?.clientWidth ?? 1;
-
 	renderer.setSize(width, width);
 
 	const geometry = new BoxGeometry();
@@ -47,15 +46,13 @@ const action: Action<HTMLCanvasElement> = (canvas) => {
 		mesh.rotateY(angleY).rotateZ(angleZ);
 	});
 
-	$effect(() => {
-		return () => {
-			scene.remove(mesh);
-			geometry.dispose();
-			material.dispose();
-			renderer.setAnimationLoop(null);
-			renderer.dispose();
-		};
-	});
+	return () => {
+		scene.remove(mesh);
+		geometry.dispose();
+		material.dispose();
+		renderer.setAnimationLoop(null);
+		renderer.dispose();
+	};
 };
 
-export default action;
+export default scene;

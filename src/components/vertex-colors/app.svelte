@@ -3,5 +3,5 @@
 </script>
 
 <div>
-	<canvas use:scene></canvas>
+	<canvas {@attach scene}></canvas>
 </div>

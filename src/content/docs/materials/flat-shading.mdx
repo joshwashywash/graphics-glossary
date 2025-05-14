@@ -1,0 +1,35 @@
+---
+description: An explanation of flat shading in three.js.
+title: Flat Shading
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+Shading that assigns a uniform color across the entire face.
+
+## Usage
+
+{/* prettier-ignore-start */}
+
+<Steps>
+1. Set the **flatShading** property of the material to **true**.
+
+    ```ts
+    const material = new MeshStandardMaterial()
+    ```
+</Steps>
+
+{/* prettier-ignore-end */}
+
+When switching between flat and non-flat shading, the **needsUpdate** prop of the material needs to be set to **true**.
+
+```svelte
+<button
+	onclick={() => {
+		material.flatShading = !material.flatShading;
+		material.needsUpdate = true;
+	}}
+>
+	toggle flatShading
+</button>
+```
