@@ -1,4 +1,4 @@
-import createTabItems from "@utils/createExampleTabs";
+import createTabItems from "@utils/createExampleTabItems";
 
 const modules = import.meta.glob<string>("@components/vertex-colors/*", {
 	eager: true,
