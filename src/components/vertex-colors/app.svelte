@@ -25,7 +25,7 @@
 	});
 
 	const mesh = new Mesh(geometry, material);
-	const s = new Scene().add(mesh);
+	const scene = new Scene().add(mesh);
 
 	const camera = new PerspectiveCamera();
 	camera.position.set(2, 2, 2);
@@ -36,7 +36,7 @@
 
 	$effect(() => {
 		return () => {
-			s.remove(mesh);
+			scene.remove(mesh);
 			material.dispose();
 			geometry.dispose();
 		};
@@ -47,7 +47,7 @@
 		renderer.setSize(width, width);
 
 		renderer.setAnimationLoop(() => {
-			renderer.render(s, camera);
+			renderer.render(scene, camera);
 			mesh.rotateY(angleY).rotateZ(angleZ);
 		});
 		return () => {
