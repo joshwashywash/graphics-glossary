@@ -10,6 +10,10 @@ import { Aside, Steps, TabItem } from "@astrojs/starlight/components";
 
 Assigns a color to each vertex of a geometry. Colors are interpolated along the face just like any other vertex attribute.
 
+<App client:visible />
+
+<Tabs items={tabItems} />
+
 ## Usage
 
 {/* prettier-ignore-start */}
@@ -31,9 +35,3 @@ Assigns a color to each vertex of a geometry. Colors are interpolated along the 
 </Steps>
 
 {/* prettier-ignore-end */}
-
-## Example
-
-<App client:visible />
-
-<Tabs items={tabItems} />

@@ -10,6 +10,9 @@ const renderer = (init: Init): Attachment<HTMLCanvasElement> => {
 			canvas,
 		});
 
+		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
+		renderer.setSize(width, width);
+
 		const cleanup = init(renderer);
 
 		return () => {

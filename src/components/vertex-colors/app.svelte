@@ -14,7 +14,7 @@
 	const position = geometry.getAttribute("position");
 
 	// the default box geometry positions range from -0.5 -> 0.5
-	// `f` is meant to remap this to 0 -> 1
+	// `f` remaps this to 0 -> 1
 	const f = (n: number): number => 0.5 + n;
 	const colorAttribute = createColorAttribute(position, f, f, f);
 
@@ -43,9 +43,6 @@
 	});
 
 	const init: Init = (renderer) => {
-		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
-		renderer.setSize(width, width);
-
 		renderer.setAnimationLoop(() => {
 			renderer.render(scene, camera);
 			mesh.rotateY(angleY).rotateZ(angleZ);
