@@ -4,10 +4,14 @@ title: Flat Shading
 ---
 
 import App from "@components/flat-shading/app.svelte";
+import Tabs from "@components/tabs.astro";
+import tabItems from "@components/flat-shading/tabItems";
+import { Aside } from "@astrojs/starlight/components";
 
 Shading that assigns a uniform color across the entire face.
 
 <App client:visible />
+<Tabs items={tabItems} />
 
 ## Usage
 
@@ -17,15 +21,7 @@ const material = new MeshStandardMaterial({
 });
 ```
 
-When switching between flat and non-flat shading, the **needsUpdate** prop of the material needs to be set to **true**.
-
-```svelte
-<button
-	onclick={() => {
-		material.flatShading = !material.flatShading;
-		material.needsUpdate = true;
-	}}
->
-	toggle flatShading
-</button>
-```
+<Aside>
+	When switching between flat and non-flat shading, the **needsUpdate** prop of
+	the material needs to be set to **true**.
+</Aside>

@@ -9,9 +9,8 @@
 		SphereGeometry,
 	} from "three";
 
-	const material = new MeshNormalMaterial({
-		flatShading: true,
-	});
+	const material = new MeshNormalMaterial();
+
 	const geometry = new SphereGeometry(1, 16, 8);
 	const mesh = new Mesh(geometry, material);
 
@@ -43,5 +42,18 @@
 </script>
 
 <div>
+	<label class="absolute flex gap-2">
+		<input
+			type="checkbox"
+			bind:checked={
+				() => material.flatShading,
+				(value) => {
+					material.flatShading = value;
+					material.needsUpdate = true;
+				}
+			}
+		/>
+		use flat shading
+	</label>
 	<canvas {@attach rendererAttachment(init)}></canvas>
 </div>
