@@ -9,7 +9,9 @@
 		SphereGeometry,
 	} from "three";
 
-	const material = new MeshNormalMaterial();
+	const material = new MeshNormalMaterial({
+		flatShading: true,
+	});
 
 	const geometry = new SphereGeometry(1, 16, 8);
 	const mesh = new Mesh(geometry, material);
