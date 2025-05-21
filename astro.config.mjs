@@ -31,6 +31,12 @@ export default defineConfig({
 						directory: "materials",
 					},
 				},
+				{
+					label: "Techniques",
+					autogenerate: {
+						directory: "techniques",
+					},
+				},
 			],
 		}),
 		svelte(),
