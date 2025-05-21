@@ -1,6 +1,6 @@
 <script lang="ts">
-	import rendererAttachment from "@utils/rendererAttachment.svelte";
-	import type { Init } from "@utils/rendererAttachment.svelte";
+	import renderer from "@utils/attachments/renderer.svelte";
+	import type { Init } from "@utils/attachments/renderer.svelte";
 	import {
 		Mesh,
 		MeshNormalMaterial,
@@ -30,13 +30,23 @@
 		};
 	});
 
-	const angle = (1 / (1 << 9)) * Math.PI;
+	const angle = (1 / 256) * Math.PI;
 
 	const init: Init = (renderer) => {
+		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
+		const height = 0.5 * width;
+
+		const aspect = width / height;
+		camera.aspect = aspect;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize(width, height);
+
 		renderer.setAnimationLoop(() => {
 			renderer.render(scene, camera);
 			mesh.rotateY(angle);
 		});
+
 		return () => {
 			renderer.setAnimationLoop(null);
 		};
@@ -57,5 +67,5 @@
 		/>
 		use flat shading
 	</label>
-	<canvas {@attach rendererAttachment(init)}></canvas>
+	<canvas {@attach renderer(init)}></canvas>
 </div>

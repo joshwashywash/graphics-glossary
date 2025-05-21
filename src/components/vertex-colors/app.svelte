@@ -1,7 +1,7 @@
 <script lang="ts">
 	import createColorAttribute from "./createColorAttribute";
-	import rendererAttachment from "@utils/rendererAttachment.svelte";
-	import type { Init } from "@utils/rendererAttachment.svelte";
+	import renderer from "@utils/attachments/renderer.svelte";
+	import type { Init } from "@utils/attachments/renderer.svelte";
 	import {
 		BoxGeometry,
 		Mesh,
@@ -31,9 +31,6 @@
 	camera.position.set(2, 2, 2);
 	camera.lookAt(mesh.position);
 
-	const angleY = (1 / (1 << 9)) * Math.PI;
-	const angleZ = angleY / 3;
-
 	$effect(() => {
 		return () => {
 			scene.remove(mesh);
@@ -42,11 +39,24 @@
 		};
 	});
 
+	const angleY = (1 / 256) * Math.PI;
+	const angleZ = angleY / 3;
+
 	const init: Init = (renderer) => {
+		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
+		const height = 0.5 * width;
+
+		const aspect = width / height;
+		camera.aspect = aspect;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize(width, height);
+
 		renderer.setAnimationLoop(() => {
 			renderer.render(scene, camera);
 			mesh.rotateY(angleY).rotateZ(angleZ);
 		});
+
 		return () => {
 			renderer.setAnimationLoop(null);
 		};
@@ -54,5 +64,5 @@
 </script>
 
 <div>
-	<canvas {@attach rendererAttachment(init)}></canvas>
+	<canvas {@attach renderer(init)}></canvas>
 </div>
