@@ -1,9 +1,9 @@
 <script lang="ts">
+	import createLOD from "./createLOD";
 	import renderer from "@utils/attachments/renderer.svelte";
 	import type { Init } from "@utils/attachments/renderer.svelte";
-	import { MeshNormalMaterial, PerspectiveCamera, Scene } from "three";
-	import createLOD from "./createLOD";
 	import type { LODItem } from "./createLOD";
+	import { MeshNormalMaterial, PerspectiveCamera, Scene } from "three";
 
 	const material = new MeshNormalMaterial({
 		wireframe: true,
@@ -48,8 +48,7 @@
 		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
 		const height = 0.5 * width;
 
-		const aspect = width / height;
-		camera.aspect = aspect;
+		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
 
 		renderer.setSize(width, height);
@@ -57,7 +56,8 @@
 		renderer.setAnimationLoop((time) => {
 			renderer.render(scene, camera);
 
-			const z = (1 + offset) * Math.sin((3 / 4) * (time / 1000));
+			time *= 1 / 1000;
+			const z = (1 + offset) * Math.sin(0.75 * time);
 			lod.position.setZ(z);
 		});
 

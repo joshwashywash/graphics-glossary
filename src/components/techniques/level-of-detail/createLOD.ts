@@ -5,7 +5,12 @@ export type LODItem = {
 	material: Material;
 };
 
-export default (items: LODItem[]): { lod: LOD; meshes: Mesh[] } => {
+export default (
+	items: LODItem[],
+): {
+	lod: LOD;
+	meshes: Mesh[];
+} => {
 	const lod = new LOD();
 	const meshes: Mesh[] = [];
 
