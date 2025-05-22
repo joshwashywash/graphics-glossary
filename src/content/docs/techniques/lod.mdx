@@ -8,7 +8,7 @@ import Tabs from "@components/tabs.astro";
 import UnderConstructionAside from "@components/underConstructionAside.astro";
 import tabItems from "@components/techniques/level-of-detail/tabItems";
 
-Level of Detail or LOD is a performance-improving technique where the detail or complexity of an object's geometry decreases as relative to how far it is from the camera. Objects that are further away are less detailed because finer details will probably go unnoticed to the viewer.
+Level of Detail or LOD is a performance-improving technique where the complexity of an object's geometry decreases relative to its distance from the camera. Objects that are further away are less complex because finer details will probably go unnoticed to the viewer.
 
 <App client:visible />
 <Tabs items={tabItems} />
