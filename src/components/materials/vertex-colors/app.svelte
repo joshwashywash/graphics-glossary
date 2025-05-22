@@ -1,7 +1,7 @@
 <script lang="ts">
 	import createColorAttribute from "./createColorAttribute";
 	import renderer from "@utils/attachments/renderer.svelte";
-	import type { Init } from "@utils/attachments/renderer.svelte";
+	import type { Setup } from "@utils/attachments/renderer.svelte";
 	import {
 		BoxGeometry,
 		Mesh,
@@ -16,7 +16,11 @@
 	// the default box geometry positions range from -0.5 -> 0.5
 	// `f` remaps this to 0 -> 1
 	const f = (n: number): number => 0.5 + n;
-	const colorAttribute = createColorAttribute(positionAttribute, f, f, f);
+	const colorAttribute = createColorAttribute(positionAttribute, {
+		x: f,
+		y: f,
+		z: f,
+	});
 
 	geometry.setAttribute("color", colorAttribute);
 
@@ -28,7 +32,7 @@
 	const scene = new Scene().add(mesh);
 
 	const camera = new PerspectiveCamera();
-	camera.position.set(2, 2, 2);
+	camera.position.set(0, 0, 3);
 	camera.lookAt(mesh.position);
 
 	$effect(() => {
@@ -42,7 +46,7 @@
 	const angleY = (1 / 256) * Math.PI;
 	const angleZ = angleY / 3;
 
-	const init: Init = (renderer) => {
+	const setup: Setup = (renderer) => {
 		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
 		const height = 0.5 * width;
 
@@ -64,5 +68,5 @@
 </script>
 
 <div>
-	<canvas {@attach renderer(init)}></canvas>
+	<canvas {@attach renderer(setup)}></canvas>
 </div>

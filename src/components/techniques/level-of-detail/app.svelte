@@ -1,7 +1,7 @@
 <script lang="ts">
 	import createLOD from "./createLOD";
 	import renderer from "@utils/attachments/renderer.svelte";
-	import type { Init } from "@utils/attachments/renderer.svelte";
+	import type { Setup } from "@utils/attachments/renderer.svelte";
 	import type { LODItem } from "./createLOD";
 	import { MeshNormalMaterial, PerspectiveCamera, Scene } from "three";
 
@@ -44,7 +44,7 @@
 
 	camera.position.set(0, 0, 1 + z);
 
-	const init: Init = (renderer) => {
+	const setup: Setup = (renderer) => {
 		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
 		const height = 0.5 * width;
 
@@ -68,5 +68,5 @@
 </script>
 
 <div>
-	<canvas {@attach renderer(init)}></canvas>
+	<canvas {@attach renderer(setup)}></canvas>
 </div>

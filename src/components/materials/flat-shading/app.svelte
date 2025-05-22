@@ -1,6 +1,6 @@
 <script lang="ts">
 	import renderer from "@utils/attachments/renderer.svelte";
-	import type { Init } from "@utils/attachments/renderer.svelte";
+	import type { Setup } from "@utils/attachments/renderer.svelte";
 	import {
 		Mesh,
 		MeshNormalMaterial,
@@ -19,7 +19,7 @@
 	const scene = new Scene().add(mesh);
 
 	const camera = new PerspectiveCamera();
-	camera.position.set(2, 2, 2);
+	camera.position.set(0, 0, 3);
 	camera.lookAt(mesh.position);
 
 	$effect(() => {
@@ -32,12 +32,11 @@
 
 	const angle = (1 / 256) * Math.PI;
 
-	const init: Init = (renderer) => {
+	const setup: Setup = (renderer) => {
 		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
 		const height = 0.5 * width;
 
-		const aspect = width / height;
-		camera.aspect = aspect;
+		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
 
 		renderer.setSize(width, height);
@@ -67,5 +66,5 @@
 		/>
 		use flat shading
 	</label>
-	<canvas {@attach renderer(init)}></canvas>
+	<canvas {@attach renderer(setup)}></canvas>
 </div>

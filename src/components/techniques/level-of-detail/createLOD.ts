@@ -16,8 +16,8 @@ export default (
 
 	for (let i = 0, l = items.length; i < l; i += 1) {
 		const detail = l - i - 1;
-		const { distance, material } = items[i];
 		const geometry = new IcosahedronGeometry(1, detail);
+		const { distance, material } = items[i];
 		const mesh = new Mesh(geometry, material);
 		mesh.matrixAutoUpdate = false;
 		meshes.push(mesh);
