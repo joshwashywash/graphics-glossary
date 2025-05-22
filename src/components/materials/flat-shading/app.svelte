@@ -53,8 +53,8 @@
 	};
 </script>
 
-<div>
-	<label class="absolute flex gap-2">
+<div class="relative">
+	<label class="absolute left-2 flex gap-2">
 		<input
 			type="checkbox"
 			bind:checked={
