@@ -11,12 +11,12 @@
 	} from "three";
 
 	const geometry = new BoxGeometry();
-	const position = geometry.getAttribute("position");
+	const positionAttribute = geometry.getAttribute("position");
 
 	// the default box geometry positions range from -0.5 -> 0.5
 	// `f` remaps this to 0 -> 1
 	const f = (n: number): number => 0.5 + n;
-	const colorAttribute = createColorAttribute(position, f, f, f);
+	const colorAttribute = createColorAttribute(positionAttribute, f, f, f);
 
 	geometry.setAttribute("color", colorAttribute);
 
