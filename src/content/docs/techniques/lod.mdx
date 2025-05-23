@@ -5,8 +5,8 @@ title: Level Of Detail
 
 import App from "@components/techniques/level-of-detail/app.svelte";
 import Tabs from "@components/tabs.astro";
-import UnderConstructionAside from "@components/underConstructionAside.astro";
 import tabItems from "@components/techniques/level-of-detail/tabItems";
+import { Steps } from "@astrojs/starlight/components";
 
 Level of Detail or LOD is a performance-improving technique where the complexity of an object's geometry decreases relative to its distance from the camera. Objects that are further away are less complex because finer details will probably go unnoticed to the viewer.
 
@@ -19,9 +19,39 @@ The performance boost comes from the fact that the renderer spends less time ren
 
 Conveniently three.js has built-in support for LOD.
 
-<UnderConstructionAside>
-	todo: basic usage example code with explanation
-</UnderConstructionAside>
+```ts
+import { LOD } from "three";
+```
+
+{/* prettier-ignore-start */}
+
+<Steps>
+1. Create the LOD instance.
+
+    ```ts
+    const lod = new LOD();
+    ```
+
+2. Add levels to the LOD instance.
+
+    ```ts
+    const meshLowDetail = new Mesh(geometryLow, material);
+    const meshMidDetail = new Mesh(geometryMid, material);
+    const meshHighDetail = new Mesh(geometryHigh, material);
+
+    lod
+    	.addLevel(meshLowDetail, distanceLow)
+    	.addLevel(meshMidDetail, distanceMid)
+    	.addLevel(meshHighDetail, distanceHigh);
+    ```
+3. Add the LOD instance to the scene.
+
+    ```ts
+    scene.add(lod);
+    ```
+</Steps>
+
+{/* prettier-ignore-end */}
 
 ## References
 

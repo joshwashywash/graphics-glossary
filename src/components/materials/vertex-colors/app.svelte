@@ -53,6 +53,7 @@
 		const aspect = width / height;
 		camera.aspect = aspect;
 		camera.updateProjectionMatrix();
+		camera.matrixAutoUpdate = false;
 
 		renderer.setSize(width, height);
 

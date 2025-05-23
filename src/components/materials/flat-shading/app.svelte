@@ -38,6 +38,7 @@
 
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
+		camera.matrixAutoUpdate = false;
 
 		renderer.setSize(width, height);
 
