@@ -33,7 +33,7 @@
 	const angle = (1 / 256) * Math.PI;
 
 	const setup: Setup = (renderer) => {
-		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
+		const width = renderer.domElement.clientWidth;
 		const height = 0.5 * width;
 
 		camera.aspect = width / height;
@@ -66,5 +66,9 @@
 		/>
 		use flat shading
 	</label>
-	<canvas {@attach renderer(setup)}></canvas>
+	<canvas
+		class="w-full"
+		{@attach renderer(setup)}
+	>
+	</canvas>
 </div>

@@ -45,7 +45,7 @@
 	camera.position.set(0, 0, 1 + z);
 
 	const setup: Setup = (renderer) => {
-		const width = renderer.domElement.parentElement?.clientWidth ?? 1;
+		const width = renderer.domElement.clientWidth;
 		const height = 0.5 * width;
 
 		camera.aspect = width / height;
@@ -67,6 +67,8 @@
 	};
 </script>
 
-<div>
-	<canvas {@attach renderer(setup)}></canvas>
-</div>
+<canvas
+	class="w-full"
+	{@attach renderer(setup)}
+>
+</canvas>
