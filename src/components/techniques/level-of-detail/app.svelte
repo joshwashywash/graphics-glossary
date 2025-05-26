@@ -1,6 +1,6 @@
 <script lang="ts">
-	import renderer from "@utils/attachments/renderer.svelte";
-	import type { Setup } from "@utils/attachments/renderer.svelte";
+	import renderer from "@attachments/renderer.svelte";
+	import type { Setup } from "@attachments/renderer.svelte";
 	import {
 		IcosahedronGeometry,
 		LOD,
@@ -25,7 +25,6 @@
 		const detail = l - i - 1;
 		const geometry = new IcosahedronGeometry(1, detail);
 		const mesh = new Mesh(geometry, material);
-		// these meshes won't ever change position, scale, or rotation so there's no need to update their matrices every frame
 		mesh.matrixAutoUpdate = false;
 		meshes.push(mesh);
 		lod.addLevel(mesh, distances[i]);

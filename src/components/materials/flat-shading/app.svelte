@@ -1,6 +1,6 @@
 <script lang="ts">
-	import renderer from "@utils/attachments/renderer.svelte";
-	import type { Setup } from "@utils/attachments/renderer.svelte";
+	import renderer from "@attachments/renderer.svelte";
+	import type { Setup } from "@attachments/renderer.svelte";
 	import {
 		Mesh,
 		MeshNormalMaterial,
