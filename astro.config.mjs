@@ -26,9 +26,9 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
-					label: "Materials",
+					label: "Shaders",
 					autogenerate: {
-						directory: "materials",
+						directory: "shaders",
 					},
 				},
 				{
