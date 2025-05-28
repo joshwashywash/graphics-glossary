@@ -6,7 +6,7 @@
 	],
 	"compilerOptions": {
 		"baseUrl": ".",
-		"module": "nodenext",
+		"module": "esnext",
 		"paths": {
 			"@attachments/*": [
 				"./src/attachments/*"
