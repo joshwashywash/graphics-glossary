@@ -54,19 +54,21 @@
 </script>
 
 <div class="relative">
-	<label class="absolute left-2 flex gap-2">
-		<input
-			type="checkbox"
-			bind:checked={
-				() => material.flatShading,
-				(value) => {
-					material.flatShading = value;
-					material.needsUpdate = true;
+	<fieldset class="absolute left-2">
+		<label>
+			<input
+				type="checkbox"
+				bind:checked={
+					() => material.flatShading,
+					(value) => {
+						material.flatShading = value;
+						material.needsUpdate = true;
+					}
 				}
-			}
-		/>
-		use flat shading
-	</label>
+			/>
+			use flat shading
+		</label>
+	</fieldset>
 	<canvas
 		class="w-full"
 		{@attach renderer(setup)}
