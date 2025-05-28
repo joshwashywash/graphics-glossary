@@ -1,9 +1,4 @@
 import createTabItems from "@functions/createExampleTabItems";
+import getModules from "@functions/getModules";
 
-const modules = import.meta.glob<string>("./*", {
-	eager: true,
-	import: "default",
-	query: "?raw",
-});
-
-export default createTabItems(modules);
+export default createTabItems(getModules());
