@@ -1,36 +1,38 @@
 <script lang="ts">
+	import fragmentShader from "./fragment.glsl?raw";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
+	import vertexShader from "./vertex.glsl?raw";
 	import {
 		Mesh,
-		MeshNormalMaterial,
 		PerspectiveCamera,
 		Scene,
-		SphereGeometry,
+		ShaderMaterial,
+		TorusKnotGeometry,
 	} from "three";
+	import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-	const material = new MeshNormalMaterial({
-		flatShading: true,
+	const geometry = new TorusKnotGeometry();
+	const material = new ShaderMaterial({
+		fragmentShader,
+		vertexShader,
 	});
 
-	const geometry = new SphereGeometry(1, 16, 8);
 	const mesh = new Mesh(geometry, material);
 
 	const scene = new Scene().add(mesh);
 
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 3);
-	camera.lookAt(mesh.position);
-
 	$effect(() => {
 		return () => {
 			scene.remove(mesh);
-			material.dispose();
 			geometry.dispose();
+			material.dispose();
 		};
 	});
 
-	const angle = (1 / 256) * Math.PI;
+	const camera = new PerspectiveCamera();
+	camera.position.set(0, 0, 5);
+	camera.lookAt(mesh.position);
 
 	const setup: Setup = (renderer) => {
 		const width = renderer.domElement.clientWidth;
@@ -40,36 +42,25 @@
 
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
-		camera.matrixAutoUpdate = false;
+
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.autoRotate = true;
 
 		renderer.setAnimationLoop(() => {
+			controls.update();
 			renderer.render(scene, camera);
-			mesh.rotateY(angle);
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			controls.dispose();
+			controls.domElement = null;
 		};
 	};
 </script>
 
-<div class="relative">
-	<label class="absolute left-2 flex gap-2">
-		<input
-			type="checkbox"
-			bind:checked={
-				() => material.flatShading,
-				(value) => {
-					material.flatShading = value;
-					material.needsUpdate = true;
-				}
-			}
-		/>
-		use flat shading
-	</label>
-	<canvas
-		class="w-full"
-		{@attach renderer(setup)}
-	>
-	</canvas>
-</div>
+<canvas
+	class="w-full"
+	{@attach renderer(setup)}
+>
+</canvas>

@@ -50,12 +50,12 @@
 		const width = renderer.domElement.clientWidth;
 		const height = 0.5 * width;
 
+		renderer.setSize(width, height);
+
 		const aspect = width / height;
 		camera.aspect = aspect;
 		camera.updateProjectionMatrix();
 		camera.matrixAutoUpdate = false;
-
-		renderer.setSize(width, height);
 
 		renderer.setAnimationLoop(() => {
 			renderer.render(scene, camera);
