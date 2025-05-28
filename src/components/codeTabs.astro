@@ -1,0 +1,47 @@
+---
+import createTabItems from "@functions/createExampleTabs";
+import modulesByDirectory from "@components/content/modules";
+import type { CodeExampleTabItem } from "@types";
+import { Code, Tabs, TabItem } from "@astrojs/starlight/components";
+
+type Props = {
+	directory: string;
+};
+
+const { directory } = Astro.props;
+
+const modules = modulesByDirectory[directory] ?? [];
+
+const promises = [];
+
+for (const { module, parsed } of modules) {
+	const { base, ext } = parsed;
+	const lang = ext.substring(1);
+	promises.push(
+		module().then((code) => {
+			return {
+				base,
+				code,
+				lang,
+			};
+		}),
+	);
+}
+
+const items = await Promise.all(promises);
+---
+
+<Tabs>
+	{
+		items.map(({ base, code, lang }) => {
+			return (
+				<TabItem label={base}>
+					<Code
+						{code}
+						{lang}
+					/>
+				</TabItem>
+			);
+		})
+	}
+</Tabs>

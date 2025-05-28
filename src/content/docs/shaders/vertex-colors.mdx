@@ -3,16 +3,14 @@ description: An explanation of vertex colors in three.js.
 title: Vertex Colors
 ---
 
-import App from "@components/shaders/vertex-colors/app.svelte";
-import Tabs from "@components/tabs.astro";
-import tabItems from "@components/shaders/vertex-colors/tabItems";
+import App from "@components/content/shaders/vertex-colors/app.svelte";
+import Tabs from "@components/codeTabs.astro";
 import { Aside, Steps } from "@astrojs/starlight/components";
 
 Assigns a color to each vertex of a geometry. Colors are interpolated along the face just like any other vertex attribute.
 
 <App client:visible />
-
-<Tabs items={tabItems} />
+<Tabs directory="./shaders/vertex-colors" />
 
 ## Usage
 

@@ -3,15 +3,14 @@ description: An explanation of the concept of "Level Of Detail" and how it can b
 title: Level Of Detail
 ---
 
-import App from "@components/techniques/level-of-detail/app.svelte";
-import Tabs from "@components/tabs.astro";
-import tabItems from "@components/techniques/level-of-detail/tabItems";
+import App from "@components/content/techniques/level-of-detail/app.svelte";
+import Tabs from "@components/codeTabs.astro";
 import { Steps } from "@astrojs/starlight/components";
 
 Level of Detail or LOD is a performance-improving technique where the complexity of an object's geometry decreases relative to its distance from the camera. Objects that are further away are less complex because finer details will probably go unnoticed to the viewer.
 
 <App client:visible />
-<Tabs items={tabItems} />
+<Tabs directory="./techniques/level-of-detail" />
 
 The performance boost comes from the fact that lower-quality versions of the object take less time to render.
 
