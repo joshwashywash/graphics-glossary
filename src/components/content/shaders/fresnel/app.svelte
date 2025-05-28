@@ -25,6 +25,13 @@
 
 	const scene = new Scene().add(mesh).add(helper);
 
+	const camera = new PerspectiveCamera();
+	camera.position.set(0, 0, 5);
+	camera.lookAt(mesh.position);
+
+	const controls = new OrbitControls(camera);
+	controls.autoRotate = true;
+
 	$effect(() => {
 		return () => {
 			scene.remove(mesh);
@@ -33,15 +40,11 @@
 
 			scene.remove(helper);
 			helper.dispose();
+
+			controls.dispose();
+			controls.domElement = null;
 		};
 	});
-
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 5);
-	camera.lookAt(mesh.position);
-
-	const controls = new OrbitControls(camera);
-	controls.autoRotate = true;
 
 	const setup: Setup = (renderer) => {
 		const width = renderer.domElement.clientWidth;
@@ -61,8 +64,6 @@
 
 		return () => {
 			renderer.setAnimationLoop(null);
-			controls.dispose();
-			controls.domElement = null;
 		};
 	};
 </script>
