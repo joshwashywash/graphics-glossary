@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Size from "@classes/Size.svelte";
 	import fragmentShader from "./fragment.glsl?raw";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
@@ -42,19 +43,16 @@
 		};
 	});
 
-	let clientWidth = $state<number>();
-	const width = $derived(clientWidth ?? 1);
-	const height = $derived(0.5 * width);
-	const aspect = $derived(width / height);
+	const size = new Size();
 
 	$effect(() => {
-		camera.aspect = aspect;
+		camera.aspect = size.ratio;
 		camera.updateProjectionMatrix();
 	});
 
 	const setup: Setup = (renderer) => {
 		$effect(() => {
-			renderer.setSize(width, height);
+			renderer.setSize(size.width, size.height);
 		});
 
 		controls.connect(renderer.domElement);
@@ -73,7 +71,7 @@
 
 <div
 	class="relative"
-	bind:clientWidth
+	bind:clientWidth={size.width}
 >
 	<fieldset class="absolute left-2 space-x-2">
 		<label>

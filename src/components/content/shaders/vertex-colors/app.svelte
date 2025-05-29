@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Size from "@classes/Size.svelte";
 	import createColorAttribute from "./createColorAttribute";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
@@ -46,19 +47,16 @@
 	const angleY = (1 / 256) * Math.PI;
 	const angleZ = angleY / 3;
 
-	let clientWidth = $state<number>();
-	const width = $derived(clientWidth ?? 1);
-	const height = $derived(0.5 * width);
-	const aspect = $derived(width / height);
+	const size = new Size();
 
 	$effect(() => {
-		camera.aspect = aspect;
+		camera.aspect = size.ratio;
 		camera.updateProjectionMatrix();
 	});
 
 	const setup: Setup = (renderer) => {
 		$effect(() => {
-			renderer.setSize(width, height);
+			renderer.setSize(size.width, size.height);
 		});
 
 		renderer.setAnimationLoop(() => {
@@ -72,6 +70,6 @@
 	};
 </script>
 
-<div bind:clientWidth>
+<div bind:clientWidth={size.width}>
 	<canvas {@attach renderer(setup)}></canvas>
 </div>

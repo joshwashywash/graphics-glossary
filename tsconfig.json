@@ -14,8 +14,8 @@
 			"@components/*": [
 				"./src/components/*"
 			],
-			"@functions/*": [
-				"./src/functions/*"
+			"@classes/*": [
+				"./src/classes/*"
 			],
 			"@types": [
 				"./src/types"
