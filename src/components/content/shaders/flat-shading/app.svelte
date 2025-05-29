@@ -32,15 +32,20 @@
 
 	const angle = (1 / 256) * Math.PI;
 
-	const setup: Setup = (renderer) => {
-		const width = renderer.domElement.clientWidth;
-		const height = 0.5 * width;
+	let clientWidth = $state<number>();
+	const width = $derived(clientWidth ?? 1);
+	const height = $derived(0.5 * width);
+	const aspect = $derived(width / height);
 
-		renderer.setSize(width, height);
-
-		camera.aspect = width / height;
+	$effect(() => {
+		camera.aspect = aspect;
 		camera.updateProjectionMatrix();
-		camera.matrixAutoUpdate = false;
+	});
+
+	const setup: Setup = (renderer) => {
+		$effect(() => {
+			renderer.setSize(width, height);
+		});
 
 		renderer.setAnimationLoop(() => {
 			renderer.render(scene, camera);
@@ -53,7 +58,10 @@
 	};
 </script>
 
-<div class="relative">
+<div
+	class="relative"
+	bind:clientWidth
+>
 	<fieldset class="absolute left-2">
 		<label>
 			<input

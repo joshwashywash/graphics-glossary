@@ -27,7 +27,6 @@
 
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 5);
-	camera.lookAt(mesh.position);
 
 	const controls = new OrbitControls(camera);
 	controls.autoRotate = true;
@@ -40,20 +39,23 @@
 
 			scene.remove(helper);
 			helper.dispose();
-
-			controls.dispose();
-			controls.domElement = null;
 		};
 	});
 
-	const setup: Setup = (renderer) => {
-		const width = renderer.domElement.clientWidth;
-		const height = 0.5 * width;
+	let clientWidth = $state<number>();
+	const width = $derived(clientWidth ?? 1);
+	const height = $derived(0.5 * width);
+	const aspect = $derived(width / height);
 
-		renderer.setSize(width, height);
-
-		camera.aspect = width / height;
+	$effect(() => {
+		camera.aspect = aspect;
 		camera.updateProjectionMatrix();
+	});
+
+	const setup: Setup = (renderer) => {
+		$effect(() => {
+			renderer.setSize(width, height);
+		});
 
 		controls.connect(renderer.domElement);
 
@@ -64,11 +66,15 @@
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			controls.disconnect();
 		};
 	};
 </script>
 
-<div class="relative">
+<div
+	class="relative"
+	bind:clientWidth
+>
 	<fieldset class="absolute left-2 space-x-2">
 		<label>
 			<input
@@ -95,9 +101,5 @@
 			auto-rotate camera
 		</label>
 	</fieldset>
-	<canvas
-		class="w-full"
-		{@attach renderer(setup)}
-	>
-	</canvas>
+	<canvas {@attach renderer(setup)}> </canvas>
 </div>
