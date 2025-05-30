@@ -1,7 +1,7 @@
 import type { Attachment } from "svelte/attachments";
 import { WebGLRenderer } from "three";
 
-export type Setup = (renderer: WebGLRenderer) => () => void;
+export type Setup = (renderer: WebGLRenderer) => (() => void) | void;
 
 /**
  * @param setup a function that will be called with the created renderer. it may return a 'cleanup' function that will be called when the canvas is removed
@@ -16,7 +16,7 @@ const renderer = (setup: Setup): Attachment<HTMLCanvasElement> => {
 		const cleanup = setup(renderer);
 
 		return () => {
-			cleanup();
+			cleanup?.();
 			renderer.dispose();
 		};
 	};

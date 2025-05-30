@@ -99,5 +99,5 @@
 			auto-rotate camera
 		</label>
 	</fieldset>
-	<canvas {@attach renderer(setup)}> </canvas>
+	<canvas {@attach renderer(setup)}></canvas>
 </div>
