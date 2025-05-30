@@ -1,11 +1,11 @@
 export default class {
 	width: number;
-	ratio: number;
+	aspect: number;
 	height: number;
 
-	constructor({ ratio = 16 / 9, width = 1 } = {}) {
-		this.ratio = $state(ratio);
+	constructor({ aspect = 16 / 9, width = 1 } = {}) {
+		this.aspect = $state(aspect);
 		this.width = $state(width);
-		this.height = $derived(this.width / this.ratio);
+		this.height = $derived(this.width / this.aspect);
 	}
 }

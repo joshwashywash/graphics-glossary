@@ -46,7 +46,7 @@
 	const size = new Size();
 
 	$effect(() => {
-		camera.aspect = size.ratio;
+		camera.aspect = size.aspect;
 		camera.updateProjectionMatrix();
 	});
 
