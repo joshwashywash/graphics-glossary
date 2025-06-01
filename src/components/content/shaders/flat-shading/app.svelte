@@ -9,7 +9,6 @@
 
 	const camera = new AspectCamera(() => size.aspect);
 	camera.position.set(0, 0, 3);
-	camera.lookAt(mesh.position);
 
 	const material = new MeshNormalMaterial({
 		flatShading: true,
@@ -17,6 +16,7 @@
 
 	const geometry = new SphereGeometry(1, 16, 8);
 	const mesh = new Mesh(geometry, material);
+	camera.lookAt(mesh.position);
 
 	const scene = new Scene().add(mesh);
 
