@@ -1,15 +1,10 @@
 <script lang="ts">
+	import AspectCamera from "@classes/AspectCamera.svelte";
 	import Size from "@classes/Size.svelte";
 	import createColorAttribute from "./createColorAttribute";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
-	import {
-		BoxGeometry,
-		Mesh,
-		MeshBasicMaterial,
-		PerspectiveCamera,
-		Scene,
-	} from "three";
+	import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from "three";
 
 	const geometry = new BoxGeometry();
 	const positionAttribute = geometry.getAttribute("position");
@@ -32,7 +27,9 @@
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
-	const camera = new PerspectiveCamera();
+	const size = new Size();
+
+	const camera = new AspectCamera(() => size.aspect);
 	camera.position.set(0, 0, 3);
 	camera.lookAt(mesh.position);
 
@@ -46,13 +43,6 @@
 
 	const angleY = (1 / 256) * Math.PI;
 	const angleZ = angleY / 3;
-
-	const size = new Size();
-
-	$effect(() => {
-		camera.aspect = size.aspect;
-		camera.updateProjectionMatrix();
-	});
 
 	const setup: Setup = (renderer) => {
 		$effect(() => {

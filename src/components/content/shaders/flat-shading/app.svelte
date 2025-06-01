@@ -1,14 +1,15 @@
 <script lang="ts">
+	import AspectCamera from "@classes/AspectCamera.svelte";
 	import Size from "@classes/Size.svelte";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
-	import {
-		Mesh,
-		MeshNormalMaterial,
-		PerspectiveCamera,
-		Scene,
-		SphereGeometry,
-	} from "three";
+	import { Mesh, MeshNormalMaterial, Scene, SphereGeometry } from "three";
+
+	const size = new Size();
+
+	const camera = new AspectCamera(() => size.aspect);
+	camera.position.set(0, 0, 3);
+	camera.lookAt(mesh.position);
 
 	const material = new MeshNormalMaterial({
 		flatShading: true,
@@ -19,10 +20,6 @@
 
 	const scene = new Scene().add(mesh);
 
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 3);
-	camera.lookAt(mesh.position);
-
 	$effect(() => {
 		return () => {
 			scene.remove(mesh);
@@ -32,13 +29,6 @@
 	});
 
 	const angle = (1 / 256) * Math.PI;
-
-	const size = new Size();
-
-	$effect(() => {
-		camera.aspect = size.aspect;
-		camera.updateProjectionMatrix();
-	});
 
 	const setup: Setup = (renderer) => {
 		$effect(() => {

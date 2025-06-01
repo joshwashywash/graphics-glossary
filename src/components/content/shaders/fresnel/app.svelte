@@ -1,16 +1,11 @@
 <script lang="ts">
+	import AspectCamera from "@classes/AspectCamera.svelte";
 	import Size from "@classes/Size.svelte";
 	import fragmentShader from "./fragment.glsl?raw";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
 	import vertexShader from "./vertex.glsl?raw";
-	import {
-		Mesh,
-		PerspectiveCamera,
-		Scene,
-		ShaderMaterial,
-		TorusGeometry,
-	} from "three";
+	import { Mesh, Scene, ShaderMaterial, TorusGeometry } from "three";
 	import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 	import { VertexNormalsHelper } from "three/addons/helpers/VertexNormalsHelper.js";
 
@@ -20,14 +15,16 @@
 		vertexShader,
 	});
 
+	const size = new Size();
+
+	const camera = new AspectCamera(() => size.aspect);
+	camera.position.set(0, 0, 5);
+
 	const mesh = new Mesh(geometry, material);
 	const helper = new VertexNormalsHelper(mesh, 0.1, 0xff_ff_ff);
 	helper.visible = false;
 
 	const scene = new Scene().add(mesh).add(helper);
-
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 5);
 
 	const controls = new OrbitControls(camera);
 	controls.autoRotate = true;
@@ -41,13 +38,6 @@
 			scene.remove(helper);
 			helper.dispose();
 		};
-	});
-
-	const size = new Size();
-
-	$effect(() => {
-		camera.aspect = size.aspect;
-		camera.updateProjectionMatrix();
 	});
 
 	const setup: Setup = (renderer) => {

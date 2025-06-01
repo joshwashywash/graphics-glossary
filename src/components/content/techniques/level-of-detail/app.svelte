@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AspectCamera from "@classes/AspectCamera.svelte";
 	import Size from "@classes/Size.svelte";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
@@ -7,15 +8,20 @@
 		LOD,
 		Mesh,
 		MeshNormalMaterial,
-		PerspectiveCamera,
 		Scene,
 	} from "three";
+
+	const size = new Size();
+
+	const z = 5;
+
+	const camera = new AspectCamera(() => size.aspect);
+	camera.position.set(0, 0, 1 + z);
 
 	const material = new MeshNormalMaterial({
 		wireframe: true,
 	});
 
-	const z = 5;
 	const offset = 3;
 	const distances = [z - offset, offset, z + offset];
 
@@ -41,16 +47,6 @@
 			material.dispose();
 			scene.remove(lod);
 		};
-	});
-
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 1 + z);
-
-	const size = new Size();
-
-	$effect(() => {
-		camera.aspect = size.aspect;
-		camera.updateProjectionMatrix();
 	});
 
 	const setup: Setup = (renderer) => {
