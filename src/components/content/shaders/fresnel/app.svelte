@@ -20,14 +20,14 @@
 	const camera = new AspectCamera(() => size.aspect);
 	camera.position.set(0, 0, 5);
 
+	const controls = new OrbitControls(camera);
+	controls.autoRotate = true;
+
 	const mesh = new Mesh(geometry, material);
 	const helper = new VertexNormalsHelper(mesh, 0.1, 0xff_ff_ff);
 	helper.visible = false;
 
 	const scene = new Scene().add(mesh).add(helper);
-
-	const controls = new OrbitControls(camera);
-	controls.autoRotate = true;
 
 	$effect(() => {
 		return () => {
@@ -54,7 +54,7 @@
 
 		return () => {
 			renderer.setAnimationLoop(null);
-			controls.disconnect();
+			controls.dispose();
 		};
 	};
 </script>
@@ -86,7 +86,7 @@
 					}
 				}
 			/>
-			auto-rotate camera
+			auto-rotate
 		</label>
 	</fieldset>
 	<canvas {@attach renderer(setup)}></canvas>
