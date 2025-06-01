@@ -4,11 +4,15 @@
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
 	import { Mesh, MeshNormalMaterial, Scene, SphereGeometry } from "three";
+	import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 	const size = new Size();
 
 	const camera = new AspectCamera(() => size.aspect);
 	camera.position.set(0, 0, 3);
+
+	const controls = new OrbitControls(camera);
+	controls.autoRotate = true;
 
 	const material = new MeshNormalMaterial({
 		flatShading: true,
@@ -28,20 +32,21 @@
 		};
 	});
 
-	const angle = (1 / 256) * Math.PI;
-
 	const setup: Setup = (renderer) => {
 		$effect(() => {
 			renderer.setSize(size.width, size.height);
 		});
 
+		controls.connect(renderer.domElement);
+
 		renderer.setAnimationLoop(() => {
+			controls.update();
 			renderer.render(scene, camera);
-			mesh.rotateY(angle);
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			controls.dispose();
 		};
 	};
 </script>
@@ -63,6 +68,18 @@
 				}
 			/>
 			use flat shading
+		</label>
+		<label>
+			<input
+				type="checkbox"
+				bind:checked={
+					() => controls.autoRotate,
+					(value) => {
+						controls.autoRotate = value;
+					}
+				}
+			/>
+			auto-rotate
 		</label>
 	</fieldset>
 	<canvas
