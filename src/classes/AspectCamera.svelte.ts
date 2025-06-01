@@ -1,7 +1,7 @@
 import { PerspectiveCamera } from "three";
 
 /**
- * a `PerspectiveCamera` with an effect that will update its aspect ratio according to `getAspect`
+ * a `PerspectiveCamera` with a constructor effect that will update its aspect ratio according to `getAspect`
  *
  * @example
  *
