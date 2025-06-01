@@ -8,6 +8,8 @@ import svelte from "@astrojs/svelte";
 
 import sitemap from "@astrojs/sitemap";
 
+const site = "https://graphics-glossary.vercel.app";
+
 // https://astro.build/config
 export default defineConfig({
 	integrations: [
@@ -42,7 +44,7 @@ export default defineConfig({
 		svelte(),
 		sitemap(),
 	],
-
+	site,
 	vite: {
 		plugins: [tailwindcss()],
 	},
