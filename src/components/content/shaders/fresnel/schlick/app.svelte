@@ -5,7 +5,14 @@
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
 	import vertexShader from "./vertex.glsl?raw";
-	import { Color, Mesh, Scene, ShaderMaterial, TorusGeometry } from "three";
+	import { Checkbox, Color, Element, Pane, Slider } from "svelte-tweakpane-ui";
+	import {
+		Color as ThreeColor,
+		Mesh,
+		Scene,
+		ShaderMaterial,
+		TorusGeometry,
+	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	const size = new Size();
@@ -16,10 +23,10 @@
 		vertexShader,
 		uniforms: {
 			uBaseColor: {
-				value: new Color(0, 0, 0),
+				value: new ThreeColor(0, 0, 0),
 			},
 			uFresnelColor: {
-				value: new Color(1, 1, 1),
+				value: new ThreeColor(1, 1, 1),
 			},
 			uPower: {
 				value: 1,
@@ -62,73 +69,50 @@
 
 <div
 	bind:clientWidth={size.width}
-	class="relative"
+	class="not-content"
 >
-	<fieldset class="absolute left-2 space-x-2">
-		<label>
-			<input
-				type="checkbox"
-				bind:checked={
-					() => controls.autoRotate,
-					(value) => {
-						controls.autoRotate = value;
-					}
-				}
-			/>
-			auto-rotate
-		</label>
-		<label>
-			base color
-			<input
-				type="color"
-				bind:value={
-					() => "#" + material.uniforms.uBaseColor.value.getHexString(),
-					(value) => {
-						material.uniforms.uBaseColor.value.set(value);
-					}
-				}
-				step={0.1}
-				max={2}
-				min={0}
-			/>
-		</label>
-		<label>
-			fresnel color
-			<input
-				type="color"
-				bind:value={
-					() => "#" + material.uniforms.uFresnelColor.value.getHexString(),
-					(value) => {
-						material.uniforms.uFresnelColor.value.set(value);
-					}
-				}
-				step={0.1}
-				max={2}
-				min={0}
-			/>
-		</label>
-		<label>
-			power
-			<input
-				type="number"
-				bind:value={
-					() => material.uniforms.uPower.value,
-					(value) => {
-						material.uniforms.uPower.value = value;
-					}
-				}
-				step={0.1}
-				max={2}
-				min={0}
-			/>
-		</label>
-	</fieldset>
-	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			setup,
-		)}
+	<Pane
+		position="inline"
+		title="schlick fresnel"
 	>
-	</canvas>
+		<Element>
+			<canvas
+				{@attach renderer(
+					() => size.width,
+					() => size.height,
+					setup,
+				)}
+			>
+			</canvas>
+		</Element>
+		<Checkbox
+			bind:value={controls.autoRotate}
+			label="auto rotate"
+		/>
+		<Color
+			bind:value={
+				() => "#" + material.uniforms.uBaseColor.value.getHexString(),
+				(value) => {
+					material.uniforms.uBaseColor.value.set(value);
+				}
+			}
+			label="base color"
+		/>
+		<Color
+			bind:value={
+				() => "#" + material.uniforms.uFresnelColor.value.getHexString(),
+				(value) => {
+					material.uniforms.uFresnelColor.value.set(value);
+				}
+			}
+			label="base color"
+		/>
+		<Slider
+			bind:value={material.uniforms.uPower.value}
+			label="power"
+			min={0}
+			max={5}
+			step={0.1}
+		/>
+	</Pane>
 </div>

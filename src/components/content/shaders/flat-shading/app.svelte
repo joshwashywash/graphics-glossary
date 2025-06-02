@@ -3,6 +3,7 @@
 	import Size from "@classes/Size.svelte";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
+	import { Checkbox, Element, Pane } from "svelte-tweakpane-ui";
 	import { Mesh, MeshNormalMaterial, Scene, SphereGeometry } from "three";
 	import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
@@ -48,42 +49,36 @@
 </script>
 
 <div
-	class="relative"
 	bind:clientWidth={size.width}
+	class="not-content"
 >
-	<fieldset class="absolute left-2">
-		<label>
-			<input
-				type="checkbox"
-				bind:checked={
-					() => material.flatShading,
-					(value) => {
-						material.flatShading = value;
-						material.needsUpdate = true;
-					}
-				}
-			/>
-			use flat shading
-		</label>
-		<label>
-			<input
-				type="checkbox"
-				bind:checked={
-					() => controls.autoRotate,
-					(value) => {
-						controls.autoRotate = value;
-					}
-				}
-			/>
-			auto-rotate
-		</label>
-	</fieldset>
-	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			setup,
-		)}
+	<Pane
+		position="inline"
+		title="flat-shading"
 	>
-	</canvas>
+		<Element>
+			<canvas
+				{@attach renderer(
+					() => size.width,
+					() => size.height,
+					setup,
+				)}
+			>
+			</canvas>
+		</Element>
+		<Checkbox
+			bind:value={
+				() => material.flatShading,
+				(value) => {
+					material.flatShading = value;
+					material.needsUpdate = true;
+				}
+			}
+			label="flat shading"
+		/>
+		<Checkbox
+			bind:value={controls.autoRotate}
+			label="auto-rotate"
+		/>
+	</Pane>
 </div>

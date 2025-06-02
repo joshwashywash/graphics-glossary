@@ -5,6 +5,7 @@
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
 	import vertexShader from "./vertex.glsl?raw";
+	import { Checkbox, Element, Pane } from "svelte-tweakpane-ui";
 	import { Mesh, Scene, ShaderMaterial, TorusGeometry } from "three";
 	import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
@@ -50,29 +51,26 @@
 </script>
 
 <div
+	class="not-content"
 	bind:clientWidth={size.width}
-	class="relative"
 >
-	<fieldset class="absolute left-2 space-x-2">
-		<label>
-			<input
-				type="checkbox"
-				bind:checked={
-					() => controls.autoRotate,
-					(value) => {
-						controls.autoRotate = value;
-					}
-				}
-			/>
-			auto-rotate
-		</label>
-	</fieldset>
-	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			setup,
-		)}
+	<Pane
+		position="inline"
+		title="artistic fresnel"
 	>
-	</canvas>
+		<Element>
+			<canvas
+				{@attach renderer(
+					() => size.width,
+					() => size.height,
+					setup,
+				)}
+			>
+			</canvas>
+		</Element>
+		<Checkbox
+			bind:value={controls.autoRotate}
+			label="auto rotate"
+		/>
+	</Pane>
 </div>

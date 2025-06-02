@@ -5,6 +5,7 @@
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
 	import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from "three";
+	import { Element, Pane } from "svelte-tweakpane-ui";
 
 	const geometry = new BoxGeometry();
 	const positionAttribute = geometry.getAttribute("position");
@@ -56,12 +57,23 @@
 	};
 </script>
 
-<div bind:clientWidth={size.width}>
-	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			setup,
-		)}
-	></canvas>
+<div
+	bind:clientWidth={size.width}
+	class="not-content"
+>
+	<Pane
+		position="inline"
+		title="vertex colors"
+	>
+		<Element>
+			<canvas
+				{@attach renderer(
+					() => size.width,
+					() => size.height,
+					setup,
+				)}
+			>
+			</canvas>
+		</Element>
+	</Pane>
 </div>

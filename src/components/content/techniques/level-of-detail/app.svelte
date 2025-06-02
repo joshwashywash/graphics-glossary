@@ -3,6 +3,7 @@
 	import Size from "@classes/Size.svelte";
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
+	import { Element, Pane } from "svelte-tweakpane-ui";
 	import {
 		IcosahedronGeometry,
 		LOD,
@@ -64,12 +65,23 @@
 	};
 </script>
 
-<div bind:clientWidth={size.width}>
-	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			setup,
-		)}
-	></canvas>
+<div
+	bind:clientWidth={size.width}
+	class="not-content"
+>
+	<Pane
+		position="inline"
+		title="level of detail"
+	>
+		<Element>
+			<canvas
+				{@attach renderer(
+					() => size.width,
+					() => size.height,
+					setup,
+				)}
+			>
+			</canvas>
+		</Element>
+	</Pane>
 </div>
