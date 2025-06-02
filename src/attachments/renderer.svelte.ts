@@ -6,7 +6,7 @@ export type Setup = (renderer: WebGLRenderer) => (() => void) | void;
 /**
  * @param setup a function that will be called with the created renderer. it may return a 'cleanup' function that will be called when the canvas is removed
  */
-const renderer = (setup?: Setup): Attachment<HTMLCanvasElement> => {
+export default (setup?: Setup): Attachment<HTMLCanvasElement> => {
 	return (canvas) => {
 		const renderer = new WebGLRenderer({
 			antialias: true,
@@ -20,5 +20,3 @@ const renderer = (setup?: Setup): Attachment<HTMLCanvasElement> => {
 		return renderer.dispose;
 	};
 };
-
-export default renderer;
