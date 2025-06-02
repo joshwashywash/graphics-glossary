@@ -45,10 +45,6 @@
 	const angleZ = angleY / 3;
 
 	const setup: Setup = (renderer) => {
-		$effect(() => {
-			renderer.setSize(size.width, size.height);
-		});
-
 		renderer.setAnimationLoop(() => {
 			renderer.render(scene, camera);
 			mesh.rotateY(angleY).rotateZ(angleZ);
@@ -61,5 +57,11 @@
 </script>
 
 <div bind:clientWidth={size.width}>
-	<canvas {@attach renderer(setup)}></canvas>
+	<canvas
+		{@attach renderer(
+			() => size.width,
+			() => size.height,
+			setup,
+		)}
+	></canvas>
 </div>

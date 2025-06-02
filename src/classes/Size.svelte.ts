@@ -1,4 +1,4 @@
-export default class {
+export default class Size {
 	width: number;
 	aspect: number;
 	height: number;

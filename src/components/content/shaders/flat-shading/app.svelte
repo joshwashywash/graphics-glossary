@@ -33,10 +33,6 @@
 	});
 
 	const setup: Setup = (renderer) => {
-		$effect(() => {
-			renderer.setSize(size.width, size.height);
-		});
-
 		controls.connect(renderer.domElement);
 
 		renderer.setAnimationLoop(() => {
@@ -82,5 +78,12 @@
 			auto-rotate
 		</label>
 	</fieldset>
-	<canvas {@attach renderer(setup)}> </canvas>
+	<canvas
+		{@attach renderer(
+			() => size.width,
+			() => size.height,
+			setup,
+		)}
+	>
+	</canvas>
 </div>

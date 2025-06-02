@@ -10,7 +10,7 @@ import { PerspectiveCamera } from "three";
  * const camera = new AspectCamera(() => aspect);
  * ```
  */
-export default class extends PerspectiveCamera {
+export default class AspectCamera extends PerspectiveCamera {
 	constructor(getAspect: () => number) {
 		super();
 		$effect(() => {
