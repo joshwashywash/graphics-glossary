@@ -13,7 +13,7 @@ export type Setup = (renderer: WebGLRenderer) => (() => void) | void;
  *
  * after the renderer is created, a *set size* child effect is ran to set the size of the renderer. this effect will update the css styles of the renderer's canvas.
  *
- * note that the *setup* effect and the *setSize* effect are ran in **different** child effects
+ * note that the *setup* and *setSize* effects are ran in **different** child effects
  */
 const renderer = (
 	getWidth: () => number,
