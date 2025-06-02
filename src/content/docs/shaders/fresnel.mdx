@@ -3,7 +3,8 @@ description: An explanation of the fresnel effect as it applies to 3D graphics
 title: Fresnel
 ---
 
-import App from "@components/content/shaders/fresnel/app.svelte";
+import ArtisticApp from "@components/content/shaders/fresnel/artistic/app.svelte";
+import SchlickApp from "@components/content/shaders/fresnel/schlick/app.svelte";
 import Tabs from "@components/codeTabs.astro";
 import { Aside } from "@astrojs/starlight/components";
 
@@ -14,21 +15,34 @@ import { Aside } from "@astrojs/starlight/components";
 	this article is currently a work-in-progress
 </Aside>
 
-Surfaces have more [specular reflection](https://en.wikipedia.org/wiki/Specular_reflection) when viewed at near-grazing angles. This phenomenon is often called the fresnel effect. It is typically used as one of the contributing factors for the specular reflection term in physically-based renderinga . The fresnel factor is often approximated using [Schlick's approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation).
+In most physically-based rendering models surfaces will have more [specular reflection](https://en.wikipedia.org/wiki/Specular_reflection) when viewed at near-grazing angles. This phenomenon is typically called the fresnel effect. The fresnel factor is often approximated using [Schlick's approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation).
 
-<Aside
-	type="caution"
-	title="under construction"
->
-	todo: add an example that uses schlick approximation. maybe highlight which
-	three.js materials use fresnel
-</Aside>
+## Usage
 
-Fresnel shaders are often used for artistic effect. For example, it can be used to highlight an interactive object in a video game.
+Fresnel shaders have two main uses - in physically-based rendering and for artistic effect.
 
-<App client:visible />
-<Tabs directory="./shaders/fresnel" />
+### In Physically-Based Rendering
 
-This fragment shader is an even simpler than Schlick's approximation. It uses the dot product of the normal vector of the surface and the direction towards the camera. The fresnel factor will be greatest when the surface normal is perpendicular to the direction vector. This causes an outline effect as edges of the surface curve away from the camera's view.
+Many rendering models take into consideration the fresnel effect when calculating the specular reflection for surfaces. Three.js is no different and uses an approximation of the fresnel factor in a few of its materials, although at the time of this writing, it appears that it uses a more [optimized approximation](https://github.com/mrdoob/three.js/blob/19816c7ec422efde9f21afbabb504236da3a3325/src/renderers/shaders/ShaderChunk/common.glsl.js#L112-L137).
+
+Here is a custom shader example that uses the Schlick approximation.
+
+<SchlickApp client:visible />
+<Tabs directory="./shaders/fresnel/schlick" />
+
+### For Artistic Effect
+
+Fresnel shaders are often used for artistic effect, for example to highlight interactive objects.
+
+<ArtisticApp client:visible />
+<Tabs directory="./shaders/fresnel/artistic" />
+
+This fragment shader is even simpler than Schlick's approximation. It uses the dot product of the normal vector of the surface and the direction towards the camera. The fresnel factor will be greatest when the surface normal is perpendicular to the direction vector. This causes an outline effect as edges of the surface curve away from the camera's view.
 
 The effect works best with curvy surfaces because the normals are more continuous over the surface's edges.
+
+## Resources
+
+- [three.js materials documentation](https://threejs.org/manual/#en/materials)
+- [Schlick Approximation original paper](https://web.archive.org/web/20200510114532/http://cs.virginia.edu/~jdl/bib/appearance/analytic%20models/schlick94b.pdf)
+- [Acerola's video on Disney's BRDF](https://www.youtube.com/watch?v=KkOkx0FiHDA)

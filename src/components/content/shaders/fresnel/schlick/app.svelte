@@ -5,17 +5,27 @@
 	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
 	import vertexShader from "./vertex.glsl?raw";
-	import { Mesh, Scene, ShaderMaterial, TorusGeometry } from "three";
-	import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-	import { VertexNormalsHelper } from "three/addons/helpers/VertexNormalsHelper.js";
+	import { Color, Mesh, Scene, ShaderMaterial, TorusGeometry } from "three";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+	const size = new Size();
 
 	const geometry = new TorusGeometry();
 	const material = new ShaderMaterial({
 		fragmentShader,
 		vertexShader,
+		uniforms: {
+			uBaseColor: {
+				value: new Color(0, 0, 0),
+			},
+			uFresnelColor: {
+				value: new Color(1, 1, 1),
+			},
+			uPower: {
+				value: 1,
+			},
+		},
 	});
-
-	const size = new Size();
 
 	const camera = new AspectCamera(() => size.aspect);
 	camera.position.set(0, 0, 5);
@@ -24,19 +34,14 @@
 	controls.autoRotate = true;
 
 	const mesh = new Mesh(geometry, material);
-	const helper = new VertexNormalsHelper(mesh, 0.1, 0xff_ff_ff);
-	helper.visible = false;
 
-	const scene = new Scene().add(mesh).add(helper);
+	const scene = new Scene().add(mesh);
 
 	$effect(() => {
 		return () => {
 			scene.remove(mesh);
 			geometry.dispose();
 			material.dispose();
-
-			scene.remove(helper);
-			helper.dispose();
 		};
 	});
 
@@ -56,22 +61,10 @@
 </script>
 
 <div
-	class="relative"
 	bind:clientWidth={size.width}
+	class="relative"
 >
 	<fieldset class="absolute left-2 space-x-2">
-		<label>
-			<input
-				type="checkbox"
-				bind:checked={
-					() => helper.visible,
-					(value) => {
-						helper.visible = value;
-					}
-				}
-			/>
-			show vertex normals
-		</label>
 		<label>
 			<input
 				type="checkbox"
@@ -84,6 +77,51 @@
 			/>
 			auto-rotate
 		</label>
+		<label>
+			base color
+			<input
+				type="color"
+				bind:value={
+					() => "#" + material.uniforms.uBaseColor.value.getHexString(),
+					(value) => {
+						material.uniforms.uBaseColor.value.set(value);
+					}
+				}
+				step={0.1}
+				max={2}
+				min={0}
+			/>
+		</label>
+		<label>
+			fresnel color
+			<input
+				type="color"
+				bind:value={
+					() => "#" + material.uniforms.uFresnelColor.value.getHexString(),
+					(value) => {
+						material.uniforms.uFresnelColor.value.set(value);
+					}
+				}
+				step={0.1}
+				max={2}
+				min={0}
+			/>
+		</label>
+		<label>
+			power
+			<input
+				type="number"
+				bind:value={
+					() => material.uniforms.uPower.value,
+					(value) => {
+						material.uniforms.uPower.value = value;
+					}
+				}
+				step={0.1}
+				max={2}
+				min={0}
+			/>
+		</label>
 	</fieldset>
 	<canvas
 		{@attach renderer(
@@ -91,5 +129,6 @@
 			() => size.height,
 			setup,
 		)}
-	></canvas>
+	>
+	</canvas>
 </div>
