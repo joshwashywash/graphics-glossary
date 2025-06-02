@@ -23,7 +23,9 @@ Fresnel shaders have two main uses - in physically-based rendering and for artis
 
 ### In Physically-Based Rendering
 
-Many rendering models take into consideration the fresnel effect when calculating the specular reflection for surfaces. Three.js is no different and uses an approximation of the fresnel factor in a few of its materials, although at the time of this writing, it appears that it uses a more [optimized approximation](https://github.com/mrdoob/three.js/blob/19816c7ec422efde9f21afbabb504236da3a3325/src/renderers/shaders/ShaderChunk/common.glsl.js#L112-L137).
+Many rendering models take into consideration the fresnel effect when calculating the specular reflection for surfaces. Three.js is no different and uses an approximation of the fresnel factor in a few of its materials, although, at the time of this writing, it appears that it uses a more [optimized approximation](https://github.com/mrdoob/three.js/blob/19816c7ec422efde9f21afbabb504236da3a3325/src/renderers/shaders/ShaderChunk/common.glsl.js#L112-L137).
+
+Typically the fresnel factor is combined with other terms in BDRFs to produce the final color.
 
 Here is a custom shader example that uses the Schlick approximation.
 
