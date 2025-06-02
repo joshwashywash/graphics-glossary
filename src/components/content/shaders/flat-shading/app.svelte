@@ -82,9 +82,5 @@
 			auto-rotate
 		</label>
 	</fieldset>
-	<canvas
-		class="w-full"
-		{@attach renderer(setup)}
-	>
-	</canvas>
+	<canvas {@attach renderer(setup)}> </canvas>
 </div>
