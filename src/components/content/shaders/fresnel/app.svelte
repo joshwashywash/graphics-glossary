@@ -77,7 +77,7 @@
 >
 	<Pane
 		position="inline"
-		title="schlick fresnel"
+		title="schlick"
 	>
 		<Element>
 			<canvas
