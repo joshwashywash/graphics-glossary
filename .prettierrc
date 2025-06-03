@@ -1,8 +1,21 @@
 {
+	"importOrderSeparation": true,
+	"importOrderSortSpecifiers": true,
+	"importOrderGroupNamespaceSpecifiers": true,
+	"importOrder": [
+		"^[./]",
+		"^@attachments/(.*)$",
+		"^@classes/(.*)$",
+		"^@components/(.*)$",
+		"^@functions/(.*)$",
+		"^@types/(.*)$",
+		"<THIRD_PARTY_MODULES>"
+	],
 	"plugins": [
 		"prettier-plugin-astro",
 		"prettier-plugin-svelte",
-		"prettier-plugin-tailwindcss"
+		"prettier-plugin-tailwindcss",
+		"@trivago/prettier-plugin-sort-imports"
 	],
 	"overrides": [
 		{

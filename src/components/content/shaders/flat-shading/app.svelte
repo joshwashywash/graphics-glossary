@@ -1,15 +1,18 @@
 <script lang="ts">
-	import AspectCamera from "@classes/AspectCamera.svelte";
-	import Size from "@classes/Size.svelte";
-	import renderer from "@attachments/renderer.svelte";
+	import { renderer } from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
+
+	import Size from "@classes/Size.svelte";
+
+	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+
 	import { Checkbox, Element, Pane } from "svelte-tweakpane-ui";
 	import { Mesh, MeshNormalMaterial, Scene, SphereGeometry } from "three";
 	import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 	const size = new Size();
 
-	const camera = new AspectCamera(() => size.aspect);
+	const camera = createAspectPerspectiveCamera(() => size.aspect);
 	camera.position.set(0, 0, 3);
 
 	const controls = new OrbitControls(camera);

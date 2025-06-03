@@ -15,7 +15,7 @@ export type Setup = (renderer: WebGLRenderer) => (() => void) | void;
  *
  * note that the *setup* and *setSize* effects are ran in **different** child effects
  */
-const renderer = (
+export const renderer = (
 	getWidth: () => number,
 	getHeight: () => number,
 	setup?: Setup,
@@ -37,5 +37,3 @@ const renderer = (
 		return renderer.dispose;
 	};
 };
-
-export default renderer;

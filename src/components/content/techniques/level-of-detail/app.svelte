@@ -1,8 +1,11 @@
 <script lang="ts">
-	import AspectCamera from "@classes/AspectCamera.svelte";
-	import Size from "@classes/Size.svelte";
-	import renderer from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
+	import { renderer } from "@attachments/renderer.svelte";
+
+	import Size from "@classes/Size.svelte";
+
+	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+
 	import { Element, Pane } from "svelte-tweakpane-ui";
 	import {
 		IcosahedronGeometry,
@@ -14,9 +17,9 @@
 
 	const size = new Size();
 
-	const z = 5;
+	const camera = createAspectPerspectiveCamera(() => size.aspect);
 
-	const camera = new AspectCamera(() => size.aspect);
+	const z = 5;
 	camera.position.set(0, 0, 1 + z);
 
 	const material = new MeshNormalMaterial({

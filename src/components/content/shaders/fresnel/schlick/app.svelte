@@ -1,16 +1,20 @@
 <script lang="ts">
-	import AspectCamera from "@classes/AspectCamera.svelte";
-	import Size from "@classes/Size.svelte";
 	import fragmentShader from "./fragment.glsl?raw";
-	import renderer from "@attachments/renderer.svelte";
-	import type { Setup } from "@attachments/renderer.svelte";
 	import vertexShader from "./vertex.glsl?raw";
+
+	import { renderer } from "@attachments/renderer.svelte";
+	import type { Setup } from "@attachments/renderer.svelte";
+
+	import Size from "@classes/Size.svelte";
+
+	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+
 	import { Checkbox, Color, Element, Pane, Slider } from "svelte-tweakpane-ui";
 	import {
-		Color as ThreeColor,
 		Mesh,
 		Scene,
 		ShaderMaterial,
+		Color as ThreeColor,
 		TorusGeometry,
 	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -34,7 +38,7 @@
 		},
 	});
 
-	const camera = new AspectCamera(() => size.aspect);
+	const camera = createAspectPerspectiveCamera(() => size.aspect);
 	camera.position.set(0, 0, 5);
 
 	const controls = new OrbitControls(camera);

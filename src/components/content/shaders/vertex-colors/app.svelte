@@ -1,11 +1,15 @@
 <script lang="ts">
-	import AspectCamera from "@classes/AspectCamera.svelte";
-	import Size from "@classes/Size.svelte";
 	import createColorAttribute from "./createColorAttribute";
-	import renderer from "@attachments/renderer.svelte";
+
+	import { renderer } from "@attachments/renderer.svelte";
 	import type { Setup } from "@attachments/renderer.svelte";
-	import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from "three";
+
+	import Size from "@classes/Size.svelte";
+
+	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+
 	import { Element, Pane } from "svelte-tweakpane-ui";
+	import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from "three";
 
 	const geometry = new BoxGeometry();
 	const positionAttribute = geometry.getAttribute("position");
@@ -30,7 +34,7 @@
 
 	const size = new Size();
 
-	const camera = new AspectCamera(() => size.aspect);
+	const camera = createAspectPerspectiveCamera(() => size.aspect);
 	camera.position.set(0, 0, 3);
 	camera.lookAt(mesh.position);
 

@@ -11,11 +11,14 @@
 			"@attachments/*": [
 				"./src/attachments/*"
 			],
+			"@classes/*": [
+				"./src/classes/*"
+			],
 			"@components/*": [
 				"./src/components/*"
 			],
-			"@classes/*": [
-				"./src/classes/*"
+			"@functions/*": [
+				"./src/functions/*"
 			],
 			"@types": [
 				"./src/types"
