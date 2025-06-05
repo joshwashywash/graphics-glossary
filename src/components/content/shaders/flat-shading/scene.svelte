@@ -43,11 +43,6 @@
 	camera.position.set(0, 0, 3);
 	camera.lookAt(mesh.position);
 
-	$effect(() => {
-		camera.aspect = size.aspect;
-		camera.updateProjectionMatrix();
-	});
-
 	const controls = new OrbitControls(camera);
 	$effect(() => {
 		controls.autoRotate = autoRotate;
