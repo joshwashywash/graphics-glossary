@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
-
 	import { getAdd } from "@contexts/add";
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
+
+	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+
 	import { IcosahedronGeometry, LOD, Mesh, MeshNormalMaterial } from "three";
 
 	const material = new MeshNormalMaterial({

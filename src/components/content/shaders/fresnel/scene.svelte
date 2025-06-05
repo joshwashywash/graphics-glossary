@@ -2,11 +2,12 @@
 	import fragmentShader from "./fragment.glsl?raw";
 	import vertexShader from "./vertex.glsl?raw";
 
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
-
 	import { getAdd } from "@contexts/add";
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
+
+	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+
 	import { Color, Mesh, ShaderMaterial, TorusGeometry, Uniform } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 

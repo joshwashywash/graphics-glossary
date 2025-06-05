@@ -1,11 +1,12 @@
 <script lang="ts">
 	import createColorAttribute from "./createColorAttribute";
 
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
-
 	import { getAdd } from "@contexts/add";
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
+
+	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+
 	import { BoxGeometry, Mesh, MeshBasicMaterial } from "three";
 
 	const geometry = new BoxGeometry();
