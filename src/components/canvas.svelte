@@ -1,31 +1,17 @@
 <script lang="ts">
 	import Size from "@classes/Size.svelte";
 
-	import { setAdd } from "@contexts/add";
-	import { setScene } from "@contexts/scene";
 	import { setSize } from "@contexts/size";
 	import type { WithRenderer } from "@contexts/withRenderer";
 	import { setWithRenderer } from "@contexts/withRenderer";
+
 	import type { Attachment } from "svelte/attachments";
 	import type { SvelteHTMLElements } from "svelte/elements";
-	import { Scene, WebGLRenderer } from "three";
+	import { WebGLRenderer } from "three";
 
 	let { children, ...restProps }: SvelteHTMLElements["div"] = $props();
 
 	const size = setSize(new Size());
-	const scene = setScene(new Scene());
-
-	setAdd((o) => {
-		scene.add(o);
-
-		$effect(() => {
-			return () => {
-				scene.remove(o);
-			};
-		});
-
-		return scene;
-	});
 
 	let _withRenderer: WithRenderer | null = $state(null);
 

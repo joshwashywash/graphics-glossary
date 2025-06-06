@@ -1,13 +1,13 @@
 <script lang="ts">
 	import createColorAttribute from "./createColorAttribute";
 
-	import { getAdd } from "@contexts/add";
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
 
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
 
-	import { BoxGeometry, Mesh, MeshBasicMaterial } from "three";
+	import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from "three";
 
 	const geometry = new BoxGeometry();
 
@@ -37,9 +37,11 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	const add = getAdd();
+	const scene = new Scene();
 
-	const scene = add(mesh);
+	const add = createAdd(() => scene);
+
+	add(() => mesh);
 
 	const size = getSize();
 

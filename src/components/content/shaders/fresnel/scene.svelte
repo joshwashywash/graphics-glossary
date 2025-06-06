@@ -2,13 +2,20 @@
 	import fragmentShader from "./fragment.glsl?raw";
 	import vertexShader from "./vertex.glsl?raw";
 
-	import { getAdd } from "@contexts/add";
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
 
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
 
-	import { Color, Mesh, ShaderMaterial, TorusGeometry, Uniform } from "three";
+	import {
+		Color,
+		Mesh,
+		Scene,
+		ShaderMaterial,
+		TorusGeometry,
+		Uniform,
+	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let {
@@ -60,9 +67,11 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	const add = getAdd();
+	const scene = new Scene();
 
-	const scene = add(mesh);
+	const add = createAdd(() => scene);
+
+	add(() => mesh);
 
 	const size = getSize();
 

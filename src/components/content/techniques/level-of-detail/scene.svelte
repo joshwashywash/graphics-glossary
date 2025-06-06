@@ -1,11 +1,17 @@
 <script lang="ts">
-	import { getAdd } from "@contexts/add";
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
 
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
 
-	import { IcosahedronGeometry, LOD, Mesh, MeshNormalMaterial } from "three";
+	import {
+		IcosahedronGeometry,
+		LOD,
+		Mesh,
+		MeshNormalMaterial,
+		Scene,
+	} from "three";
 
 	const material = new MeshNormalMaterial({
 		wireframe: true,
@@ -44,13 +50,14 @@
 				mesh.geometry.dispose();
 			}
 			material.dispose();
-			scene.remove(lod);
 		};
 	});
 
-	const add = getAdd();
+	const scene = new Scene();
 
-	const scene = add(lod);
+	const add = createAdd(() => scene);
+
+	add(() => lod);
 
 	const withRenderer = getWithRenderer();
 

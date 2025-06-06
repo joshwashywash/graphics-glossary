@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { getAdd } from "@contexts/add";
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
 
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
 
-	import { Mesh, MeshNormalMaterial, SphereGeometry } from "three";
+	import { Mesh, MeshNormalMaterial, Scene, SphereGeometry } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let {
@@ -33,9 +33,11 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	const add = getAdd();
+	const scene = new Scene();
 
-	const scene = add(mesh);
+	const add = createAdd(() => scene);
+
+	add(() => mesh);
 
 	const size = getSize();
 
