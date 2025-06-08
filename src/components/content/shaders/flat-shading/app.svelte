@@ -23,13 +23,13 @@
 				/>
 			</Canvas>
 		</Element>
+		<Checkbox
+			bind:value={flatShading}
+			label="use flat shading"
+		/>
+		<Checkbox
+			bind:value={autoRotate}
+			label="auto rotate"
+		/>
 	</Pane>
-	<Checkbox
-		bind:value={flatShading}
-		label="use flat shading"
-	/>
-	<Checkbox
-		bind:value={autoRotate}
-		label="auto rotate"
-	/>
 </Example>

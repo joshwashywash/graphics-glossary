@@ -10,13 +10,13 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.4.0",
+    "@astrojs/sitemap": "^3.4.1",
     "@astrojs/starlight": "^0.34.3",
     "@astrojs/starlight-tailwind": "^4.0.1",
     "@astrojs/svelte": "^7.1.0",
     "@tailwindcss/vite": "^4.1.8",
     "@types/three": "^0.176.0",
-    "astro": "^5.8.1",
+    "astro": "^5.9.1",
     "sharp": "^0.34.2",
     "svelte": "^5.33.10",
     "svelte-tweakpane-ui": "^1.5.8",
