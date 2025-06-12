@@ -2,11 +2,6 @@
 	lang="ts"
 	module
 >
-	const offset = (angle: number, count: number) => {
-		angle += +(Math.sign(angle) < 0) * Math.PI;
-		return MathUtils.clamp(Math.floor(count * (angle / Math.PI)), 0, count - 1);
-	};
-
 	const clearContext = (context: OffscreenCanvasRenderingContext2D) => {
 		context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 	};
@@ -88,11 +83,22 @@
 
 	const controls = new OrbitControls(camera);
 
+	let lastOffset: number;
+
 	$effect(() => {
 		const onChange = () => {
 			if (context === null) return;
+			let angle = controls.getAzimuthalAngle();
+			angle += +(Math.sign(angle) < 0) * Math.PI;
+			const offset = MathUtils.clamp(
+				Math.floor(count * (angle / Math.PI)),
+				0,
+				count - 1,
+			);
+			if (offset === lastOffset) return;
+			lastOffset = offset;
 			clearContext(context);
-			const sourceX = width * offset(controls.getAzimuthalAngle(), count);
+			const sourceX = width * offset;
 			context.drawImage(image, sourceX, 0, width, height, 0, 0, width, height);
 			map.needsUpdate = true;
 		};

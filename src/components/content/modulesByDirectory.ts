@@ -5,7 +5,7 @@ const modules = import.meta.glob<string>("./**/*", {
 	query: "?raw",
 });
 
-const modulesByDirectory: Record<
+export const modulesByDirectory: Record<
 	string,
 	{
 		module: () => Promise<string>;
@@ -21,5 +21,3 @@ for (const path in modules) {
 		parsed,
 	});
 }
-
-export default modulesByDirectory;

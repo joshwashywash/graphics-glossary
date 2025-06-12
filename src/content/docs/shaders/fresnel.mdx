@@ -6,17 +6,12 @@ title: Fresnel
 import Tabs from "@components/codeTabs.astro";
 import App from "@components/content/shaders/fresnel/app.svelte";
 
-import { Aside } from "@astrojs/starlight/components";
+import UnderConstruction from "@components/underConstruction.astro";
 
-<Aside
-	type="caution"
-	title="under construction"
->
-	this article is currently a work-in-progress
-</Aside>
+<UnderConstruction />
 
 <App client:visible />
-<Tabs directory="./shaders/fresnel" />
+<Tabs directory="shaders/fresnel" />
 
 In most physically-based rendering models surfaces will have more [specular reflection](https://en.wikipedia.org/wiki/Specular_reflection) when viewed at near-grazing angles. This phenomenon is typically called the fresnel effect. The fresnel factor is often approximated using [Schlick's approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation).
 

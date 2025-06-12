@@ -3,14 +3,15 @@ description: An explanation of flat shading in three.js.
 title: Flat Shading
 ---
 
-import App from "@components/content/shaders/flat-shading/app.svelte";
 import Tabs from "@components/codeTabs.astro";
+import App from "@components/content/shaders/flat-shading/app.svelte";
+
 import { Aside } from "@astrojs/starlight/components";
 
 Shading that assigns a uniform color across the entire face.
 
 <App client:visible />
-<Tabs directory="./shaders/flat-shading" />
+<Tabs directory="shaders/flat-shading" />
 
 ## Usage
 

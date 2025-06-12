@@ -1,6 +1,6 @@
 ---
 import createTabItems from "@functions/createExampleTabs";
-import modulesByDirectory from "@components/content/modules";
+import { modulesByDirectory } from "@components/content/modulesByDirectory";
 import type { CodeExampleTabItem } from "@types";
 import { Code, Tabs, TabItem } from "@astrojs/starlight/components";
 
@@ -10,7 +10,7 @@ type Props = {
 
 const { directory } = Astro.props;
 
-const modules = modulesByDirectory[directory] ?? [];
+const modules = modulesByDirectory["./" + directory] ?? [];
 
 const promises = [];
 
