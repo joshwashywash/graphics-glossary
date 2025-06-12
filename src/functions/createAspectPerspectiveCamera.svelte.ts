@@ -1,7 +1,7 @@
 import { PerspectiveCamera } from "three";
 
 /**
- * returns a `PerspectiveCamera` that when `getAspect` updates, sets the camera's updates the camera's aspect ratio. the update happens in an $effect
+ * returns a `PerspectiveCamera` that when `getAspect` updates, sets the camera's updates the camera's aspect ratio in an effect.
  */
 export const createAspectPerspectiveCamera = (getAspect: () => number) => {
 	const camera = new PerspectiveCamera();

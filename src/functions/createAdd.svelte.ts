@@ -1,15 +1,15 @@
 import type { Object3D, Scene } from "three";
 
-export const createAdd = (getScene: () => Scene) => {
-	return (getObject: () => Object3D) => {
+export const createAdd = (getParent: () => Object3D) => {
+	return (getChild: () => Object3D) => {
 		$effect(() => {
-			const scene = getScene();
-			const o = getObject();
+			const parent = getParent();
+			const child = getChild();
 
-			scene.add(o);
+			parent.add(child);
 
 			return () => {
-				scene.remove(o);
+				parent.remove(child);
 			};
 		});
 	};

@@ -1,12 +1,3 @@
-<script
-	lang="ts"
-	module
->
-	const clearContext = (context: OffscreenCanvasRenderingContext2D) => {
-		context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-	};
-</script>
-
 <script lang="ts">
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
@@ -95,11 +86,23 @@
 				0,
 				count - 1,
 			);
+
 			if (offset === lastOffset) return;
 			lastOffset = offset;
-			clearContext(context);
-			const sourceX = width * offset;
-			context.drawImage(image, sourceX, 0, width, height, 0, 0, width, height);
+
+			context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+			context.drawImage(
+				image,
+				width * offset,
+				0,
+				width,
+				height,
+				0,
+				0,
+				width,
+				height,
+			);
+
 			map.needsUpdate = true;
 		};
 

@@ -20,7 +20,9 @@
 
 	let {
 		autoRotate = true,
+		/** base color for the mesh */
 		baseColor = "#000000",
+		/** color for the fresnel highlights */
 		fresnelColor = "#ffffff",
 		power = 1,
 	}: {
