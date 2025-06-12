@@ -13,7 +13,6 @@
 	const count = 35;
 
 	const width = boo.width / count;
-	const height = 36;
 </script>
 
 <Example>
@@ -22,7 +21,7 @@
 			<Scene
 				{image}
 				{width}
-				{height}
+				height={boo.height}
 				{count}
 			/>
 		{/await}
