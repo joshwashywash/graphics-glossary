@@ -65,8 +65,6 @@
 		};
 	});
 
-	const context = canvas.getContext("2d");
-
 	const size = getSize();
 
 	const camera = createAspectPerspectiveCamera(() => size.aspect);
@@ -75,6 +73,8 @@
 	const controls = new OrbitControls(camera);
 
 	let lastOffset: number;
+
+	const context = canvas.getContext("2d");
 
 	$effect(() => {
 		const onChange = () => {
