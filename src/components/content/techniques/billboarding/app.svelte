@@ -10,9 +10,10 @@
 
 	const promise = loadImage(boo.src, boo.width, boo.height);
 
-	const width = 48;
-	const height = 36;
 	const count = 35;
+
+	const width = boo.width / count;
+	const height = 36;
 </script>
 
 <Example>
