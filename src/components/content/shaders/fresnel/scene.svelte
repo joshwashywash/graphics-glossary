@@ -96,7 +96,7 @@
 
 		return () => {
 			renderer.setAnimationLoop(null);
-			controls.dispose();
+			controls.disconnect();
 		};
 	});
 </script>

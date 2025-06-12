@@ -8,6 +8,9 @@
 		"baseUrl": ".",
 		"module": "esnext",
 		"paths": {
+			"@assets/*": [
+				"./src/assets/*"
+			],
 			"@attachments/*": [
 				"./src/attachments/*"
 			],

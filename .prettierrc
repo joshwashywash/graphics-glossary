@@ -4,6 +4,7 @@
 	"importOrderGroupNamespaceSpecifiers": true,
 	"importOrder": [
 		"^[./]",
+		"^@assets/(.*)$",
 		"^@attachments/(.*)$",
 		"^@classes/(.*)$",
 		"^@components/(.*)$",

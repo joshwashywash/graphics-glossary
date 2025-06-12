@@ -1,12 +1,9 @@
 // @ts-check
-import { defineConfig } from "astro/config";
-import starlight from "@astrojs/starlight";
-
-import tailwindcss from "@tailwindcss/vite";
-
-import svelte from "@astrojs/svelte";
-
 import sitemap from "@astrojs/sitemap";
+import starlight from "@astrojs/starlight";
+import svelte from "@astrojs/svelte";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "astro/config";
 
 const site = "https://graphics-glossary.vercel.app";
 
