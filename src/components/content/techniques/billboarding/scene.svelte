@@ -1,3 +1,11 @@
+<script
+	lang="ts"
+	module
+>
+	const hatZ = new Vector3(0, 0, 1);
+	const v = new Vector3();
+</script>
+
 <script lang="ts">
 	import { getSize } from "@contexts/size";
 	import { getWithRenderer } from "@contexts/withRenderer";
@@ -7,12 +15,12 @@
 
 	import {
 		CanvasTexture,
-		MathUtils,
 		NearestFilter,
 		RepeatWrapping,
 		Scene,
 		Sprite,
 		SpriteMaterial,
+		Vector3,
 	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -33,6 +41,7 @@
 	} = $props();
 
 	const canvas = new OffscreenCanvas(1, 1);
+
 	$effect(() => {
 		canvas.width = width;
 	});
@@ -70,25 +79,25 @@
 	const camera = createAspectPerspectiveCamera(() => size.aspect);
 	camera.position.set(0, 0, 2);
 
-	const controls = new OrbitControls(camera);
-
 	let lastOffset: number;
 
 	const context = canvas.getContext("2d");
 
+	const controls = new OrbitControls(camera);
+
 	$effect(() => {
 		const onChange = () => {
 			if (context === null) return;
-			let angle = controls.getAzimuthalAngle();
-			angle += +(Math.sign(angle) < 0) * Math.PI;
-			const offset = MathUtils.clamp(
-				Math.floor(count * (angle / Math.PI)),
-				0,
-				count - 1,
-			);
+			let angle = hatZ.angleTo(v.subVectors(camera.position, sprite.position));
+			// doing all the math for the cross product to determine orientation reduces to just checking v.x > 0
+			if (v.x > 0) {
+				angle = 2 * Math.PI - angle;
+			}
 
+			const offset = Math.floor(count * (angle / (2 * Math.PI)));
+
+			// only draw when offset has changed
 			if (offset === lastOffset) return;
-			lastOffset = offset;
 
 			context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 			context.drawImage(
@@ -102,6 +111,8 @@
 				width,
 				height,
 			);
+
+			lastOffset = offset;
 
 			map.needsUpdate = true;
 		};
