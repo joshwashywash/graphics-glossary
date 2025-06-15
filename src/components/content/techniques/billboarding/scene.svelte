@@ -3,6 +3,8 @@
 	module
 >
 	const hatZ = new Vector3(0, 0, 1);
+
+	/** just a scratch vector for doing vector math */
 	const v = new Vector3();
 </script>
 
@@ -22,7 +24,6 @@
 		SpriteMaterial,
 		Vector3,
 	} from "three";
-	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let {
 		image,
@@ -82,21 +83,34 @@
 	let lastOffset: number;
 
 	const context = canvas.getContext("2d");
+	const withRenderer = getWithRenderer();
 
-	const controls = new OrbitControls(camera);
+	const speed = 0.0025;
+	const cameraOrbitRadius = 2;
 
-	$effect(() => {
-		const onChange = () => {
+	withRenderer((renderer) => {
+		renderer.setAnimationLoop((time) => {
 			if (context === null) return;
+			renderer.render(scene, camera);
+
+			const t = speed * time;
+			camera.position
+				.set(Math.cos(t), 0, Math.sin(t))
+				.multiplyScalar(cameraOrbitRadius);
+			camera.lookAt(sprite.position);
+
+			// `angleTo` returns the shorter angle between the vectors
 			let angle = hatZ.angleTo(v.subVectors(camera.position, sprite.position));
-			// doing all the math for the cross product to determine orientation reduces to just checking v.x > 0
+
+			// the cross product can help determine which angle to use
+			// doing all the math to determine which angle to use reduces to this
 			if (v.x > 0) {
 				angle = 2 * Math.PI - angle;
 			}
 
 			const offset = Math.floor(count * (angle / (2 * Math.PI)));
 
-			// only draw when offset has changed
+			// only draw when the offset has changed
 			if (offset === lastOffset) return;
 
 			context.clearRect(0, 0, context.canvas.width, context.canvas.height);
@@ -115,28 +129,10 @@
 			lastOffset = offset;
 
 			map.needsUpdate = true;
-		};
-
-		onChange();
-
-		controls.addEventListener("change", onChange);
-
-		return () => {
-			controls.removeEventListener("change", onChange);
-		};
-	});
-
-	const withRenderer = getWithRenderer();
-
-	withRenderer((renderer) => {
-		controls.connect(renderer.domElement);
-		renderer.setAnimationLoop(() => {
-			renderer.render(scene, camera);
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
-			controls.disconnect();
 		};
 	});
 </script>

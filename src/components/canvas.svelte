@@ -19,10 +19,16 @@
 		_withRenderer = withRenderer;
 	});
 
+	let devicePixelRatio = $state(1);
+
 	const renderer: Attachment<HTMLCanvasElement> = (canvas) => {
 		const renderer = new WebGLRenderer({
 			antialias: true,
 			canvas,
+		});
+
+		$effect(() => {
+			renderer.setPixelRatio(devicePixelRatio);
 		});
 
 		$effect(() => {
@@ -36,6 +42,8 @@
 		return renderer.dispose;
 	};
 </script>
+
+<svelte:window bind:devicePixelRatio />
 
 <div
 	bind:clientWidth={size.width}
