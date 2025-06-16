@@ -4,8 +4,6 @@
 	import Canvas from "@components/canvas.svelte";
 	import Example from "@components/example.svelte";
 
-	import { setSize } from "@contexts/size";
-
 	import { createAdd } from "@functions/createAdd.svelte";
 	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
 
@@ -18,7 +16,7 @@
 		Scene,
 	} from "three";
 
-	const size = setSize(new Size());
+	const size = new Size();
 
 	const camera = createAspectPerspectiveCamera(() => size.aspect);
 
@@ -67,6 +65,8 @@
 		<Element>
 			<div bind:clientWidth={size.width}>
 				<Canvas
+					getWidth={() => size.width}
+					getHeight={() => size.height}
 					withRenderer={(renderer) => {
 						renderer.setAnimationLoop((time) => {
 							renderer.render(scene, camera);

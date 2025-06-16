@@ -6,8 +6,10 @@ export const createAutoRotateControls = (
 	getAutoRotate: () => boolean,
 ) => {
 	const controls = new OrbitControls(camera);
+
 	$effect(() => {
 		controls.autoRotate = getAutoRotate();
 	});
+
 	return controls;
 };

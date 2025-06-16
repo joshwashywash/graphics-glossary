@@ -16,8 +16,6 @@
 	import Canvas from "@components/canvas.svelte";
 	import Example from "@components/example.svelte";
 
-	import { setSize } from "@contexts/size";
-
 	import { createAdd } from "@functions/createAdd.svelte";
 	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
 	import { loadImage } from "@functions/loadImage";
@@ -65,7 +63,7 @@
 	const sprite = new Sprite(material);
 	addToScene(() => sprite);
 
-	const size = setSize(new Size());
+	const size = new Size();
 
 	const camera = createAspectPerspectiveCamera(() => size.aspect);
 	camera.position.set(0, 0, 2);
@@ -82,6 +80,8 @@
 	<div bind:clientWidth={size.width}>
 		{#await promise then image}
 			<Canvas
+				getWidth={() => size.width}
+				getHeight={() => size.height}
 				withRenderer={(renderer) => {
 					renderer.setAnimationLoop((time) => {
 						if (context === null) return;
