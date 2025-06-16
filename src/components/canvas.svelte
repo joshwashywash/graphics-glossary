@@ -37,8 +37,7 @@ creates a renderer through an attachment on a
 </script>
 
 <script lang="ts">
-	import type { WithRenderer } from "@contexts/withRenderer";
-
+	import type { WithRenderer } from "@types";
 	import type { Attachment } from "svelte/attachments";
 	import type { SvelteHTMLElements } from "svelte/elements";
 	import { WebGLRenderer } from "three";
