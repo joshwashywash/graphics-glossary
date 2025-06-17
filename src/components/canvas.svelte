@@ -1,8 +1,3 @@
-<!--
-@component
-creates a renderer through an attachment on a
--->
-
 <script
 	lang="ts"
 	module
@@ -10,7 +5,6 @@ creates a renderer through an attachment on a
 	const renderer = (
 		getWidth: () => number,
 		getHeight: () => number,
-		getPixelRatio: () => number,
 		withRenderer?: WithRenderer,
 	): Attachment<HTMLCanvasElement> => {
 		return (canvas) => {
@@ -20,7 +14,7 @@ creates a renderer through an attachment on a
 			});
 
 			$effect(() => {
-				renderer.setPixelRatio(getPixelRatio());
+				renderer.setPixelRatio(devicePixelRatio.current ?? 1);
 			});
 
 			$effect(() => {
@@ -41,6 +35,7 @@ creates a renderer through an attachment on a
 	import type { Attachment } from "svelte/attachments";
 	import type { SvelteHTMLElements } from "svelte/elements";
 	import { WebGLRenderer } from "three";
+	import {devicePixelRatio} from 'svelte/reactivity/window'
 
 	let {
 		children,
@@ -54,14 +49,11 @@ creates a renderer through an attachment on a
 		withRenderer?: WithRenderer;
 	} = $props();
 
-	let devicePixelRatio = $state(1);
 </script>
-
-<svelte:window bind:devicePixelRatio />
 
 <canvas
 	{...restProps}
-	{@attach renderer(getWidth, getHeight, () => devicePixelRatio, withRenderer)}
+	{@attach renderer(getWidth, getHeight, withRenderer)}
 >
 	{@render children?.()}
 </canvas>
