@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { renderer } from "@attachments/renderer.svelte";
+
 	import Size from "@classes/Size.svelte";
 
-	import Canvas from "@components/canvas.svelte";
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
@@ -50,23 +51,26 @@
 	>
 		<Element>
 			<div bind:clientWidth={size.width}>
-				<Canvas
-					getWidth={() => size.width}
-					getHeight={() => size.height}
-					withRenderer={(renderer) => {
-						controls.connect(renderer.domElement);
+				<canvas
+					{@attach renderer(
+						() => size.width,
+						() => size.height,
+						(renderer) => {
+							controls.connect(renderer.domElement);
 
-						renderer.setAnimationLoop(() => {
-							controls.update();
-							renderer.render(scene, camera);
-						});
+							renderer.setAnimationLoop(() => {
+								controls.update();
+								renderer.render(scene, camera);
 
-						return () => {
-							renderer.setAnimationLoop(null);
-							controls.disconnect();
-						};
-					}}
-				/>
+								return () => {
+									renderer.setAnimationLoop(null);
+									controls.disconnect();
+								};
+							});
+						},
+					)}
+				>
+				</canvas>
 			</div>
 		</Element>
 		<Checkbox

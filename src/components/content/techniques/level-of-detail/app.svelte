@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { renderer } from "@attachments/renderer.svelte";
+
 	import Size from "@classes/Size.svelte";
 
-	import Canvas from "@components/canvas.svelte";
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
@@ -64,23 +65,26 @@
 	>
 		<Element>
 			<div bind:clientWidth={size.width}>
-				<Canvas
-					getWidth={() => size.width}
-					getHeight={() => size.height}
-					withRenderer={(renderer) => {
-						renderer.setAnimationLoop((time) => {
-							renderer.render(scene, camera);
+				<canvas
+					{@attach renderer(
+						() => size.width,
+						() => size.height,
+						(renderer) => {
+							renderer.setAnimationLoop((time) => {
+								renderer.render(scene, camera);
 
-							time *= 1 / 1000;
-							const z = (1 + offset) * Math.sin(0.75 * time);
-							lod.position.setZ(z);
-						});
+								time *= 1 / 1000;
+								const z = (1 + offset) * Math.sin(0.75 * time);
+								lod.position.setZ(z);
+							});
 
-						return () => {
-							renderer.setAnimationLoop(null);
-						};
-					}}
-				/>
+							return () => {
+								renderer.setAnimationLoop(null);
+							};
+						},
+					)}
+				>
+				</canvas>
 			</div>
 		</Element>
 	</Pane>

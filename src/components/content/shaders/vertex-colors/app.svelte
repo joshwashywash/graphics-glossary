@@ -1,9 +1,10 @@
 <script lang="ts">
 	import createColorAttribute from "./createColorAttribute";
 
+	import { renderer } from "@attachments/renderer.svelte";
+
 	import Size from "@classes/Size.svelte";
 
-	import Canvas from "@components/canvas.svelte";
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
@@ -60,20 +61,23 @@
 	>
 		<Element>
 			<div bind:clientWidth={size.width}>
-				<Canvas
-					getWidth={() => size.width}
-					getHeight={() => size.height}
-					withRenderer={(renderer) => {
-						renderer.setAnimationLoop(() => {
-							renderer.render(scene, camera);
-							mesh.rotateY(angleY).rotateZ(angleZ);
-						});
+				<canvas
+					{@attach renderer(
+						() => size.width,
+						() => size.height,
+						(renderer) => {
+							renderer.setAnimationLoop(() => {
+								renderer.render(scene, camera);
+								mesh.rotateY(angleY).rotateZ(angleZ);
+							});
 
-						return () => {
-							renderer.setAnimationLoop(null);
-						};
-					}}
-				/>
+							return () => {
+								renderer.setAnimationLoop(null);
+							};
+						},
+					)}
+				>
+				</canvas>
 			</div>
 		</Element>
 	</Pane>

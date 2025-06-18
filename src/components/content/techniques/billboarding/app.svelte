@@ -11,9 +11,10 @@
 <script lang="ts">
 	import boo from "@assets/boo.png";
 
+	import { renderer } from "@attachments/renderer.svelte";
+
 	import Size from "@classes/Size.svelte";
 
-	import Canvas from "@components/canvas.svelte";
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
@@ -79,60 +80,65 @@
 <Example>
 	<div bind:clientWidth={size.width}>
 		{#await promise then image}
-			<Canvas
-				getWidth={() => size.width}
-				getHeight={() => size.height}
-				withRenderer={(renderer) => {
-					renderer.setAnimationLoop((time) => {
-						if (context === null) return;
-						renderer.render(scene, camera);
+			<canvas
+				{@attach renderer(
+					() => size.width,
+					() => size.height,
+					(renderer) => {
+						{
+							renderer.setAnimationLoop((time) => {
+								if (context === null) return;
+								renderer.render(scene, camera);
 
-						const t = speed * time;
-						camera.position
-							.set(Math.cos(t), 0, Math.sin(t))
-							.multiplyScalar(cameraOrbitRadius);
-						camera.lookAt(sprite.position);
+								const t = speed * time;
+								camera.position
+									.set(Math.cos(t), 0, Math.sin(t))
+									.multiplyScalar(cameraOrbitRadius);
+								camera.lookAt(sprite.position);
 
-						// `angleTo` returns the shorter angle between the vectors
-						let angle = hatZ.angleTo(
-							scratch.subVectors(camera.position, sprite.position),
-						);
+								// `angleTo` returns the shorter angle between the vectors
+								let angle = hatZ.angleTo(
+									scratch.subVectors(camera.position, sprite.position),
+								);
 
-						// the cross product can help determine which angle to use
-						// doing all the math to determine which angle to use reduces to this
-						if (scratch.x > 0) {
-							angle = 2 * Math.PI - angle;
+								// the cross product can help determine which angle to use
+								// doing all the math to determine which angle to use reduces to this
+								if (scratch.x > 0) {
+									angle = 2 * Math.PI - angle;
+								}
+
+								const offset = Math.floor(count * (angle / (2 * Math.PI)));
+
+								// only draw when the offset has changed
+								if (offset === lastOffset) return;
+
+								context.clearRect(
+									0,
+									0,
+									context.canvas.width,
+									context.canvas.height,
+								);
+								context.drawImage(
+									image,
+									width * offset,
+									0,
+									width,
+									boo.height,
+									0,
+									0,
+									width,
+									boo.height,
+								);
+
+								lastOffset = offset;
+
+								map.needsUpdate = true;
+							});
 						}
-
-						const offset = Math.floor(count * (angle / (2 * Math.PI)));
-
-						// only draw when the offset has changed
-						if (offset === lastOffset) return;
-
-						context.clearRect(
-							0,
-							0,
-							context.canvas.width,
-							context.canvas.height,
-						);
-						context.drawImage(
-							image,
-							width * offset,
-							0,
-							width,
-							boo.height,
-							0,
-							0,
-							width,
-							boo.height,
-						);
-
-						lastOffset = offset;
-
-						map.needsUpdate = true;
-					});
-				}}
-			/>
+					},
+				)}
+			>
+			</canvas>
 		{/await}
 	</div>
 </Example>
