@@ -1,4 +1,4 @@
-import type { Object3D, Scene } from "three";
+import type { Object3D } from "three";
 
 export const createAdd = (getParent: () => Object3D) => {
 	return (getChild: () => Object3D) => {
