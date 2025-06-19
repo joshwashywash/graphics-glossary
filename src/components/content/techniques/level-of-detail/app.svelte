@@ -6,7 +6,7 @@
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { Element, Pane } from "svelte-tweakpane-ui";
 	import {
@@ -14,12 +14,19 @@
 		LOD,
 		Mesh,
 		MeshNormalMaterial,
+		PerspectiveCamera,
 		Scene,
 	} from "three";
 
 	const size = new Size();
 
-	const camera = createAspectPerspectiveCamera(() => size.aspect);
+	const camera = new PerspectiveCamera();
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+	camera.position.set(0, 0, 3);
+
+	$effect(() => {
+		updateCameraAspect(size.aspect);
+	});
 
 	const z = 5;
 	camera.position.set(0, 0, 1 + z);

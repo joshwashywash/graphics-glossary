@@ -18,12 +18,13 @@
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
 	import {
 		CanvasTexture,
 		NearestFilter,
+		PerspectiveCamera,
 		RepeatWrapping,
 		Scene,
 		Sprite,
@@ -66,8 +67,13 @@
 
 	const size = new Size();
 
-	const camera = createAspectPerspectiveCamera(() => size.aspect);
-	camera.position.set(0, 0, 2);
+	const camera = new PerspectiveCamera();
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+	camera.position.set(0, 0, 3);
+
+	$effect(() => {
+		updateCameraAspect(size.aspect);
+	});
 
 	const speed = 0.0025;
 	const cameraOrbitRadius = 2;

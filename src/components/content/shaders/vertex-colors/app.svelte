@@ -8,10 +8,16 @@
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { Element, Pane } from "svelte-tweakpane-ui";
-	import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from "three";
+	import {
+		BoxGeometry,
+		Mesh,
+		MeshBasicMaterial,
+		PerspectiveCamera,
+		Scene,
+	} from "three";
 
 	const geometry = new BoxGeometry();
 
@@ -47,8 +53,13 @@
 
 	const size = new Size();
 
-	const camera = createAspectPerspectiveCamera(() => size.aspect);
+	const camera = new PerspectiveCamera();
+	const updateCameraAspect = createUpdateCameraAspect(camera);
 	camera.position.set(0, 0, 3);
+
+	$effect(() => {
+		updateCameraAspect(size.aspect);
+	});
 
 	const angleY = (1 / 256) * Math.PI;
 	const angleZ = angleY / 3;

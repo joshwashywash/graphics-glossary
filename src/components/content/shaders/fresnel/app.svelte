@@ -9,8 +9,7 @@
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
-	import { createAutoRotateControls } from "@functions/createAutoRotateControls.svelte";
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import {
 		Checkbox,
@@ -22,11 +21,13 @@
 	import {
 		Color,
 		Mesh,
+		PerspectiveCamera,
 		Scene,
 		ShaderMaterial,
 		TorusGeometry,
 		Uniform,
 	} from "three";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let autoRotate = $state(true);
 
@@ -77,10 +78,19 @@
 
 	const size = new Size();
 
-	const camera = createAspectPerspectiveCamera(() => size.aspect);
-	camera.position.set(0, 0, 5);
+	const camera = new PerspectiveCamera();
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+	camera.position.set(0, 0, 4);
 
-	const controls = createAutoRotateControls(camera, () => autoRotate);
+	$effect(() => {
+		updateCameraAspect(size.aspect);
+	});
+
+	const controls = new OrbitControls(camera);
+
+	$effect(() => {
+		controls.autoRotate = autoRotate;
+	});
 </script>
 
 <Example>

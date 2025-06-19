@@ -6,11 +6,17 @@
 	import Example from "@components/example.svelte";
 
 	import { createAdd } from "@functions/createAdd.svelte";
-	import { createAspectPerspectiveCamera } from "@functions/createAspectPerspectiveCamera.svelte";
-	import { createAutoRotateControls } from "@functions/createAutoRotateControls.svelte";
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { Checkbox, Element, Pane } from "svelte-tweakpane-ui";
-	import { Mesh, MeshNormalMaterial, Scene, SphereGeometry } from "three";
+	import {
+		Mesh,
+		MeshNormalMaterial,
+		PerspectiveCamera,
+		Scene,
+		SphereGeometry,
+	} from "three";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let flatShading = $state(true);
 	let autoRotate = $state(true);
@@ -38,10 +44,18 @@
 
 	const size = new Size();
 
-	const camera = createAspectPerspectiveCamera(() => size.aspect);
+	const camera = new PerspectiveCamera();
+	const updateCameraAspect = createUpdateCameraAspect(camera);
 	camera.position.set(0, 0, 3);
 
-	const controls = createAutoRotateControls(camera, () => autoRotate);
+	$effect(() => {
+		updateCameraAspect(size.aspect);
+	});
+
+	const controls = new OrbitControls(camera);
+	$effect(() => {
+		controls.autoRotate = autoRotate;
+	});
 </script>
 
 <Example>
