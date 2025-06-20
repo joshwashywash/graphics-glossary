@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
@@ -54,6 +55,20 @@
 	$effect(() => {
 		controls.autoRotate = autoRotate;
 	});
+
+	const withRenderer: WithRenderer = (renderer) => {
+		controls.connect(renderer.domElement);
+
+		renderer.setAnimationLoop(() => {
+			controls.update();
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+			controls.disconnect();
+		};
+	};
 </script>
 
 <div bind:clientWidth={size.width}>
@@ -61,19 +76,7 @@
 		{@attach renderer(
 			() => size.width,
 			() => size.height,
-			(renderer) => {
-				controls.connect(renderer.domElement);
-
-				renderer.setAnimationLoop(() => {
-					controls.update();
-					renderer.render(scene, camera);
-
-					return () => {
-						renderer.setAnimationLoop(null);
-						controls.disconnect();
-					};
-				});
-			},
+			withRenderer,
 		)}
 	>
 	</canvas>

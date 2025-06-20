@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
@@ -60,6 +61,20 @@
 	const addToScene = createAdd(() => scene);
 
 	addToScene(() => lod);
+
+	const withRenderer: WithRenderer = (renderer) => {
+		renderer.setAnimationLoop((time) => {
+			renderer.render(scene, camera);
+
+			time *= 1 / 1000;
+			const z = (1 + offset) * Math.sin(0.75 * time);
+			lod.position.setZ(z);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
 </script>
 
 <div bind:clientWidth={size.width}>
@@ -67,19 +82,7 @@
 		{@attach renderer(
 			() => size.width,
 			() => size.height,
-			(renderer) => {
-				renderer.setAnimationLoop((time) => {
-					renderer.render(scene, camera);
-
-					time *= 1 / 1000;
-					const z = (1 + offset) * Math.sin(0.75 * time);
-					lod.position.setZ(z);
-				});
-
-				return () => {
-					renderer.setAnimationLoop(null);
-				};
-			},
+			withRenderer,
 		)}
 	>
 	</canvas>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import createColorAttribute from "./createColorAttribute";
 
+	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
@@ -60,6 +61,17 @@
 
 	const angleY = (1 / 256) * Math.PI;
 	const angleZ = angleY / 3;
+
+	const withRenderer: WithRenderer = (renderer) => {
+		renderer.setAnimationLoop(() => {
+			renderer.render(scene, camera);
+			mesh.rotateY(angleY).rotateZ(angleZ);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
 </script>
 
 <div bind:clientWidth={size.width}>
@@ -67,16 +79,7 @@
 		{@attach renderer(
 			() => size.width,
 			() => size.height,
-			(renderer) => {
-				renderer.setAnimationLoop(() => {
-					renderer.render(scene, camera);
-					mesh.rotateY(angleY).rotateZ(angleZ);
-				});
-
-				return () => {
-					renderer.setAnimationLoop(null);
-				};
-			},
+			withRenderer,
 		)}
 	>
 	</canvas>
