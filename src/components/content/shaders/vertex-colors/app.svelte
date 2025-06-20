@@ -5,12 +5,9 @@
 
 	import Size from "@classes/Size.svelte";
 
-	import Example from "@components/example.svelte";
-
 	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { Element, Pane } from "svelte-tweakpane-ui";
 	import {
 		BoxGeometry,
 		Mesh,
@@ -65,31 +62,22 @@
 	const angleZ = angleY / 3;
 </script>
 
-<Example>
-	<Pane
-		position="inline"
-		title="vertex colors"
-	>
-		<Element>
-			<div bind:clientWidth={size.width}>
-				<canvas
-					{@attach renderer(
-						() => size.width,
-						() => size.height,
-						(renderer) => {
-							renderer.setAnimationLoop(() => {
-								renderer.render(scene, camera);
-								mesh.rotateY(angleY).rotateZ(angleZ);
-							});
+<div bind:clientWidth={size.width}>
+	<canvas
+		{@attach renderer(
+			() => size.width,
+			() => size.height,
+			(renderer) => {
+				renderer.setAnimationLoop(() => {
+					renderer.render(scene, camera);
+					mesh.rotateY(angleY).rotateZ(angleZ);
+				});
 
-							return () => {
-								renderer.setAnimationLoop(null);
-							};
-						},
-					)}
-				>
-				</canvas>
-			</div>
-		</Element>
-	</Pane>
-</Example>
+				return () => {
+					renderer.setAnimationLoop(null);
+				};
+			},
+		)}
+	>
+	</canvas>
+</div>

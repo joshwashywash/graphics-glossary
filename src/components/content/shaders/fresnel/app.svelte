@@ -6,14 +6,11 @@
 
 	import Size from "@classes/Size.svelte";
 
-	import Example from "@components/example.svelte";
-
 	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import {
 		Checkbox,
-		Element,
 		Pane,
 		Slider,
 		Color as TweakpaneColor,
@@ -93,35 +90,34 @@
 	});
 </script>
 
-<Example>
+<div bind:clientWidth={size.width}>
+	<canvas
+		{@attach renderer(
+			() => size.width,
+			() => size.height,
+			(renderer) => {
+				controls.connect(renderer.domElement);
+
+				renderer.setAnimationLoop(() => {
+					controls.update();
+					renderer.render(scene, camera);
+				});
+
+				return () => {
+					renderer.setAnimationLoop(null);
+					controls.disconnect();
+				};
+			},
+		)}
+	>
+	</canvas>
+</div>
+
+<div class="not-content">
 	<Pane
 		position="inline"
 		title="schlick"
 	>
-		<Element>
-			<div bind:clientWidth={size.width}>
-				<canvas
-					{@attach renderer(
-						() => size.width,
-						() => size.height,
-						(renderer) => {
-							controls.connect(renderer.domElement);
-
-							renderer.setAnimationLoop(() => {
-								controls.update();
-								renderer.render(scene, camera);
-							});
-
-							return () => {
-								renderer.setAnimationLoop(null);
-								controls.disconnect();
-							};
-						},
-					)}
-				>
-				</canvas>
-			</div>
-		</Element>
 		<Checkbox
 			bind:value={autoRotate}
 			label="auto rotate"
@@ -142,4 +138,4 @@
 			step={0.1}
 		/>
 	</Pane>
-</Example>
+</div>
