@@ -1,15 +1,15 @@
 <script lang="ts">
+	import Mesh from "./mesh.svelte";
+
 	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
 
-	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 	import {
-		Mesh,
 		MeshNormalMaterial,
 		PerspectiveCamera,
 		Scene,
@@ -36,16 +36,12 @@
 	});
 
 	const scene = new Scene();
-	const addToScene = createAdd(() => scene);
-
-	const mesh = new Mesh(geometry, material);
-	addToScene(() => mesh);
 
 	const size = new Size();
 
 	const camera = new PerspectiveCamera();
-	const updateCameraAspect = createUpdateCameraAspect(camera);
 	camera.position.set(0, 0, 3);
+	const updateCameraAspect = createUpdateCameraAspect(camera);
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
@@ -79,6 +75,10 @@
 			withRenderer,
 		)}
 	>
+		<Mesh
+			parent={scene}
+			{flatShading}
+		/>
 	</canvas>
 </div>
 

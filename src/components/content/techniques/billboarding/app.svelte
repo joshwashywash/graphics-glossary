@@ -32,9 +32,9 @@
 
 	const promise = loadImage(boo.src, boo.width, boo.height);
 
-	const count = 35;
+	const spriteCount = 35;
 
-	const width = boo.width / count;
+	const width = boo.width / spriteCount;
 
 	const canvas = new OffscreenCanvas(width, boo.height);
 
@@ -109,7 +109,7 @@
 							angle = 2 * Math.PI - angle;
 						}
 
-						const offset = Math.floor(count * (angle / (2 * Math.PI)));
+						const offset = Math.floor(spriteCount * (angle / (2 * Math.PI)));
 
 						// only draw when the offset has changed
 						if (offset === lastOffset) return;
