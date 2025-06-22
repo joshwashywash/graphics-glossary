@@ -67,6 +67,11 @@
 	};
 </script>
 
+<Mesh
+	parent={scene}
+	{flatShading}
+/>
+
 <div bind:clientWidth={size.width}>
 	<canvas
 		{@attach renderer(
@@ -75,10 +80,6 @@
 			withRenderer,
 		)}
 	>
-		<Mesh
-			parent={scene}
-			{flatShading}
-		/>
 	</canvas>
 </div>
 
