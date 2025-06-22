@@ -3,10 +3,10 @@
 
 	let {
 		flatShading = true,
-		parent,
+		getParent,
 	}: {
 		flatShading: boolean;
-		parent: Object3D | (() => Object3D);
+		getParent: () => Object3D;
 	} = $props();
 
 	const geometry = new SphereGeometry(1, 16, 8);
@@ -19,13 +19,8 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	const getParent = $derived(
-		typeof parent === "function" ? parent : () => parent,
-	);
-
 	$effect(() => {
 		const parent = getParent();
-
 		parent.add(mesh);
 
 		return () => {

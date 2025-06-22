@@ -9,31 +9,11 @@
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { Checkbox, Pane } from "svelte-tweakpane-ui";
-	import {
-		MeshNormalMaterial,
-		PerspectiveCamera,
-		Scene,
-		SphereGeometry,
-	} from "three";
+	import { PerspectiveCamera, Scene } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let flatShading = $state(true);
 	let autoRotate = $state(true);
-
-	const geometry = new SphereGeometry(1, 16, 8);
-	const material = new MeshNormalMaterial();
-
-	$effect(() => {
-		material.flatShading = flatShading;
-		material.needsUpdate = true;
-	});
-
-	$effect(() => {
-		return () => {
-			geometry.dispose();
-			material.dispose();
-		};
-	});
 
 	const scene = new Scene();
 
@@ -68,7 +48,7 @@
 </script>
 
 <Mesh
-	parent={scene}
+	getParent={() => scene}
 	{flatShading}
 />
 
