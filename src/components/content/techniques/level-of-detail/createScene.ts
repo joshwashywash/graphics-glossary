@@ -1,6 +1,12 @@
-import { IcosahedronGeometry, LOD, Mesh, MeshNormalMaterial } from "three";
+import {
+	IcosahedronGeometry,
+	LOD,
+	Mesh,
+	MeshNormalMaterial,
+	Scene,
+} from "three";
 
-export const createLOD = (distances: number[]) => {
+export const createScene = (distances: number[]) => {
 	const lod = new LOD();
 	const geometries: IcosahedronGeometry[] = [];
 
@@ -18,7 +24,11 @@ export const createLOD = (distances: number[]) => {
 		lod.addLevel(mesh, distances[i]);
 	}
 
+	const scene = new Scene().add(lod);
+
 	const dispose = () => {
+		scene.remove(lod);
+
 		for (const geometry of geometries) {
 			geometry.dispose();
 		}
@@ -27,6 +37,6 @@ export const createLOD = (distances: number[]) => {
 
 	return {
 		dispose,
-		lod,
+		scene,
 	};
 };

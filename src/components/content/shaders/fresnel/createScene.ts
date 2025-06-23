@@ -1,9 +1,16 @@
 import fragmentShader from "./fragment.glsl?raw";
 import vertexShader from "./vertex.glsl?raw";
 
-import { Color, Mesh, ShaderMaterial, TorusGeometry, Uniform } from "three";
+import {
+	Color,
+	Mesh,
+	Scene,
+	ShaderMaterial,
+	TorusGeometry,
+	Uniform,
+} from "three";
 
-export const createMesh = () => {
+export const createScene = () => {
 	const geometry = new TorusGeometry();
 
 	const uniforms = {
@@ -18,16 +25,20 @@ export const createMesh = () => {
 		uniforms,
 	});
 
+	const mesh = new Mesh(geometry, material);
+
+	const scene = new Scene().add(mesh);
+
 	const dispose = () => {
+		scene.remove(mesh);
+
 		geometry.dispose();
 		material.dispose();
 	};
 
-	const mesh = new Mesh(geometry, material);
-
 	return {
 		dispose,
-		mesh,
+		scene,
 		uniforms,
 	};
 };

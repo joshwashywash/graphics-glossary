@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createMesh } from "./createMesh";
+	import { createScene } from "./createScene";
 	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
@@ -7,10 +7,9 @@
 
 	import Size from "@classes/Size.svelte";
 
-	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { PerspectiveCamera, Scene } from "three";
+	import { PerspectiveCamera } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let autoRotate = $state(true);
@@ -19,13 +18,11 @@
 	let fresnelColor = $state("#ffffff");
 	let power = $state(1);
 
-	const scene = new Scene();
-	const addToScene = createAdd(() => scene);
-
 	const size = new Size();
 
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 4);
+
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
 	$effect(() => {
@@ -52,8 +49,7 @@
 		};
 	};
 
-	const { dispose, mesh, uniforms } = createMesh();
-	addToScene(() => mesh);
+	const { dispose, scene, uniforms } = createScene();
 
 	$effect(() => {
 		return dispose;

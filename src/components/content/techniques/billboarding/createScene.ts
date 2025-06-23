@@ -2,12 +2,14 @@ import {
 	CanvasTexture,
 	NearestFilter,
 	RepeatWrapping,
+	Scene,
 	Sprite,
 	SpriteMaterial,
 } from "three";
 
-export const createSprite = (width: number, height: number) => {
+export const createScene = (width: number, height: number) => {
 	const canvas = new OffscreenCanvas(width, height);
+	const context = canvas.getContext("2d");
 
 	const map = new CanvasTexture(canvas);
 
@@ -22,8 +24,11 @@ export const createSprite = (width: number, height: number) => {
 	});
 
 	const sprite = new Sprite(material);
+	const scene = new Scene().add(sprite);
 
 	const dispose = () => {
+		scene.remove(sprite);
+
 		material.map = null;
 		map.dispose();
 		material.dispose();
@@ -34,9 +39,10 @@ export const createSprite = (width: number, height: number) => {
 	};
 
 	return {
-		canvas,
+		context,
 		dispose,
 		map,
+		scene,
 		sprite,
 		state,
 	};

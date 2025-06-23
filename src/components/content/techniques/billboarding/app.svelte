@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-	import { createSprite } from "./createSprite";
+	import { createScene } from "./createScene";
 
 	import boo from "@assets/boo.png";
 
@@ -17,11 +17,10 @@
 
 	import Size from "@classes/Size.svelte";
 
-	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
-	import { PerspectiveCamera, Scene, Vector3 } from "three";
+	import { PerspectiveCamera, Vector3 } from "three";
 
 	const promise = loadImage(boo.src, boo.width, boo.height);
 
@@ -29,14 +28,10 @@
 
 	const width = boo.width / spriteCount;
 
-	const scene = new Scene();
-	const addToScene = createAdd(() => scene);
-
-	const { canvas, dispose, map, sprite, state } = createSprite(
+	const { context, dispose, map, scene, sprite, state } = createScene(
 		width,
 		boo.height,
 	);
-	addToScene(() => sprite);
 
 	$effect(() => {
 		return dispose;
@@ -45,8 +40,9 @@
 	const size = new Size();
 
 	const camera = new PerspectiveCamera();
-	const updateCameraAspect = createUpdateCameraAspect(camera);
 	camera.position.set(0, 0, 3);
+
+	const updateCameraAspect = createUpdateCameraAspect(camera);
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
@@ -54,8 +50,6 @@
 
 	const speed = 0.0025;
 	const cameraOrbitRadius = 2;
-
-	const context = canvas.getContext("2d");
 </script>
 
 <div bind:clientWidth={size.width}>

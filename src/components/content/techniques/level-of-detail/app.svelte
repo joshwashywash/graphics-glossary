@@ -1,15 +1,14 @@
 <script lang="ts">
-	import { createLOD } from "./createLOD";
+	import { createScene } from "./createScene";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
 
-	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { PerspectiveCamera, Scene } from "three";
+	import { PerspectiveCamera } from "three";
 
 	const size = new Size();
 
@@ -24,14 +23,10 @@
 	const offset = 3;
 	const distances = [z - offset, offset, z + offset];
 
-	const { dispose, lod } = createLOD(distances);
+	const { dispose, scene } = createScene(distances);
 	$effect(() => {
 		return dispose;
 	});
-
-	const scene = new Scene();
-	const addToScene = createAdd(() => scene);
-	addToScene(() => lod);
 
 	const withRenderer: WithRenderer = (renderer) => {
 		renderer.setAnimationLoop((time) => {
