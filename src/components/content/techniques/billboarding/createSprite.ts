@@ -29,10 +29,15 @@ export const createSprite = (width: number, height: number) => {
 		material.dispose();
 	};
 
+	const state = {
+		offset: -1,
+	};
+
 	return {
 		canvas,
 		dispose,
 		map,
 		sprite,
+		state,
 	};
 };

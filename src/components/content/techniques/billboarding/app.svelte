@@ -4,7 +4,7 @@
 >
 	const hatZ = new Vector3(0, 0, 1);
 
-	/** just a scratch vector for doing vector math */
+	/** just a scratch vector */
 	const scratch = new Vector3();
 </script>
 
@@ -32,7 +32,10 @@
 	const scene = new Scene();
 	const addToScene = createAdd(() => scene);
 
-	const { canvas, dispose, map, sprite } = createSprite(width, boo.height);
+	const { canvas, dispose, map, sprite, state } = createSprite(
+		width,
+		boo.height,
+	);
 	addToScene(() => sprite);
 
 	$effect(() => {
@@ -53,8 +56,6 @@
 	const cameraOrbitRadius = 2;
 
 	const context = canvas.getContext("2d");
-
-	let lastOffset: number;
 </script>
 
 <div bind:clientWidth={size.width}>
@@ -64,8 +65,8 @@
 				() => size.width,
 				() => size.height,
 				(renderer) => {
+					if (context === null) return;
 					renderer.setAnimationLoop((time) => {
-						if (context === null) return;
 						renderer.render(scene, camera);
 
 						// slow it down
@@ -89,7 +90,9 @@
 						const offset = Math.floor(spriteCount * (angle / (2 * Math.PI)));
 
 						// only draw when the offset has changed
-						if (offset === lastOffset) return;
+						if (offset === state.offset) return;
+
+						state.offset = offset;
 
 						context.clearRect(
 							0,
@@ -97,6 +100,7 @@
 							context.canvas.width,
 							context.canvas.height,
 						);
+
 						context.drawImage(
 							image,
 							width * offset,
@@ -109,10 +113,12 @@
 							boo.height,
 						);
 
-						lastOffset = offset;
-
 						map.needsUpdate = true;
 					});
+
+					return () => {
+						renderer.setAnimationLoop(null);
+					};
 				},
 			)}
 		>
