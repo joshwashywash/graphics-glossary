@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Mesh from "./mesh.svelte";
+	import { createMesh } from "./createMesh";
 	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
@@ -7,6 +7,7 @@
 
 	import Size from "@classes/Size.svelte";
 
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { PerspectiveCamera, Scene } from "three";
@@ -16,6 +17,7 @@
 	let flatShading = $state(true);
 
 	const scene = new Scene();
+	const addToScene = createAdd(() => scene);
 
 	const size = new Size();
 
@@ -45,12 +47,18 @@
 			controls.disconnect();
 		};
 	};
-</script>
 
-<Mesh
-	parent={scene}
-	{flatShading}
-/>
+	const { dispose, mesh, updateFlatShading } = createMesh();
+	addToScene(() => mesh);
+
+	$effect(() => {
+		return dispose;
+	});
+
+	$effect(() => {
+		updateFlatShading(flatShading);
+	});
+</script>
 
 <div bind:clientWidth={size.width}>
 	<canvas

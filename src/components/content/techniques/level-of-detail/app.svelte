@@ -1,20 +1,15 @@
 <script lang="ts">
+	import { createLOD } from "./createLOD";
+
 	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
 
-	import { add } from "@functions/add.svelte";
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import {
-		IcosahedronGeometry,
-		LOD,
-		Mesh,
-		MeshNormalMaterial,
-		PerspectiveCamera,
-		Scene,
-	} from "three";
+	import { PerspectiveCamera, Scene } from "three";
 
 	const size = new Size();
 
@@ -29,36 +24,14 @@
 	const offset = 3;
 	const distances = [z - offset, offset, z + offset];
 
-	const lod = new LOD();
-	const geometries: IcosahedronGeometry[] = [];
-
-	const material = new MeshNormalMaterial({
-		wireframe: true,
-	});
-
-	for (let i = 0, l = distances.length; i < l; i += 1) {
-		const detail = l - i - 1;
-		const geometry = new IcosahedronGeometry(1, detail);
-		geometries.push(geometry);
-		const mesh = new Mesh(geometry, material);
-		mesh.matrixAutoUpdate = false;
-		lod.addLevel(mesh, distances[i]);
-	}
-
+	const { dispose, lod } = createLOD(distances);
 	$effect(() => {
-		return () => {
-			for (const geometry of geometries) {
-				geometry.dispose();
-			}
-			material.dispose();
-		};
+		return dispose;
 	});
 
 	const scene = new Scene();
-	add(
-		() => scene,
-		() => lod,
-	);
+	const addToScene = createAdd(() => scene);
+	addToScene(() => lod);
 
 	const withRenderer: WithRenderer = (renderer) => {
 		renderer.setAnimationLoop((time) => {

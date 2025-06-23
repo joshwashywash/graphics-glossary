@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Mesh from "./mesh.svelte";
+	import { createMesh } from "./createMesh";
 	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
@@ -7,12 +7,14 @@
 
 	import Size from "@classes/Size.svelte";
 
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { PerspectiveCamera, Scene } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	const scene = new Scene();
+	const addToScene = createAdd(() => scene);
 
 	const size = new Size();
 
@@ -45,9 +47,14 @@
 			controls.disconnect();
 		};
 	};
-</script>
 
-<Mesh parent={scene} />
+	const { dispose, mesh } = createMesh();
+	addToScene(() => mesh);
+
+	$effect(() => {
+		return dispose;
+	});
+</script>
 
 <div bind:clientWidth={size.width}>
 	<canvas

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Mesh from "./mesh.svelte";
+	import { createMesh } from "./createMesh";
 	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
@@ -7,6 +7,7 @@
 
 	import Size from "@classes/Size.svelte";
 
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { PerspectiveCamera, Scene } from "three";
@@ -19,6 +20,7 @@
 	let power = $state(1);
 
 	const scene = new Scene();
+	const addToScene = createAdd(() => scene);
 
 	const size = new Size();
 
@@ -49,14 +51,26 @@
 			controls.disconnect();
 		};
 	};
-</script>
 
-<Mesh
-	parent={scene}
-	{baseColor}
-	{fresnelColor}
-	{power}
-/>
+	const { dispose, mesh, uniforms } = createMesh();
+	addToScene(() => mesh);
+
+	$effect(() => {
+		return dispose;
+	});
+
+	$effect(() => {
+		uniforms.uBaseColor.value.set(baseColor);
+	});
+
+	$effect(() => {
+		uniforms.uFresnelColor.value.set(fresnelColor);
+	});
+
+	$effect(() => {
+		uniforms.uPower.value = power;
+	});
+</script>
 
 <div bind:clientWidth={size.width}>
 	<canvas

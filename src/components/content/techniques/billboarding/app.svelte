@@ -9,26 +9,19 @@
 </script>
 
 <script lang="ts">
+	import { createSprite } from "./createSprite";
+
 	import boo from "@assets/boo.png";
 
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
 
-	import { add } from "@functions/add.svelte";
+	import { createAdd } from "@functions/createAdd.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
-	import {
-		CanvasTexture,
-		NearestFilter,
-		PerspectiveCamera,
-		RepeatWrapping,
-		Scene,
-		Sprite,
-		SpriteMaterial,
-		Vector3,
-	} from "three";
+	import { PerspectiveCamera, Scene, Vector3 } from "three";
 
 	const promise = loadImage(boo.src, boo.width, boo.height);
 
@@ -36,33 +29,15 @@
 
 	const width = boo.width / spriteCount;
 
-	const canvas = new OffscreenCanvas(width, boo.height);
+	const scene = new Scene();
+	const addToScene = createAdd(() => scene);
 
-	const map = new CanvasTexture(canvas);
-	map.minFilter = NearestFilter;
-	map.magFilter = NearestFilter;
-	map.generateMipmaps = false;
-	map.wrapS = RepeatWrapping;
-	map.wrapT = RepeatWrapping;
-
-	const material = new SpriteMaterial({
-		map,
-	});
+	const { canvas, dispose, map, sprite } = createSprite(width, boo.height);
+	addToScene(() => sprite);
 
 	$effect(() => {
-		return () => {
-			material.map = null;
-			map.dispose();
-			material.dispose();
-		};
+		return dispose;
 	});
-
-	const scene = new Scene();
-	const sprite = new Sprite(material);
-	add(
-		() => scene,
-		() => sprite,
-	);
 
 	const size = new Size();
 
