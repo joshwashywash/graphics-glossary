@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Mesh from "./mesh.svelte";
+	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
@@ -8,12 +9,11 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 	import { PerspectiveCamera, Scene } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-	let flatShading = $state(true);
 	let autoRotate = $state(true);
+	let flatShading = $state(true);
 
 	const scene = new Scene();
 
@@ -48,7 +48,7 @@
 </script>
 
 <Mesh
-	getParent={() => scene}
+	parent={scene}
 	{flatShading}
 />
 
@@ -65,16 +65,7 @@
 
 <div class="not-content">
 	<Pane
-		position="inline"
-		title="flat-shading"
-	>
-		<Checkbox
-			bind:value={flatShading}
-			label="use flat shading"
-		/>
-		<Checkbox
-			bind:value={autoRotate}
-			label="auto rotate"
-		/>
-	</Pane>
+		bind:autoRotate
+		bind:flatShading
+	/>
 </div>

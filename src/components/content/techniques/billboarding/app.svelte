@@ -1,6 +1,6 @@
 <script
-	lang="ts"
 	module
+	lang="ts"
 >
 	const hatZ = new Vector3(0, 0, 1);
 
@@ -15,7 +15,7 @@
 
 	import Size from "@classes/Size.svelte";
 
-	import { createAdd } from "@functions/createAdd.svelte";
+	import { add } from "@functions/add.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
@@ -58,10 +58,11 @@
 	});
 
 	const scene = new Scene();
-	const addToScene = createAdd(() => scene);
-
 	const sprite = new Sprite(material);
-	addToScene(() => sprite);
+	add(
+		() => scene,
+		() => sprite,
+	);
 
 	const size = new Size();
 
@@ -92,9 +93,10 @@
 						if (context === null) return;
 						renderer.render(scene, camera);
 
-						const t = speed * time;
+						// slow it down
+						time *= speed;
 						camera.position
-							.set(Math.cos(t), 0, Math.sin(t))
+							.set(Math.cos(time), 0, Math.sin(time))
 							.multiplyScalar(cameraOrbitRadius);
 						camera.lookAt(sprite.position);
 

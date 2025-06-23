@@ -4,7 +4,7 @@
 
 	import Size from "@classes/Size.svelte";
 
-	import { createAdd } from "@functions/createAdd.svelte";
+	import { add } from "@functions/add.svelte";
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import {
@@ -20,55 +20,52 @@
 
 	const camera = new PerspectiveCamera();
 	const updateCameraAspect = createUpdateCameraAspect(camera);
-	camera.position.set(0, 0, 3);
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
 	});
 
 	const z = 5;
-	camera.position.set(0, 0, 1 + z);
+	const offset = 3;
+	const distances = [z - offset, offset, z + offset];
+
+	const lod = new LOD();
+	const geometries: IcosahedronGeometry[] = [];
 
 	const material = new MeshNormalMaterial({
 		wireframe: true,
 	});
 
-	const offset = 3;
-	const distances = [z - offset, offset, z + offset];
-
-	const lod = new LOD();
-	const meshes: Mesh[] = [];
-
 	for (let i = 0, l = distances.length; i < l; i += 1) {
 		const detail = l - i - 1;
 		const geometry = new IcosahedronGeometry(1, detail);
+		geometries.push(geometry);
 		const mesh = new Mesh(geometry, material);
 		mesh.matrixAutoUpdate = false;
-		meshes.push(mesh);
 		lod.addLevel(mesh, distances[i]);
 	}
 
 	$effect(() => {
 		return () => {
-			for (const mesh of meshes) {
-				mesh.geometry.dispose();
+			for (const geometry of geometries) {
+				geometry.dispose();
 			}
 			material.dispose();
 		};
 	});
 
 	const scene = new Scene();
-	const addToScene = createAdd(() => scene);
-
-	addToScene(() => lod);
+	add(
+		() => scene,
+		() => lod,
+	);
 
 	const withRenderer: WithRenderer = (renderer) => {
 		renderer.setAnimationLoop((time) => {
 			renderer.render(scene, camera);
 
 			time *= 1 / 1000;
-			const z = (1 + offset) * Math.sin(0.75 * time);
-			lod.position.setZ(z);
+			camera.position.setZ(1 + z + 1.5 * offset * Math.sin(0.75 * time));
 		});
 
 		return () => {

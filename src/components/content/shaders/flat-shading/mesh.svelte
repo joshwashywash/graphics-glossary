@@ -1,12 +1,14 @@
 <script lang="ts">
+	import { add } from "@functions/add.svelte";
+
 	import { Mesh, MeshNormalMaterial, Object3D, SphereGeometry } from "three";
 
 	let {
 		flatShading = true,
-		getParent,
+		parent,
 	}: {
 		flatShading: boolean;
-		getParent: () => Object3D;
+		parent: Object3D;
 	} = $props();
 
 	const geometry = new SphereGeometry(1, 16, 8);
@@ -19,14 +21,10 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	$effect(() => {
-		const parent = getParent();
-		parent.add(mesh);
-
-		return () => {
-			parent.remove(mesh);
-		};
-	});
+	add(
+		() => parent,
+		() => mesh,
+	);
 
 	$effect(() => {
 		return () => {
