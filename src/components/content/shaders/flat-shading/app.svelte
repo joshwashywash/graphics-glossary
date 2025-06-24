@@ -45,14 +45,15 @@
 		};
 	};
 
-	const { dispose, scene, updateFlatShading } = createScene();
+	const { dispose, material, scene } = createScene();
 
 	$effect(() => {
 		return dispose;
 	});
 
 	$effect(() => {
-		updateFlatShading(flatShading);
+		material.flatShading = flatShading;
+		material.needsUpdate = true;
 	});
 </script>
 

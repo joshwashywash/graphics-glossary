@@ -14,14 +14,9 @@ export const createScene = () => {
 		material.dispose();
 	};
 
-	const updateFlatShading = (flatShading: boolean) => {
-		material.flatShading = flatShading;
-		material.needsUpdate = true;
-	};
-
 	return {
-		scene,
 		dispose,
-		updateFlatShading,
+		material,
+		scene,
 	};
 };
