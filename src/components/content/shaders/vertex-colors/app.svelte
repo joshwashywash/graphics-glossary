@@ -57,7 +57,7 @@
 		{@attach renderer(
 			() => size.width,
 			() => size.height,
-			withRenderer,
+			() => withRenderer,
 		)}
 	>
 	</canvas>

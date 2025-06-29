@@ -21,6 +21,7 @@
 
 	import boo from "@assets/boo.png";
 
+	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
@@ -76,70 +77,74 @@
 		};
 	});
 
-	let lastOffset: number;
+	const createWithRenderer = (image: HTMLImageElement): WithRenderer => {
+		let lastOffset: number;
+		return (renderer) => {
+			renderer.setAnimationLoop((time) => {
+				renderer.render(scene, camera);
+
+				// slow it down
+				time *= cameraRotationSpeed;
+				camera.position
+					.set(Math.cos(time), 0, Math.sin(time))
+					.multiplyScalar(cameraOrbitRadius);
+				camera.lookAt(sprite.position);
+
+				// `angleTo` returns the shorter angle between the vectors
+				let angle = hatZ.angleTo(
+					scratch.subVectors(camera.position, sprite.position),
+				);
+
+				// the cross product can help determine which angle to use
+				// doing all the math to determine which angle to use reduces to this
+				if (scratch.x > 0) {
+					angle = tau - angle;
+				}
+
+				const offset = Math.floor(spriteCount * (angle / tau));
+
+				// only draw when the offset has changed
+				if (offset === lastOffset) return;
+
+				lastOffset = offset;
+
+				booCanvasContext.clearRect(
+					0,
+					0,
+					booCanvasContext.canvas.width,
+					booCanvasContext.canvas.height,
+				);
+
+				booCanvasContext.drawImage(
+					image,
+					booCanvasContext.canvas.width * offset,
+					0,
+					spriteWidth,
+					boo.height,
+					0,
+					0,
+					spriteWidth,
+					boo.height,
+				);
+
+				canvasTexture.needsUpdate = true;
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		};
+	};
 </script>
 
 <div bind:clientWidth={size.width}>
 	{#await promise then image}
+		{@const withRenderer = createWithRenderer(image)}
 		<canvas
 			{@attach renderer(
 				() => size.width,
 				() => size.height,
-				(renderer) => {
-					renderer.setAnimationLoop((time) => {
-						renderer.render(scene, camera);
-
-						// slow it down
-						time *= cameraRotationSpeed;
-						camera.position
-							.set(Math.cos(time), 0, Math.sin(time))
-							.multiplyScalar(cameraOrbitRadius);
-						camera.lookAt(sprite.position);
-
-						// `angleTo` returns the shorter angle between the vectors
-						let angle = hatZ.angleTo(
-							scratch.subVectors(camera.position, sprite.position),
-						);
-
-						// the cross product can help determine which angle to use
-						// doing all the math to determine which angle to use reduces to this
-						if (scratch.x > 0) {
-							angle = tau - angle;
-						}
-
-						const offset = Math.floor(spriteCount * (angle / tau));
-
-						// only draw when the offset has changed
-						if (offset === lastOffset) return;
-
-						lastOffset = offset;
-
-						booCanvasContext.clearRect(
-							0,
-							0,
-							booCanvasContext.canvas.width,
-							booCanvasContext.canvas.height,
-						);
-
-						booCanvasContext.drawImage(
-							image,
-							booCanvasContext.canvas.width * offset,
-							0,
-							spriteWidth,
-							boo.height,
-							0,
-							0,
-							spriteWidth,
-							boo.height,
-						);
-
-						canvasTexture.needsUpdate = true;
-					});
-
-					return () => {
-						renderer.setAnimationLoop(null);
-					};
-				},
+				() => withRenderer,
 			)}
 		>
 		</canvas>

@@ -13,31 +13,40 @@ export type WithRenderer = (renderer: WebGLRenderer) => (() => void) | void;
  *
  * the renderer is disposed when the attachment re-runs and after the canvas is removed from the dom
  *
- * @param withRenderer a optional function that is called "with" the created renderer
- * it is ran in an effect. like an effect, it may return a "cleanup" function that will be called if the renderer updates
- * a common use case is to set the renderer's animation loop
+ * @param getWithRenderer an optional function that is called "with" the created renderer
+ * it is called in an effect so if it is a $state(), it will be recalled when it updates. like an effect, it may return a "cleanup" function that will be called if the renderer updates
+ * commonly used to set the renderer's animation loop
  *
  * @example
  *
  * ```ts
- * const camera = new PerspectiveCamera();
- * const scene = new Scene();
+ * const width = $state(400);
+ * const height = $state(400);
  *
  * const withRenderer = (renderer) => {
  *   renderer.setAnimationLoop(() => {
- *     renderer.render(scene, camera);
+ *     // ...
  *   });
  *
  *   return () => {
  *     renderer.setAnimationLoop(null);
  *   };
  * }
+ *
+ * <canvas
+ *   {@attach renderer(
+ *     () => width,
+ *     () => height,
+ *     () => withRenderer
+ *   )}
+ * >
+ * </canvas>
  * ```
  */
 export const renderer = (
 	getWidth: () => number,
 	getHeight: () => number,
-	withRenderer?: WithRenderer,
+	getWithRenderer?: () => WithRenderer,
 ): Attachment<HTMLCanvasElement> => {
 	return (canvas) => {
 		const renderer = new WebGLRenderer({
@@ -54,7 +63,8 @@ export const renderer = (
 		});
 
 		$effect(() => {
-			return withRenderer?.(renderer);
+			const cleanup = getWithRenderer?.()(renderer);
+			return cleanup;
 		});
 
 		return renderer.dispose;

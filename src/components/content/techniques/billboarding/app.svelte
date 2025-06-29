@@ -6,6 +6,6 @@
 	<Example />
 
 	{#snippet failed(error)}
-		<span>{error}</span>
+		<p>{error}</p>
 	{/snippet}
 </svelte:boundary>
