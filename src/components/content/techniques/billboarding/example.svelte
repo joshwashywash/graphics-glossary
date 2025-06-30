@@ -15,15 +15,13 @@
 	const spriteCount = 18;
 
 	/**
-	 * number of steps for a full 360 rotation
-	 *
-	 * the first and last sprites are not included in the last half of the rotation
-	 *
-	 * one row + one row - the first and last sprites on the way back
-	 * 2 * spriteCount - 2 =>
-	 * 2 * (spriteCount - 1)
-	 **/
-	const stepCount = 2 * (spriteCount - 1);
+	 * number of sprites to show during the second half of the rotation
+	 * equal to `spriteCount` minus the first and last
+	 */
+	const backwardsSpriteCount = spriteCount - 2;
+
+	const stepCount = spriteCount + backwardsSpriteCount;
+
 	const spriteWidth = boo.width / spriteCount;
 </script>
 
@@ -97,8 +95,7 @@
 				renderer.render(scene, camera);
 
 				// slow it down
-				time *= cameraRotationSpeed;
-				time += 0.5 * Math.PI;
+				time = cameraRotationSpeed * time + 0.5 * Math.PI;
 
 				camera.position
 					.set(Math.cos(time), 0, Math.sin(time))
@@ -117,23 +114,22 @@
 				}
 
 				let offset = Math.floor(stepCount * (angle / tau));
+
+				const directionX = offset >= spriteCount ? -1 : 1;
+
 				if (offset >= spriteCount) {
-					// start at the second to last sprite since the last sprite, spriteCount - 1, is included in the "front" rotation
-					offset = spriteCount - 2 - (offset % spriteCount);
+					offset = backwardsSpriteCount - (offset % spriteCount);
 				}
 
 				if (lastOffset === offset) return;
 
-				lastOffset = offset;
-
 				booCanvasContext.resetTransform();
-				const s = angle > Math.PI ? -1 : 1;
-				booCanvasContext.scale(s, 1);
+				booCanvasContext.scale(directionX, 1);
 
 				booCanvasContext.clearRect(
 					0,
 					0,
-					s * booCanvasContext.canvas.width,
+					directionX * booCanvasContext.canvas.width,
 					booCanvasContext.canvas.height,
 				);
 
@@ -145,11 +141,13 @@
 					boo.height,
 					0,
 					0,
-					s * spriteWidth,
+					directionX * spriteWidth,
 					boo.height,
 				);
 
 				canvasTexture.needsUpdate = true;
+
+				lastOffset = offset;
 			});
 
 			return () => {
