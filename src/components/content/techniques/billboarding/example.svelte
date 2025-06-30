@@ -12,7 +12,8 @@
 
 	const tau = 2 * Math.PI;
 
-	const spriteCount = 35;
+	const spriteCount = 18;
+	const stepCount = 2 * spriteCount;
 	const spriteWidth = boo.width / spriteCount;
 </script>
 
@@ -77,6 +78,8 @@
 		};
 	});
 
+	booCanvasContext.scale(-1, 1);
+
 	const createWithRenderer = (image: HTMLImageElement): WithRenderer => {
 		let lastOffset: number;
 		return (renderer) => {
@@ -85,6 +88,7 @@
 
 				// slow it down
 				time *= cameraRotationSpeed;
+
 				camera.position
 					.set(Math.cos(time), 0, Math.sin(time))
 					.multiplyScalar(cameraOrbitRadius);
@@ -101,17 +105,24 @@
 					angle = tau - angle;
 				}
 
-				const offset = Math.floor(spriteCount * (angle / tau));
+				const o = Math.floor((stepCount - 2) * (angle / tau));
+				let offset = o;
+				if (o >= spriteCount) {
+					offset = spriteCount - 2 - (o % spriteCount);
+				}
 
-				// only draw when the offset has changed
-				if (offset === lastOffset) return;
+				if (lastOffset === offset) return;
 
 				lastOffset = offset;
+
+				booCanvasContext.resetTransform();
+				const s = angle > Math.PI ? -1 : 1;
+				booCanvasContext.scale(s, 1);
 
 				booCanvasContext.clearRect(
 					0,
 					0,
-					booCanvasContext.canvas.width,
+					s * booCanvasContext.canvas.width,
 					booCanvasContext.canvas.height,
 				);
 
@@ -123,7 +134,7 @@
 					boo.height,
 					0,
 					0,
-					spriteWidth,
+					s * spriteWidth,
 					boo.height,
 				);
 
