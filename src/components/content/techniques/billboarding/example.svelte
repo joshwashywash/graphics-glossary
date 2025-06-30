@@ -116,11 +116,10 @@
 					angle = tau - angle;
 				}
 
-				const o = Math.floor(stepCount * (angle / tau));
-				let offset = o;
-				if (o >= spriteCount) {
+				let offset = Math.floor(stepCount * (angle / tau));
+				if (offset >= spriteCount) {
 					// start at the second to last sprite since the last sprite, spriteCount - 1, is included in the "front" rotation
-					offset = spriteCount - 2 - (o % spriteCount);
+					offset = spriteCount - 2 - (offset % spriteCount);
 				}
 
 				if (lastOffset === offset) return;
