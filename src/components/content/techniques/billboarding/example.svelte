@@ -98,6 +98,7 @@
 
 				// slow it down
 				time *= cameraRotationSpeed;
+				time += 0.5 * Math.PI;
 
 				camera.position
 					.set(Math.cos(time), 0, Math.sin(time))
