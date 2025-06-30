@@ -13,7 +13,17 @@
 	const tau = 2 * Math.PI;
 
 	const spriteCount = 18;
-	const stepCount = 2 * spriteCount;
+
+	/**
+	 * number of steps for a full 360 rotation
+	 *
+	 * the first and last sprites are not included in the last half of the rotation
+	 *
+	 * one row + one row - the first and last sprites on the way back
+	 * 2 * spriteCount - 2 =>
+	 * 2 * (spriteCount - 1)
+	 **/
+	const stepCount = 2 * (spriteCount - 1);
 	const spriteWidth = boo.width / spriteCount;
 </script>
 
@@ -105,9 +115,10 @@
 					angle = tau - angle;
 				}
 
-				const o = Math.floor((stepCount - 2) * (angle / tau));
+				const o = Math.floor(stepCount * (angle / tau));
 				let offset = o;
 				if (o >= spriteCount) {
+					// start at the second to last sprite since the last sprite, spriteCount - 1, is included in the "front" rotation
 					offset = spriteCount - 2 - (o % spriteCount);
 				}
 
