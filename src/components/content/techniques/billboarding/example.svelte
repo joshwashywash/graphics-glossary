@@ -26,7 +26,7 @@
 </script>
 
 <script lang="ts">
-	import { createCanvasTexture } from "./createCanvasTexture";
+	import { createScene } from "./createScene";
 
 	import boo from "@assets/boo.png";
 
@@ -38,13 +38,7 @@
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
-	import {
-		PerspectiveCamera,
-		Scene,
-		Sprite,
-		SpriteMaterial,
-		Vector3,
-	} from "three";
+	import { PerspectiveCamera, Vector3 } from "three";
 
 	const booCanvas = new OffscreenCanvas(spriteWidth, boo.height);
 	const booCanvasContext = booCanvas.getContext("2d");
@@ -67,23 +61,10 @@
 		updateCameraAspect(size.aspect);
 	});
 
-	const canvasTexture = createCanvasTexture(booCanvas);
-
-	const material = new SpriteMaterial({
-		map: canvasTexture,
-	});
-
-	const sprite = new Sprite(material);
-
-	const scene = new Scene().add(sprite);
+	const { canvasTexture, dispose, scene, sprite } = createScene(booCanvas);
 
 	$effect(() => {
-		return () => {
-			scene.remove(sprite);
-			material.map = null;
-			canvasTexture.dispose();
-			material.dispose();
-		};
+		return dispose;
 	});
 
 	booCanvasContext.scale(-1, 1);
