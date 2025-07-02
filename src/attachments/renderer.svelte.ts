@@ -63,7 +63,8 @@ export const renderer = (
 		});
 
 		$effect(() => {
-			const cleanup = getWithRenderer?.()(renderer);
+			const withRenderer = getWithRenderer?.();
+			const cleanup = withRenderer?.(renderer);
 			return cleanup;
 		});
 

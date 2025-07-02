@@ -7,8 +7,10 @@
 	/** just a scratch vector */
 	const scratch = new Vector3();
 
-	const cameraOrbitRadius = 2;
-	const cameraRotationSpeed = 0.0025;
+	const cameraNear = 1;
+	const cameraFar = 3;
+	const cameraOrbitRadius = cameraFar - cameraNear;
+	const cameraRotationSpeed = 0.0025 * 0.5;
 
 	const tau = 2 * Math.PI;
 
@@ -26,7 +28,7 @@
 </script>
 
 <script lang="ts">
-	import { createScene } from "./createScene";
+	import { createScenes } from "./createScenes";
 
 	import boo from "@assets/boo.png";
 
@@ -38,7 +40,9 @@
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
-	import { PerspectiveCamera, Vector3 } from "three";
+	import { Camera, PerspectiveCamera, Scene, Vector3 } from "three";
+
+	let { renderOtherScene = false } = $props();
 
 	const booCanvas = new OffscreenCanvas(spriteWidth, boo.height);
 	const booCanvasContext = booCanvas.getContext("2d");
@@ -48,32 +52,48 @@
 		throw new Error("texture context is null");
 	}
 
-	const promise = loadImage(boo.src, boo.width, boo.height);
+	const camera = new PerspectiveCamera(45, 1, cameraNear, cameraFar);
 
-	const size = new Size();
+	const { canvasTexture, dispose, otherScene, plane, scene, sprite } =
+		createScenes(booCanvas, camera);
 
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 3);
+	const otherCamera = new PerspectiveCamera();
+
+	otherCamera.position.set(0, 3, 3);
+	otherCamera.lookAt(plane.position);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
+	const updateOtherCameraAspect = createUpdateCameraAspect(otherCamera);
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
+		updateOtherCameraAspect(size.aspect);
 	});
 
-	const { canvasTexture, dispose, scene, sprite } = createScene(booCanvas);
+	const size = new Size();
 
 	$effect(() => {
 		return dispose;
 	});
 
-	booCanvasContext.scale(-1, 1);
+	let currentCamera: Camera;
+	let currentScene: Scene;
+
+	$effect(() => {
+		if (renderOtherScene) {
+			currentCamera = otherCamera;
+			currentScene = otherScene;
+		} else {
+			currentCamera = camera;
+			currentScene = scene;
+		}
+	});
 
 	const createWithRenderer = (image: HTMLImageElement): WithRenderer => {
 		let lastOffset: number;
 		return (renderer) => {
 			renderer.setAnimationLoop((time) => {
-				renderer.render(scene, camera);
+				renderer.render(currentScene, currentCamera);
 
 				// slow it down
 				time = cameraRotationSpeed * time + 0.5 * Math.PI;
@@ -96,13 +116,21 @@
 
 				let offset = Math.floor(stepCount * (angle / tau));
 
-				const directionX = offset >= spriteCount ? -1 : 1;
+				const behind = offset >= spriteCount;
+				const directionX = 1 - 2 * +behind;
 
-				if (offset >= spriteCount) {
+				if (behind) {
 					offset = backwardsSpriteCount - (offset % spriteCount);
 				}
 
 				if (lastOffset === offset) return;
+
+				plane.lookAt(camera.position);
+				plane.rotateY(
+					0.5 *
+						(1 - Math.sign(camera.position.dot(otherCamera.position))) *
+						Math.PI,
+				);
 
 				booCanvasContext.resetTransform();
 				booCanvasContext.scale(directionX, 1);
@@ -136,18 +164,20 @@
 			};
 		};
 	};
+
+	let withRenderer: WithRenderer = $state(() => {});
+	loadImage(boo.src, boo.width, boo.height).then((image) => {
+		withRenderer = createWithRenderer(image);
+	});
 </script>
 
 <div bind:clientWidth={size.width}>
-	{#await promise then image}
-		{@const withRenderer = createWithRenderer(image)}
-		<canvas
-			{@attach renderer(
-				() => size.width,
-				() => size.height,
-				() => withRenderer,
-			)}
-		>
-		</canvas>
-	{/await}
+	<canvas
+		{@attach renderer(
+			() => size.width,
+			() => size.height,
+			() => withRenderer,
+		)}
+	>
+	</canvas>
 </div>
