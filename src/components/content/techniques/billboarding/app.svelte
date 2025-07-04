@@ -3,11 +3,11 @@
 
 	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 
-	let renderOtherScene = $state(false);
+	let renderVisualizationScene = $state(false);
 </script>
 
 <svelte:boundary>
-	<Example {renderOtherScene} />
+	<Example {renderVisualizationScene} />
 
 	{#snippet failed(error)}
 		<p>{error}</p>
@@ -20,8 +20,8 @@
 		title="billboarding"
 	>
 		<Checkbox
-			bind:value={renderOtherScene}
-			label="render other scene"
+			bind:value={renderVisualizationScene}
+			label="render visualization scene"
 		/>
 	</Pane>
 </div>

@@ -28,7 +28,8 @@
 </script>
 
 <script lang="ts">
-	import { createScenes } from "./createScenes";
+	import { createScene } from "./createScene";
+	import { createVisualizationScene } from "./createVisualizationScene";
 
 	import boo from "@assets/boo.png";
 
@@ -40,9 +41,15 @@
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
-	import { Camera, PerspectiveCamera, Scene, Vector3 } from "three";
+	import {
+		Camera,
+		CanvasTexture,
+		PerspectiveCamera,
+		Scene,
+		Vector3,
+	} from "three";
 
-	let { renderOtherScene = false } = $props();
+	let { renderVisualizationScene = false } = $props();
 
 	const booCanvas = new OffscreenCanvas(spriteWidth, boo.height);
 	const booCanvasContext = booCanvas.getContext("2d");
@@ -52,37 +59,46 @@
 		throw new Error("texture context is null");
 	}
 
+	const canvasTexture = new CanvasTexture(booCanvas);
+
+	const { dispose, scene, sprite } = createScene(canvasTexture);
+
 	const camera = new PerspectiveCamera(45, 1, cameraNear, cameraFar);
+	const {
+		scene: visualizationScene,
+		dispose: visualizationDispose,
+		plane,
+	} = createVisualizationScene(canvasTexture, camera);
 
-	const { canvasTexture, dispose, otherScene, plane, scene, sprite } =
-		createScenes(booCanvas, camera);
+	$effect(() => {
+		return () => {
+			dispose();
+			visualizationDispose();
+			canvasTexture.dispose();
+		};
+	});
 
-	const otherCamera = new PerspectiveCamera();
+	const visualizationCamera = new PerspectiveCamera();
 
-	otherCamera.position.set(0, 3, 3);
-	otherCamera.lookAt(plane.position);
+	visualizationCamera.position.set(0, 2, 4);
+	visualizationCamera.lookAt(plane.position);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
-	const updateOtherCameraAspect = createUpdateCameraAspect(otherCamera);
+	const updateVisualizationCameraAspect =
+		createUpdateCameraAspect(visualizationCamera);
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
-		updateOtherCameraAspect(size.aspect);
-	});
-
-	const size = new Size();
-
-	$effect(() => {
-		return dispose;
+		updateVisualizationCameraAspect(size.aspect);
 	});
 
 	let currentCamera: Camera;
 	let currentScene: Scene;
 
 	$effect(() => {
-		if (renderOtherScene) {
-			currentCamera = otherCamera;
-			currentScene = otherScene;
+		if (renderVisualizationScene) {
+			currentCamera = visualizationCamera;
+			currentScene = visualizationScene;
 		} else {
 			currentCamera = camera;
 			currentScene = scene;
@@ -128,7 +144,7 @@
 				plane.lookAt(camera.position);
 				plane.rotateY(
 					0.5 *
-						(1 - Math.sign(camera.position.dot(otherCamera.position))) *
+						(1 - Math.sign(camera.position.dot(visualizationCamera.position))) *
 						Math.PI,
 				);
 
@@ -164,6 +180,8 @@
 			};
 		};
 	};
+
+	const size = new Size();
 
 	let withRenderer: WithRenderer = $state(() => {});
 	loadImage(boo.src, boo.width, boo.height).then((image) => {
