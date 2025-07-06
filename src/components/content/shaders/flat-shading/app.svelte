@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { createScene } from "./createScene";
 	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
@@ -9,16 +8,19 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { PerspectiveCamera } from "three";
+	import {
+		Mesh,
+		MeshNormalMaterial,
+		PerspectiveCamera,
+		Scene,
+		SphereGeometry,
+	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-
-	let autoRotate = $state(true);
-	let flatShading = $state(true);
-
-	const size = new Size();
 
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 3);
+
+	const size = new Size();
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
@@ -27,6 +29,7 @@
 	});
 
 	const controls = new OrbitControls(camera);
+	let autoRotate = $state(true);
 	$effect(() => {
 		controls.autoRotate = autoRotate;
 	});
@@ -45,12 +48,21 @@
 		};
 	};
 
-	const { dispose, material, scene } = createScene();
+	const geometry = new SphereGeometry(1, 16, 8);
+	const material = new MeshNormalMaterial();
+	const mesh = new Mesh(geometry, material);
+
+	const scene = new Scene().add(mesh);
 
 	$effect(() => {
-		return dispose;
+		return () => {
+			scene.remove(mesh);
+			material.dispose();
+			geometry.dispose();
+		};
 	});
 
+	let flatShading = $state(true);
 	$effect(() => {
 		material.flatShading = flatShading;
 		material.needsUpdate = true;
