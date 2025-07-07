@@ -1,11 +1,16 @@
 import { CanvasTexture, Scene, Sprite, SpriteMaterial } from "three";
 
-export const createScene = (canvasTexture: CanvasTexture) => {
+export const createScene = (
+	canvasTexture: CanvasTexture,
+	scene = new Scene(),
+) => {
 	const material = new SpriteMaterial({
 		map: canvasTexture,
 	});
+
 	const sprite = new Sprite(material);
-	const scene = new Scene().add(sprite);
+
+	scene.add(sprite);
 
 	const dispose = () => {
 		scene.remove(sprite);

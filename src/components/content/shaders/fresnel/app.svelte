@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createScene } from "./createScene";
+	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
@@ -9,7 +9,7 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { PerspectiveCamera } from "three";
+	import { Mesh, PerspectiveCamera, Scene, TorusGeometry } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let autoRotate = $state(true);
@@ -35,24 +35,18 @@
 		controls.autoRotate = autoRotate;
 	});
 
-	const withRenderer: WithRenderer = (renderer) => {
-		controls.connect(renderer.domElement);
-
-		renderer.setAnimationLoop(() => {
-			controls.update();
-			renderer.render(scene, camera);
-		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-			controls.disconnect();
-		};
-	};
-
-	const { dispose, scene, uniforms } = createScene();
+	const geometry = new TorusGeometry();
+	const uniforms = createUniforms();
+	const material = new FresnelMaterial(uniforms);
+	const mesh = new Mesh(geometry, material);
+	const scene = new Scene().add(mesh);
 
 	$effect(() => {
-		return dispose;
+		return () => {
+			scene.remove(mesh);
+			material.dispose();
+			geometry.dispose();
+		};
 	});
 
 	$effect(() => {
@@ -66,6 +60,20 @@
 	$effect(() => {
 		uniforms.uPower.value = power;
 	});
+
+	const withRenderer: WithRenderer = (renderer) => {
+		controls.connect(renderer.domElement);
+
+		renderer.setAnimationLoop(() => {
+			controls.update();
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+			controls.disconnect();
+		};
+	};
 </script>
 
 <div bind:clientWidth={size.width}>

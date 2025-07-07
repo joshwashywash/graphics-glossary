@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createScene } from "./createScene";
+	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
 	import Pane from "./pane.svelte";
 
 	import type { WithRenderer } from "@attachments/renderer.svelte";
@@ -9,7 +9,7 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { PerspectiveCamera } from "three";
+	import { Mesh, MeshBasicMaterial, PerspectiveCamera, Scene } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	const size = new Size();
@@ -21,6 +21,22 @@
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
+	});
+
+	const geometry = new VertexColorsBoxGeometry();
+	const material = new MeshBasicMaterial({
+		vertexColors: true,
+	});
+
+	const mesh = new Mesh(geometry, material);
+
+	const scene = new Scene().add(mesh);
+	$effect(() => {
+		return () => {
+			scene.remove(mesh);
+			geometry.dispose();
+			material.dispose();
+		};
 	});
 
 	const controls = new OrbitControls(camera);
@@ -44,12 +60,6 @@
 			controls.disconnect();
 		};
 	};
-
-	const { dispose, scene } = createScene();
-
-	$effect(() => {
-		return dispose;
-	});
 </script>
 
 <div bind:clientWidth={size.width}>
