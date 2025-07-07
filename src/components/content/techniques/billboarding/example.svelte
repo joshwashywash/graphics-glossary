@@ -28,6 +28,7 @@
 </script>
 
 <script lang="ts">
+	import { createCanvasTexture } from "./createCanvasTexture";
 	import { createScene } from "./createScene";
 	import { createVisualizationScene } from "./createVisualizationScene";
 
@@ -59,7 +60,7 @@
 		throw new Error("texture context is null");
 	}
 
-	const canvasTexture = new CanvasTexture(booCanvas);
+	const canvasTexture = createCanvasTexture(booCanvas);
 
 	const { dispose, scene, sprite } = createScene(canvasTexture);
 
