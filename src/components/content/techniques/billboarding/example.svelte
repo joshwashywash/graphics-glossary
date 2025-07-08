@@ -29,8 +29,6 @@
 
 <script lang="ts">
 	import { createCanvasTexture } from "./createCanvasTexture";
-	import { createScene } from "./createScene";
-	import { createVisualizationScene } from "./createVisualizationScene";
 
 	import boo from "@assets/boo.png";
 
@@ -44,9 +42,14 @@
 
 	import {
 		Camera,
-		CanvasTexture,
+		CameraHelper,
+		Mesh,
+		MeshBasicMaterial,
 		PerspectiveCamera,
+		PlaneGeometry,
 		Scene,
+		Sprite,
+		SpriteMaterial,
 		Vector3,
 	} from "three";
 
@@ -62,27 +65,44 @@
 
 	const canvasTexture = createCanvasTexture(booCanvas);
 
-	const { dispose, scene, sprite } = createScene(canvasTexture);
-
 	const camera = new PerspectiveCamera(45, 1, cameraNear, cameraFar);
-	const {
-		scene: visualizationScene,
-		dispose: visualizationDispose,
-		plane,
-	} = createVisualizationScene(canvasTexture, camera);
 
-	$effect(() => {
-		return () => {
-			dispose();
-			visualizationDispose();
-			canvasTexture.dispose();
-		};
+	const planeGeometry = new PlaneGeometry();
+	const planeMaterial = new MeshBasicMaterial({
+		map: canvasTexture,
 	});
+	const plane = new Mesh(planeGeometry, planeMaterial);
 
 	const visualizationCamera = new PerspectiveCamera();
 
 	visualizationCamera.position.set(0, 2, 4);
 	visualizationCamera.lookAt(plane.position);
+
+	const cameraHelper = new CameraHelper(camera);
+	const visualizationScene = new Scene().add(plane, cameraHelper);
+
+	const spriteMaterial = new SpriteMaterial({
+		map: canvasTexture,
+	});
+
+	const sprite = new Sprite(spriteMaterial);
+
+	const scene = new Scene().add(sprite);
+
+	$effect(() => {
+		return () => {
+			visualizationScene.remove(plane, cameraHelper);
+			planeGeometry.dispose();
+			planeMaterial.map = null;
+			planeMaterial.dispose();
+
+			scene.remove(sprite);
+			spriteMaterial.map = null;
+			spriteMaterial.dispose();
+
+			canvasTexture.dispose();
+		};
+	});
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 	const updateVisualizationCameraAspect =
@@ -90,6 +110,8 @@
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
+		// updating the camera aspect this way updates the camera's projection matrix which the helper doesn't know about
+		cameraHelper.update();
 		updateVisualizationCameraAspect(size.aspect);
 	});
 
@@ -126,7 +148,7 @@
 				);
 
 				// the cross product can help determine which angle to use
-				// doing all the math to determine which angle to use reduces to this
+				// the math to determine which angle to use reduces down to this
 				if (scratch.x > 0) {
 					angle = tau - angle;
 				}
