@@ -20,9 +20,8 @@
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 3);
 
-	const size = new Size();
-
 	const updateCameraAspect = createUpdateCameraAspect(camera);
+	const size = new Size();
 
 	$effect(() => {
 		updateCameraAspect(size.aspect);
@@ -33,20 +32,6 @@
 	$effect(() => {
 		controls.autoRotate = autoRotate;
 	});
-
-	const withRenderer: WithRenderer = (renderer) => {
-		controls.connect(renderer.domElement);
-
-		renderer.setAnimationLoop(() => {
-			controls.update();
-			renderer.render(scene, camera);
-		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-			controls.disconnect();
-		};
-	};
 
 	const geometry = new SphereGeometry(1, 16, 8);
 	const material = new MeshNormalMaterial();
@@ -67,6 +52,20 @@
 		material.flatShading = flatShading;
 		material.needsUpdate = true;
 	});
+
+	const withRenderer: WithRenderer = (renderer) => {
+		controls.connect(renderer.domElement);
+
+		renderer.setAnimationLoop(() => {
+			controls.update();
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+			controls.disconnect();
+		};
+	};
 </script>
 
 <div bind:clientWidth={size.width}>

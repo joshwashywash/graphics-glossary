@@ -12,13 +12,12 @@
 	import { Mesh, MeshBasicMaterial, PerspectiveCamera, Scene } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-	const size = new Size();
-
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 3);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
+	const size = new Size();
 	$effect(() => {
 		updateCameraAspect(size.aspect);
 	});

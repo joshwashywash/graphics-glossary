@@ -18,13 +18,12 @@
 	let fresnelColor = $state("#ffffff");
 	let power = $state(1);
 
-	const size = new Size();
-
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 4);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
+	const size = new Size();
 	$effect(() => {
 		updateCameraAspect(size.aspect);
 	});
@@ -36,8 +35,10 @@
 	});
 
 	const geometry = new TorusGeometry();
+
 	const uniforms = createUniforms();
 	const material = new FresnelMaterial(uniforms);
+
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 

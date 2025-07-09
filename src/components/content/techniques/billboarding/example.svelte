@@ -108,13 +108,18 @@
 	const updateVisualizationCameraAspect =
 		createUpdateCameraAspect(visualizationCamera);
 
+	const updateAspects = (aspect: number) => {
+		updateCameraAspect(aspect);
+		updateVisualizationCameraAspect(aspect);
+	};
+
 	$effect(() => {
-		updateCameraAspect(size.aspect);
+		updateAspects(size.aspect);
 		// updating the camera aspect this way updates the camera's projection matrix which the helper doesn't know about
 		cameraHelper.update();
-		updateVisualizationCameraAspect(size.aspect);
 	});
 
+	// these don't need to states since they're read in the render loop
 	let currentCamera: Camera;
 	let currentScene: Scene;
 

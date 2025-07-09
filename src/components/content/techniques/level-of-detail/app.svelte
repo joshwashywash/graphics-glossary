@@ -18,11 +18,10 @@
 		Scene,
 	} from "three";
 
-	const size = new Size();
-
 	const camera = new PerspectiveCamera();
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
+	const size = new Size();
 	$effect(() => {
 		updateCameraAspect(size.aspect);
 	});
