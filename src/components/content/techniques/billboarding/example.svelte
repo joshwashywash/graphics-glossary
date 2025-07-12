@@ -14,17 +14,17 @@
 
 	const tau = 2 * Math.PI;
 
-	const spriteCount = 18;
+	const frameCount = 18;
 
 	/**
-	 * number of sprites to show during the second half of the rotation
-	 * equal to `spriteCount` minus the first and last
+	 * number of frames to show during the second half of the rotation.
+	 * equal to `frameCount` minus the first and last *frames*
 	 */
-	const backwardsSpriteCount = spriteCount - 2;
+	const backwardsFrameCount = frameCount - 2;
 
-	const stepCount = spriteCount + backwardsSpriteCount;
+	const stepCount = frameCount + backwardsFrameCount;
 
-	const spriteWidth = boo.width / spriteCount;
+	const spriteWidth = boo.width / frameCount;
 </script>
 
 <script lang="ts">
@@ -119,7 +119,7 @@
 		cameraHelper.update();
 	});
 
-	// these don't need to states since they're read in the render loop
+	// these don't need to be reactive since they're only read in the render loop
 	let currentCamera: Camera;
 	let currentScene: Scene;
 
@@ -160,11 +160,10 @@
 
 				let offset = Math.floor(stepCount * (angle / tau));
 
-				const behind = offset >= spriteCount;
-				const directionX = 1 - 2 * +behind;
+				const behind = offset >= frameCount;
 
 				if (behind) {
-					offset = backwardsSpriteCount - (offset % spriteCount);
+					offset = backwardsFrameCount - (offset % frameCount);
 				}
 
 				if (lastOffset === offset) return;
@@ -175,6 +174,8 @@
 						(1 - Math.sign(camera.position.dot(visualizationCamera.position))) *
 						Math.PI,
 				);
+
+				const directionX = 1 - 2 * +behind;
 
 				booCanvasContext.resetTransform();
 				booCanvasContext.scale(directionX, 1);
@@ -212,6 +213,7 @@
 	const size = new Size();
 
 	let withRenderer: WithRenderer = $state(() => {});
+
 	loadImage(boo.src, boo.width, boo.height).then((image) => {
 		withRenderer = createWithRenderer(image);
 	});
