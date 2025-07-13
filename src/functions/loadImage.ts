@@ -1,9 +1,13 @@
 /**
  * asynchronously loads an image
  */
-export const loadImage = (src: string, width?: number, height?: number) => {
-	return new Promise<HTMLImageElement>((resolve) => {
-		const image = new Image(width, height);
+export const loadImage = (
+	src: string,
+	width?: number,
+	height?: number,
+): Promise<HTMLImageElement> => {
+	const image = new Image(width, height);
+	return new Promise((resolve) => {
 		image.addEventListener(
 			"load",
 			() => {
