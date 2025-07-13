@@ -70,6 +70,7 @@
 	const planeGeometry = new PlaneGeometry();
 	const planeMaterial = new MeshBasicMaterial({
 		map: canvasTexture,
+		transparent: true,
 	});
 	const plane = new Mesh(planeGeometry, planeMaterial);
 
@@ -212,20 +213,19 @@
 
 	const size = new Size();
 
-	let withRenderer: WithRenderer = $state(() => {});
-
-	loadImage(boo.src, boo.width, boo.height).then((image) => {
-		withRenderer = createWithRenderer(image);
-	});
+	const booImagePromise = loadImage(boo.src, boo.width, boo.height);
 </script>
 
 <div bind:clientWidth={size.width}>
-	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			() => withRenderer,
-		)}
-	>
-	</canvas>
+	{#await booImagePromise then image}
+		{@const withRenderer = createWithRenderer(image)}
+		<canvas
+			{@attach renderer(
+				() => size.width,
+				() => size.height,
+				() => withRenderer,
+			)}
+		>
+		</canvas>
+	{/await}
 </div>

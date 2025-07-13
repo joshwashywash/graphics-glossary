@@ -7,6 +7,7 @@ export const loadImage = (
 	height?: number,
 ): Promise<HTMLImageElement> => {
 	const image = new Image(width, height);
+
 	return new Promise((resolve) => {
 		image.addEventListener(
 			"load",
