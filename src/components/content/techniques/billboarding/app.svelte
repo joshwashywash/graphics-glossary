@@ -8,6 +8,9 @@
 
 <svelte:boundary>
 	<Example {renderVisualizationScene} />
+	{#snippet pending()}
+		<p>loading</p>
+	{/snippet}
 
 	{#snippet failed(error)}
 		<p>{error}</p>

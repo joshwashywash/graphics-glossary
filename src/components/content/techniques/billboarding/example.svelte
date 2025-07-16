@@ -134,9 +134,14 @@
 		}
 	});
 
-	const createWithRenderer = (image: HTMLImageElement): WithRenderer => {
+	const booImage = loadImage(boo.src, boo.width, boo.height);
+
+	const withRenderer: WithRenderer = (renderer) => {
 		let lastOffset: number;
-		return (renderer) => {
+		let canceled = false;
+		booImage.then((image) => {
+			if (canceled) return;
+
 			renderer.setAnimationLoop((time) => {
 				renderer.render(currentScene, currentCamera);
 
@@ -204,28 +209,24 @@
 
 				lastOffset = offset;
 			});
+		});
 
-			return () => {
-				renderer.setAnimationLoop(null);
-			};
+		return () => {
+			canceled = true;
+			renderer.setAnimationLoop(null);
 		};
 	};
 
 	const size = new Size();
-
-	const booImagePromise = loadImage(boo.src, boo.width, boo.height);
 </script>
 
 <div bind:clientWidth={size.width}>
-	{#await booImagePromise then image}
-		{@const withRenderer = createWithRenderer(image)}
-		<canvas
-			{@attach renderer(
-				() => size.width,
-				() => size.height,
-				() => withRenderer,
-			)}
-		>
-		</canvas>
-	{/await}
+	<canvas
+		{@attach renderer(
+			() => size.width,
+			() => size.height,
+			() => withRenderer,
+		)}
+	>
+	</canvas>
 </div>

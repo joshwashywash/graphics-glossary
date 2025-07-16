@@ -38,7 +38,13 @@ export default defineConfig({
 				},
 			],
 		}),
-		svelte(),
+		svelte({
+			compilerOptions: {
+				experimental: {
+					async: true,
+				},
+			},
+		}),
 		sitemap(),
 	],
 	site,

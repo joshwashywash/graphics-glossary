@@ -11,14 +11,14 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.4.1",
-    "@astrojs/starlight": "^0.34.4",
+    "@astrojs/starlight": "^0.34.7",
     "@astrojs/starlight-tailwind": "^4.0.1",
     "@astrojs/svelte": "^7.1.0",
     "@tailwindcss/vite": "^4.1.11",
-    "@types/three": "^0.178.0",
-    "astro": "^5.11.0",
-    "sharp": "^0.34.2",
-    "svelte": "^5.35.4",
+    "@types/three": "^0.178.1",
+    "astro": "^5.11.1",
+    "sharp": "^0.34.3",
+    "svelte": "^5.36.2",
     "svelte-tweakpane-ui": "^1.5.9",
     "tailwindcss": "^4.1.11",
     "three": "^0.178.0",
@@ -29,6 +29,6 @@
     "prettier": "3.6.2",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-svelte": "^3.4.0",
-    "prettier-plugin-tailwindcss": "^0.6.13"
+    "prettier-plugin-tailwindcss": "^0.6.14"
   }
 }
