@@ -1,102 +1,53 @@
 <script lang="ts">
-	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
-	import Pane from "./pane.svelte";
+	import Example from "./example.svelte";
 
-	import { renderer } from "@attachments/renderer.svelte";
+	import { Checkbox, Color, Pane, Slider } from "svelte-tweakpane-ui";
 
-	import Size from "@classes/Size.svelte";
-
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
-
-	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { Mesh, PerspectiveCamera, Scene, TorusGeometry } from "three";
-	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+	let width = $state(1);
+	const aspect = 16 / 9;
+	const height = $derived(width / aspect);
 
 	let autoRotate = $state(true);
-
 	let baseColor = $state("#000000");
 	let fresnelColor = $state("#ffffff");
 	let power = $state(1);
-
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 4);
-
-	const updateCameraAspect = createUpdateCameraAspect(camera);
-
-	const size = new Size();
-	$effect(() => {
-		updateCameraAspect(size.aspect);
-	});
-
-	const controls = new OrbitControls(camera);
-
-	$effect(() => {
-		controls.autoRotate = autoRotate;
-	});
-
-	const geometry = new TorusGeometry();
-
-	const uniforms = createUniforms();
-	const material = new FresnelMaterial(uniforms);
-
-	const mesh = new Mesh(geometry, material);
-	const scene = new Scene().add(mesh);
-
-	$effect(() => {
-		return () => {
-			scene.remove(mesh);
-			material.dispose();
-			geometry.dispose();
-		};
-	});
-
-	$effect(() => {
-		uniforms.uBaseColor.value.set(baseColor);
-	});
-
-	$effect(() => {
-		uniforms.uFresnelColor.value.set(fresnelColor);
-	});
-
-	$effect(() => {
-		uniforms.uPower.value = power;
-	});
-
-	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 </script>
 
-<div bind:clientWidth={size.width}>
-	<canvas
-		{@attach renderer((renderer) => {
-			$effect(() => {
-				renderer.setSize(size.width, size.height);
-			});
-
-			$effect(() => {
-				renderer.setPixelRatio(pixelRatio);
-			});
-
-			controls.connect(renderer.domElement);
-
-			renderer.setAnimationLoop(() => {
-				controls.update();
-				renderer.render(scene, camera);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-				controls.disconnect();
-			};
-		})}
-	>
-	</canvas>
+<div bind:clientWidth={width}>
+	<Example
+		{width}
+		{height}
+		{aspect}
+		{autoRotate}
+		{baseColor}
+		{fresnelColor}
+		{power}
+	/>
 </div>
 
 <div class="not-content">
 	<Pane
-		bind:autoRotate
-		bind:baseColor
-		bind:fresnelColor
-		bind:power
-	/>
+		position="inline"
+		title="schlick"
+	>
+		<Checkbox
+			bind:value={autoRotate}
+			label="auto rotate"
+		/>
+		<Color
+			bind:value={baseColor}
+			label="base color"
+		/>
+		<Color
+			bind:value={fresnelColor}
+			label="fresnel color"
+		/>
+		<Slider
+			bind:value={power}
+			label="power"
+			min={0}
+			max={5}
+			step={0.1}
+		/>
+	</Pane>
 </div>

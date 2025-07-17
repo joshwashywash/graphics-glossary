@@ -4,10 +4,22 @@
 	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 
 	let renderVisualizationScene = $state(false);
+
+	let width = $state(1);
+	const aspect = 16 / 9;
+	const height = $derived(width / aspect);
 </script>
 
 <svelte:boundary>
-	<Example {renderVisualizationScene} />
+	<div bind:clientWidth={width}>
+		<Example
+			{renderVisualizationScene}
+			{width}
+			{height}
+			{aspect}
+		/>
+	</div>
+
 	{#snippet pending()}
 		<p>loading</p>
 	{/snippet}
