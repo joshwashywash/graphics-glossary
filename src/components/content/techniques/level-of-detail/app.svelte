@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { LodLevel } from "./types";
 
-	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		BufferGeometry,
 		IcosahedronGeometry,
@@ -71,27 +71,31 @@
 		};
 	});
 
-	const withRenderer: WithRenderer = (renderer) => {
-		renderer.setAnimationLoop((time) => {
-			renderer.render(scene, camera);
-
-			time *= 1 / 1000;
-			camera.position.setZ(1 + z + 1.5 * offset * Math.sin(0.75 * time));
-		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 </script>
 
 <div bind:clientWidth={size.width}>
 	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			() => withRenderer,
-		)}
+		{@attach renderer((renderer) => {
+			$effect(() => {
+				renderer.setSize(size.width, size.height);
+			});
+
+			$effect(() => {
+				renderer.setPixelRatio(pixelRatio);
+			});
+
+			renderer.setAnimationLoop((time) => {
+				renderer.render(scene, camera);
+
+				time *= 1 / 1000;
+				camera.position.setZ(1 + z + 1.5 * offset * Math.sin(0.75 * time));
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		})}
 	>
 	</canvas>
 </div>

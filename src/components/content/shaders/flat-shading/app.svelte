@@ -1,13 +1,13 @@
 <script lang="ts">
 	import Pane from "./pane.svelte";
 
-	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		Mesh,
 		MeshNormalMaterial,
@@ -53,28 +53,32 @@
 		material.needsUpdate = true;
 	});
 
-	const withRenderer: WithRenderer = (renderer) => {
-		controls.connect(renderer.domElement);
-
-		renderer.setAnimationLoop(() => {
-			controls.update();
-			renderer.render(scene, camera);
-		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-			controls.disconnect();
-		};
-	};
+	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 </script>
 
 <div bind:clientWidth={size.width}>
 	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			() => withRenderer,
-		)}
+		{@attach renderer((renderer) => {
+			$effect(() => {
+				renderer.setSize(size.width, size.height);
+			});
+
+			$effect(() => {
+				renderer.setPixelRatio(pixelRatio);
+			});
+
+			controls.connect(renderer.domElement);
+
+			renderer.setAnimationLoop(() => {
+				controls.update();
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+				controls.disconnect();
+			};
+		})}
 	>
 	</canvas>
 </div>

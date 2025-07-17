@@ -17,7 +17,7 @@
 	const frameCount = 18;
 
 	/**
-	 * number of frames to show during the second half of the rotation.
+	 * number of frames to show during the last half of the rotation.
 	 * equal to `frameCount` minus the first and last *frames*
 	 */
 	const backwardsFrameCount = frameCount - 2;
@@ -32,7 +32,6 @@
 
 	import boo from "@assets/boo.png";
 
-	import type { WithRenderer } from "@attachments/renderer.svelte";
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import Size from "@classes/Size.svelte";
@@ -40,8 +39,8 @@
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
-		Camera,
 		CameraHelper,
 		Mesh,
 		MeshBasicMaterial,
@@ -58,7 +57,7 @@
 	const booCanvas = new OffscreenCanvas(spriteWidth, boo.height);
 	const booCanvasContext = booCanvas.getContext("2d");
 
-	// the example can not work without this so just throw and let the boundary handle it
+	// the example can not work without the context so just throw and let the boundary handle it
 	if (booCanvasContext === null) {
 		throw new Error("texture context is null");
 	}
@@ -121,112 +120,118 @@
 	});
 
 	// these don't need to be reactive since they're only read in the render loop
-	let currentCamera: Camera;
-	let currentScene: Scene;
+	let currentCamera = camera;
+	let currentScene = scene;
 
 	$effect(() => {
 		if (renderVisualizationScene) {
 			currentCamera = visualizationCamera;
 			currentScene = visualizationScene;
-		} else {
+		}
+		return () => {
 			currentCamera = camera;
 			currentScene = scene;
-		}
+		};
 	});
 
 	const booImage = loadImage(boo.src, boo.width, boo.height);
 
-	const withRenderer: WithRenderer = (renderer) => {
-		let lastOffset: number;
-		let canceled = false;
-		booImage.then((image) => {
-			if (canceled) return;
-
-			renderer.setAnimationLoop((time) => {
-				renderer.render(currentScene, currentCamera);
-
-				// slow it down
-				time = cameraRotationSpeed * time + 0.5 * Math.PI;
-
-				camera.position
-					.set(Math.cos(time), 0, Math.sin(time))
-					.multiplyScalar(cameraOrbitRadius);
-				camera.lookAt(sprite.position);
-
-				// `angleTo` returns the shorter angle between the vectors
-				let angle = hatZ.angleTo(
-					scratch.subVectors(camera.position, sprite.position),
-				);
-
-				// the cross product can help determine which angle to use
-				// the math to determine which angle to use reduces down to this
-				if (scratch.x > 0) {
-					angle = tau - angle;
-				}
-
-				let offset = Math.floor(stepCount * (angle / tau));
-
-				const behind = offset >= frameCount;
-
-				if (behind) {
-					offset = backwardsFrameCount - (offset % frameCount);
-				}
-
-				if (lastOffset === offset) return;
-
-				plane.lookAt(camera.position);
-				plane.rotateY(
-					0.5 *
-						(1 - Math.sign(camera.position.dot(visualizationCamera.position))) *
-						Math.PI,
-				);
-
-				const directionX = 1 - 2 * +behind;
-
-				booCanvasContext.resetTransform();
-				booCanvasContext.scale(directionX, 1);
-
-				booCanvasContext.clearRect(
-					0,
-					0,
-					directionX * booCanvasContext.canvas.width,
-					booCanvasContext.canvas.height,
-				);
-
-				booCanvasContext.drawImage(
-					image,
-					booCanvasContext.canvas.width * offset,
-					0,
-					spriteWidth,
-					boo.height,
-					0,
-					0,
-					directionX * spriteWidth,
-					boo.height,
-				);
-
-				canvasTexture.needsUpdate = true;
-
-				lastOffset = offset;
-			});
-		});
-
-		return () => {
-			canceled = true;
-			renderer.setAnimationLoop(null);
-		};
-	};
-
 	const size = new Size();
+	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
+
+	let lastOffset: number;
+	let canceled = false;
 </script>
 
 <div bind:clientWidth={size.width}>
 	<canvas
-		{@attach renderer(
-			() => size.width,
-			() => size.height,
-			() => withRenderer,
-		)}
+		{@attach renderer((renderer) => {
+			$effect(() => {
+				renderer.setSize(size.width, size.height);
+			});
+
+			$effect(() => {
+				renderer.setPixelRatio(pixelRatio);
+			});
+
+			booImage.then((image) => {
+				if (canceled) return;
+
+				renderer.setAnimationLoop((time) => {
+					renderer.render(currentScene, currentCamera);
+
+					// slow it down
+					time = cameraRotationSpeed * time + 0.5 * Math.PI;
+
+					camera.position
+						.set(Math.cos(time), 0, Math.sin(time))
+						.multiplyScalar(cameraOrbitRadius);
+					camera.lookAt(sprite.position);
+
+					// `angleTo` returns the shorter angle between the vectors
+					let angle = hatZ.angleTo(
+						scratch.subVectors(camera.position, sprite.position),
+					);
+
+					// the cross product can help determine which angle to use
+					// the math to determine which angle to use reduces down to this
+					if (scratch.x > 0) {
+						angle = tau - angle;
+					}
+
+					let offset = Math.floor(stepCount * (angle / tau));
+
+					const behind = offset >= frameCount;
+
+					if (behind) {
+						offset = backwardsFrameCount - (offset % frameCount);
+					}
+
+					if (lastOffset === offset) return;
+
+					plane.lookAt(camera.position);
+					plane.rotateY(
+						0.5 *
+							(1 -
+								Math.sign(camera.position.dot(visualizationCamera.position))) *
+							Math.PI,
+					);
+
+					const directionX = 1 - 2 * +behind;
+
+					booCanvasContext.resetTransform();
+					booCanvasContext.scale(directionX, 1);
+
+					booCanvasContext.clearRect(
+						0,
+						0,
+						directionX * booCanvasContext.canvas.width,
+						booCanvasContext.canvas.height,
+					);
+
+					booCanvasContext.drawImage(
+						image,
+						booCanvasContext.canvas.width * offset,
+						0,
+						spriteWidth,
+						boo.height,
+						0,
+						0,
+						directionX * spriteWidth,
+						boo.height,
+					);
+
+					canvasTexture.needsUpdate = true;
+
+					lastOffset = offset;
+				});
+			});
+
+			return () => {
+				canceled = true;
+				renderer.setAnimationLoop(null);
+			};
+		})}
 	>
 	</canvas>
 </div>
