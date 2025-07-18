@@ -15,6 +15,8 @@
 	const frameCount = forwardsFrameCount + backwardsFrameCount;
 
 	const spriteWidth = boo.width / forwardsFrameCount;
+
+	const scratch = new Vector3();
 </script>
 
 <script lang="ts">
@@ -36,6 +38,7 @@
 		Scene,
 		Sprite,
 		SpriteMaterial,
+		Vector3,
 	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -127,11 +130,13 @@
 				controls.update();
 				renderer.render(scene, camera);
 
-				let angle = sprite.position.angleTo(camera.position);
+				scratch.subVectors(camera.position, sprite.position);
 
-				if (camera.position.z < 0) {
-					angle = tau - angle;
-				}
+				// flip the position over the x-axis
+				scratch.z *= -1;
+
+				// in the xz-plane, the z part of the vector acts as the "y" argument of atan2
+				const angle = Math.atan2(scratch.z, scratch.x) + Math.PI;
 
 				let offset = Math.floor(frameCount * (angle / tau));
 
