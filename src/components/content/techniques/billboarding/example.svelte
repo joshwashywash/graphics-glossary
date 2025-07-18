@@ -2,24 +2,19 @@
 	lang="ts"
 	module
 >
-	const hatZ = new Vector3(0, 0, 1);
-
-	/** just a scratch vector */
-	const scratch = new Vector3();
-
 	const tau = 2 * Math.PI;
 
-	const frameCount = 18;
+	const forwardsFrameCount = 18;
 
 	/**
 	 * number of frames to show during the last half of the rotation.
 	 * equal to `frameCount` minus the first and last *frames*
 	 */
-	const backwardsFrameCount = frameCount - 2;
+	const backwardsFrameCount = forwardsFrameCount - 2;
 
-	const stepCount = frameCount + backwardsFrameCount;
+	const frameCount = forwardsFrameCount + backwardsFrameCount;
 
-	const spriteWidth = boo.width / frameCount;
+	const spriteWidth = boo.width / forwardsFrameCount;
 </script>
 
 <script lang="ts">
@@ -41,7 +36,6 @@
 		Scene,
 		Sprite,
 		SpriteMaterial,
-		Vector3,
 	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -70,12 +64,12 @@
 	});
 
 	const sprite = new Sprite(spriteMaterial);
-	sprite.position.setX(1);
+	sprite.position.setX(-1);
 
 	const material = new MeshNormalMaterial();
 	const geometry = new BoxGeometry();
 	const mesh = new Mesh(geometry, material);
-	mesh.position.setX(-1);
+	mesh.position.setX(1);
 
 	const scene = new Scene().add(sprite, mesh);
 
@@ -104,6 +98,8 @@
 
 	const controls = new OrbitControls(camera);
 	controls.autoRotateSpeed = 20;
+	controls.maxPolarAngle = 0.5 * Math.PI;
+	controls.minPolarAngle = 0.5 * Math.PI;
 	$effect(() => {
 		controls.autoRotate = autoRotate;
 	});
@@ -131,28 +127,23 @@
 				controls.update();
 				renderer.render(scene, camera);
 
-				// `angleTo` returns the shorter angle between the vectors
-				let angle = hatZ.angleTo(
-					scratch.subVectors(camera.position, sprite.position),
-				);
+				let angle = sprite.position.angleTo(camera.position);
 
-				// the cross product can help determine which angle to use
-				// the math to determine which angle to use reduces down to this
-				if (scratch.x < 0) {
+				if (camera.position.z < 0) {
 					angle = tau - angle;
 				}
 
-				let offset = Math.floor(stepCount * (angle / tau));
+				let offset = Math.floor(frameCount * (angle / tau));
 
-				const behind = offset >= frameCount;
+				const backwards = offset >= forwardsFrameCount;
 
-				if (behind) {
-					offset = backwardsFrameCount - (offset % frameCount);
+				if (backwards) {
+					offset = backwardsFrameCount - (offset % forwardsFrameCount);
 				}
 
 				if (lastOffset === offset) return;
 
-				const directionX = 1 - 2 * +behind;
+				const directionX = 1 - 2 * +backwards;
 
 				booCanvasContext.resetTransform();
 				booCanvasContext.scale(directionX, 1);
