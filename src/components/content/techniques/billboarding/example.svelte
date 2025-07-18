@@ -95,14 +95,16 @@
 		updateCameraAspect(aspect);
 	});
 
-	const booImage = loadImage(boo.src, boo.width, boo.height);
+	const booImagePromise = loadImage(boo.src, boo.width, boo.height);
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
 	const controls = new OrbitControls(camera);
+
 	controls.autoRotateSpeed = 20;
 	controls.maxPolarAngle = 0.5 * Math.PI;
 	controls.minPolarAngle = 0.5 * Math.PI;
+
 	$effect(() => {
 		controls.autoRotate = autoRotate;
 	});
@@ -123,7 +125,7 @@
 
 		controls.connect(renderer.domElement);
 
-		booImage.then((image) => {
+		booImagePromise.then((image) => {
 			if (canceled) return;
 
 			renderer.setAnimationLoop(() => {
