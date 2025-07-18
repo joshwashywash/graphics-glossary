@@ -7,11 +7,6 @@
 	/** just a scratch vector */
 	const scratch = new Vector3();
 
-	const cameraNear = 1;
-	const cameraFar = 3;
-	const cameraOrbitRadius = cameraFar - cameraNear;
-	const cameraRotationSpeed = 0.0025 * 0.5;
-
 	const tau = 2 * Math.PI;
 
 	const frameCount = 18;
@@ -39,19 +34,19 @@
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
-		CameraHelper,
+		BoxGeometry,
 		Mesh,
-		MeshBasicMaterial,
+		MeshNormalMaterial,
 		PerspectiveCamera,
-		PlaneGeometry,
 		Scene,
 		Sprite,
 		SpriteMaterial,
 		Vector3,
 	} from "three";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let {
-		renderVisualizationScene = false,
+		autoRotate = false,
 		width = 1,
 		height = 1,
 		aspect = width / height,
@@ -67,79 +62,51 @@
 
 	const canvasTexture = createCanvasTexture(booCanvas);
 
-	const camera = new PerspectiveCamera(45, 1, cameraNear, cameraFar);
-
-	const planeGeometry = new PlaneGeometry();
-	const planeMaterial = new MeshBasicMaterial({
-		map: canvasTexture,
-		transparent: true,
-	});
-	const plane = new Mesh(planeGeometry, planeMaterial);
-
-	const visualizationCamera = new PerspectiveCamera();
-
-	visualizationCamera.position.set(0, 2, 4);
-	visualizationCamera.lookAt(plane.position);
-
-	const cameraHelper = new CameraHelper(camera);
-	const visualizationScene = new Scene().add(plane, cameraHelper);
+	const camera = new PerspectiveCamera();
+	camera.position.setZ(3);
 
 	const spriteMaterial = new SpriteMaterial({
 		map: canvasTexture,
 	});
 
 	const sprite = new Sprite(spriteMaterial);
+	sprite.position.setX(1);
 
-	const scene = new Scene().add(sprite);
+	const material = new MeshNormalMaterial();
+	const geometry = new BoxGeometry();
+	const mesh = new Mesh(geometry, material);
+	mesh.position.setX(-1);
+
+	const scene = new Scene().add(sprite, mesh);
 
 	$effect(() => {
 		return () => {
-			visualizationScene.remove(plane, cameraHelper);
-			planeGeometry.dispose();
-			planeMaterial.map = null;
-			planeMaterial.dispose();
-
-			scene.remove(sprite);
+			scene.remove(sprite, mesh);
 			spriteMaterial.map = null;
 			spriteMaterial.dispose();
+
+			material.dispose();
+			geometry.dispose();
 
 			canvasTexture.dispose();
 		};
 	});
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
-	const updateVisualizationCameraAspect =
-		createUpdateCameraAspect(visualizationCamera);
 
-	const updateAspects = (aspect: number) => {
+	$effect(() => {
 		updateCameraAspect(aspect);
-		updateVisualizationCameraAspect(aspect);
-	};
-
-	$effect(() => {
-		updateAspects(aspect);
-		// updating the camera aspect this way updates the camera's projection matrix which the helper doesn't know about
-		cameraHelper.update();
-	});
-
-	// these don't need to be reactive since they're only read in the render loop
-	let currentCamera = camera;
-	let currentScene = scene;
-
-	$effect(() => {
-		if (renderVisualizationScene) {
-			currentCamera = visualizationCamera;
-			currentScene = visualizationScene;
-		}
-		return () => {
-			currentCamera = camera;
-			currentScene = scene;
-		};
 	});
 
 	const booImage = loadImage(boo.src, boo.width, boo.height);
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
+
+	const controls = new OrbitControls(camera);
+	controls.autoRotateSpeed = 20;
+	$effect(() => {
+		controls.autoRotate = autoRotate;
+	});
 
 	let lastOffset: number;
 	let canceled = false;
@@ -155,19 +122,14 @@
 			renderer.setPixelRatio(pixelRatio);
 		});
 
+		controls.connect(renderer.domElement);
+
 		booImage.then((image) => {
 			if (canceled) return;
 
-			renderer.setAnimationLoop((time) => {
-				renderer.render(currentScene, currentCamera);
-
-				// slow it down
-				time = cameraRotationSpeed * time + 0.5 * Math.PI;
-
-				camera.position
-					.set(Math.cos(time), 0, Math.sin(time))
-					.multiplyScalar(cameraOrbitRadius);
-				camera.lookAt(sprite.position);
+			renderer.setAnimationLoop(() => {
+				controls.update();
+				renderer.render(scene, camera);
 
 				// `angleTo` returns the shorter angle between the vectors
 				let angle = hatZ.angleTo(
@@ -176,7 +138,7 @@
 
 				// the cross product can help determine which angle to use
 				// the math to determine which angle to use reduces down to this
-				if (scratch.x > 0) {
+				if (scratch.x < 0) {
 					angle = tau - angle;
 				}
 
@@ -189,13 +151,6 @@
 				}
 
 				if (lastOffset === offset) return;
-
-				plane.lookAt(camera.position);
-				plane.rotateY(
-					0.5 *
-						(1 - Math.sign(camera.position.dot(visualizationCamera.position))) *
-						Math.PI,
-				);
 
 				const directionX = 1 - 2 * +behind;
 
@@ -229,6 +184,7 @@
 
 		return () => {
 			canceled = true;
+			controls.disconnect();
 			renderer.setAnimationLoop(null);
 		};
 	})}

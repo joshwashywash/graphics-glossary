@@ -3,20 +3,20 @@
 
 	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 
-	let renderVisualizationScene = $state(false);
-
 	let width = $state(1);
 	const aspect = 16 / 9;
 	const height = $derived(width / aspect);
+
+	let autoRotate = $state(false);
 </script>
 
 <svelte:boundary>
 	<div bind:clientWidth={width}>
 		<Example
-			{renderVisualizationScene}
 			{width}
 			{height}
 			{aspect}
+			{autoRotate}
 		/>
 	</div>
 
@@ -31,12 +31,12 @@
 
 <div class="not-content">
 	<Pane
-		position="inline"
 		title="billboarding"
+		position="inline"
 	>
 		<Checkbox
-			bind:value={renderVisualizationScene}
-			label="render visualization scene"
+			bind:value={autoRotate}
+			label="auto rotate camera"
 		/>
 	</Pane>
 </div>
