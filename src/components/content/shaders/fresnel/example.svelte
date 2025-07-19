@@ -50,18 +50,6 @@
 		};
 	});
 
-	$effect(() => {
-		uniforms.uBaseColor.value.set(baseColor);
-	});
-
-	$effect(() => {
-		uniforms.uFresnelColor.value.set(fresnelColor);
-	});
-
-	$effect(() => {
-		uniforms.uPower.value = power;
-	});
-
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 </script>
 
@@ -77,13 +65,36 @@
 
 		controls.connect(renderer.domElement);
 
-		renderer.setAnimationLoop(() => {
-			controls.update();
+		const render = () => {
 			renderer.render(scene, camera);
+		};
+
+		controls.addEventListener("change", render);
+
+		renderer.setAnimationLoop(() => {
+			if (controls.autoRotate) {
+				controls.update();
+			}
+		});
+
+		$effect(() => {
+			uniforms.uBaseColor.value.set(baseColor);
+			render();
+		});
+
+		$effect(() => {
+			uniforms.uFresnelColor.value.set(fresnelColor);
+			render();
+		});
+
+		$effect(() => {
+			uniforms.uPower.value = power;
+			render();
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			controls.removeEventListener("change", render);
 			controls.disconnect();
 		};
 	})}

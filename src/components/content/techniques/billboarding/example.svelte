@@ -43,7 +43,7 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let {
-		autoRotate = false,
+		autoRotate = true,
 		width = 1,
 		height = 1,
 		aspect = width / height,
@@ -101,7 +101,7 @@
 
 	const controls = new OrbitControls(camera);
 
-	controls.autoRotateSpeed = 20;
+	controls.autoRotateSpeed = 10;
 	controls.maxPolarAngle = 0.5 * Math.PI;
 	controls.minPolarAngle = 0.5 * Math.PI;
 
@@ -125,12 +125,19 @@
 
 		controls.connect(renderer.domElement);
 
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		controls.addEventListener("change", render);
+
 		booImagePromise.then((image) => {
 			if (canceled) return;
 
 			renderer.setAnimationLoop(() => {
-				controls.update();
-				renderer.render(scene, camera);
+				if (controls.autoRotate) {
+					controls.update();
+				}
 
 				scratch.subVectors(camera.position, sprite.position);
 
@@ -182,6 +189,7 @@
 
 		return () => {
 			canceled = true;
+			controls.removeEventListener("change", render);
 			controls.disconnect();
 			renderer.setAnimationLoop(null);
 		};

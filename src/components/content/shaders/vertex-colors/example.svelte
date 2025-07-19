@@ -62,13 +62,21 @@
 
 		controls.connect(renderer.domElement);
 
-		renderer.setAnimationLoop(() => {
-			controls.update();
+		const render = () => {
 			renderer.render(scene, camera);
+		};
+
+		controls.addEventListener("change", render);
+
+		renderer.setAnimationLoop(() => {
+			if (controls.autoRotate) {
+				controls.update();
+			}
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			controls.removeEventListener("change", render);
 			controls.disconnect();
 		};
 	})}

@@ -7,7 +7,7 @@
 	const aspect = 16 / 9;
 	const height = $derived(width / aspect);
 
-	let autoRotate = $state(false);
+	let autoRotate = $state(true);
 </script>
 
 <svelte:boundary>
