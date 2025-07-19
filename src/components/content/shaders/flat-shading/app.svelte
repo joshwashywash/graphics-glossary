@@ -14,9 +14,11 @@
 
 <div bind:clientWidth={width}>
 	<Example
-		{width}
-		{height}
 		{aspect}
+		{autoRotate}
+		{flatShading}
+		{height}
+		{width}
 	/>
 </div>
 
