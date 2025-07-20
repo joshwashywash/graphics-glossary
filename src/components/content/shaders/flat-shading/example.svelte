@@ -31,9 +31,6 @@
 	});
 
 	const controls = new OrbitControls(camera);
-	$effect(() => {
-		controls.autoRotate = autoRotate;
-	});
 
 	const geometry = new SphereGeometry(1, 16, 8);
 	const material = new MeshNormalMaterial();
@@ -75,14 +72,18 @@
 
 		controls.addEventListener("change", render);
 
-		renderer.setAnimationLoop(() => {
-			if (controls.autoRotate) {
+		$effect(() => {
+			controls.autoRotate = autoRotate;
+			renderer.setAnimationLoop(() => {
 				controls.update();
-			}
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
 		});
 
 		return () => {
-			renderer.setAnimationLoop(null);
 			controls.removeEventListener("change", render);
 			controls.disconnect();
 		};

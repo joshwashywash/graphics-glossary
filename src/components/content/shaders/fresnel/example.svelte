@@ -30,10 +30,6 @@
 
 	const controls = new OrbitControls(camera);
 
-	$effect(() => {
-		controls.autoRotate = autoRotate;
-	});
-
 	const geometry = new TorusGeometry();
 
 	const uniforms = createUniforms();
@@ -78,6 +74,17 @@
 		});
 
 		$effect(() => {
+			controls.autoRotate = autoRotate;
+			renderer.setAnimationLoop(() => {
+				controls.update();
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		});
+
+		$effect(() => {
 			uniforms.uBaseColor.value.set(baseColor);
 			render();
 		});
@@ -93,7 +100,6 @@
 		});
 
 		return () => {
-			renderer.setAnimationLoop(null);
 			controls.removeEventListener("change", render);
 			controls.disconnect();
 		};

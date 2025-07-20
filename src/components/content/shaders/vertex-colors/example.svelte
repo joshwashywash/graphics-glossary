@@ -43,10 +43,6 @@
 
 	const controls = new OrbitControls(camera);
 
-	$effect(() => {
-		controls.autoRotate = autoRotate;
-	});
-
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 </script>
 
@@ -67,15 +63,18 @@
 		};
 
 		controls.addEventListener("change", render);
-
-		renderer.setAnimationLoop(() => {
-			if (controls.autoRotate) {
+		$effect(() => {
+			controls.autoRotate = autoRotate;
+			renderer.setAnimationLoop(() => {
 				controls.update();
-			}
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
 		});
 
 		return () => {
-			renderer.setAnimationLoop(null);
 			controls.removeEventListener("change", render);
 			controls.disconnect();
 		};
