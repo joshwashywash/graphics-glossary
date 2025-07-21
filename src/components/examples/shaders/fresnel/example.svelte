@@ -14,9 +14,9 @@
 		baseColor = "#000000",
 		fresnelColor = "#ffffff",
 		power = 1,
-		width = 1,
-		height = 1,
-		aspect = width / height,
+		canvasWidth = 1,
+		canvasHeight = 1,
+		aspect = canvasWidth / canvasHeight,
 	} = $props();
 
 	const camera = new PerspectiveCamera();
@@ -52,7 +52,7 @@
 <canvas
 	{@attach renderer((renderer) => {
 		$effect(() => {
-			renderer.setSize(width, height);
+			renderer.setSize(canvasWidth, canvasHeight);
 		});
 
 		$effect(() => {

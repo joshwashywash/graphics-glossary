@@ -23,6 +23,8 @@ export const renderer = (
 			return withRenderer(renderer);
 		});
 
-		return renderer.dispose;
+		return () => {
+			renderer.dispose();
+		};
 	};
 };

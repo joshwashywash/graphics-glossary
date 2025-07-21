@@ -3,9 +3,9 @@
 
 	import { Checkbox, Color, Pane, Slider } from "svelte-tweakpane-ui";
 
-	let width = $state(1);
+	let canvasWidth = $state(1);
 	const aspect = 16 / 9;
-	const height = $derived(width / aspect);
+	const canvasHeight = $derived(canvasWidth / aspect);
 
 	let autoRotate = $state(true);
 	let baseColor = $state("#000000");
@@ -13,13 +13,13 @@
 	let power = $state(1);
 </script>
 
-<div bind:clientWidth={width}>
+<div bind:clientWidth={canvasWidth}>
 	<Example
-		{width}
-		{height}
 		{aspect}
 		{autoRotate}
 		{baseColor}
+		{canvasHeight}
+		{canvasWidth}
 		{fresnelColor}
 		{power}
 	/>

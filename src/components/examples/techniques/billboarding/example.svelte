@@ -44,9 +44,9 @@
 
 	let {
 		autoRotate = true,
-		width = 1,
-		height = 1,
-		aspect = width / height,
+		canvasWidth = 1,
+		canvasHeight = 1,
+		aspect = canvasWidth / canvasHeight,
 	} = $props();
 
 	const booCanvas = new OffscreenCanvas(spriteWidth, boo.height);
@@ -116,7 +116,7 @@
 <canvas
 	{@attach renderer((renderer) => {
 		$effect(() => {
-			renderer.setSize(width, height);
+			renderer.setSize(canvasWidth, canvasHeight);
 		});
 
 		$effect(() => {
@@ -157,6 +157,8 @@
 
 				if (lastOffset === offset) return;
 
+				lastOffset = offset;
+
 				const directionX = 1 - 2 * +backwards;
 
 				booCanvasContext.resetTransform();
@@ -182,8 +184,6 @@
 				);
 
 				canvasTexture.needsUpdate = true;
-
-				lastOffset = offset;
 			});
 		});
 

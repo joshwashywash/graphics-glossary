@@ -3,20 +3,20 @@
 
 	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 
-	let width = $state(1);
+	let canvasWidth = $state(1);
 	const aspect = 16 / 9;
-	const height = $derived(width / aspect);
+	const canvasHeight = $derived(canvasWidth / aspect);
 
 	let autoRotate = $state(true);
 </script>
 
 <svelte:boundary>
-	<div bind:clientWidth={width}>
+	<div bind:clientWidth={canvasWidth}>
 		<Example
-			{width}
-			{height}
 			{aspect}
 			{autoRotate}
+			{canvasHeight}
+			{canvasWidth}
 		/>
 	</div>
 

@@ -1,19 +1,24 @@
 <script lang="ts">
-	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
-
 	import { renderer } from "@attachments/renderer.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { Mesh, MeshBasicMaterial, PerspectiveCamera, Scene } from "three";
+	import {
+		Mesh,
+		MeshNormalMaterial,
+		PerspectiveCamera,
+		Scene,
+		SphereGeometry,
+	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let {
+		flatShading = true,
 		autoRotate = true,
-		width = 1,
-		height = 1,
-		aspect = width / height,
+		canvasWidth = 1,
+		canvasHeight = 1,
+		aspect = canvasWidth / canvasHeight,
 	} = $props();
 
 	const camera = new PerspectiveCamera();
@@ -25,23 +30,26 @@
 		updateCameraAspect(aspect);
 	});
 
-	const geometry = new VertexColorsBoxGeometry();
-	const material = new MeshBasicMaterial({
-		vertexColors: true,
-	});
+	const controls = new OrbitControls(camera);
 
+	const geometry = new SphereGeometry(1, 16, 8);
+	const material = new MeshNormalMaterial();
 	const mesh = new Mesh(geometry, material);
 
 	const scene = new Scene().add(mesh);
+
 	$effect(() => {
 		return () => {
 			scene.remove(mesh);
-			geometry.dispose();
 			material.dispose();
+			geometry.dispose();
 		};
 	});
 
-	const controls = new OrbitControls(camera);
+	$effect(() => {
+		material.flatShading = flatShading;
+		material.needsUpdate = true;
+	});
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 </script>
@@ -49,7 +57,7 @@
 <canvas
 	{@attach renderer((renderer) => {
 		$effect(() => {
-			renderer.setSize(width, height);
+			renderer.setSize(canvasWidth, canvasHeight);
 		});
 
 		$effect(() => {
@@ -63,6 +71,7 @@
 		};
 
 		controls.addEventListener("change", render);
+
 		$effect(() => {
 			controls.autoRotate = autoRotate;
 			renderer.setAnimationLoop(() => {

@@ -16,7 +16,11 @@
 		Scene,
 	} from "three";
 
-	let { width = 1, height = 1, aspect = width / height } = $props();
+	let {
+		canvasWidth = 1,
+		canvasHeight = 1,
+		aspect = canvasWidth / canvasHeight,
+	} = $props();
 
 	const camera = new PerspectiveCamera();
 	const updateCameraAspect = createUpdateCameraAspect(camera);
@@ -76,7 +80,7 @@
 <canvas
 	{@attach renderer((renderer) => {
 		$effect(() => {
-			renderer.setSize(width, height);
+			renderer.setSize(canvasWidth, canvasHeight);
 		});
 
 		$effect(() => {
