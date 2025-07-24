@@ -31,8 +31,8 @@
 
 <div class="not-content">
 	<Pane
-		title="billboarding"
 		position="inline"
+		title="billboarding"
 	>
 		<Checkbox
 			bind:value={autoRotate}

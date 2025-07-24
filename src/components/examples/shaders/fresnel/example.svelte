@@ -67,21 +67,16 @@
 
 		controls.addEventListener("change", render);
 
-		renderer.setAnimationLoop(() => {
-			if (controls.autoRotate) {
-				controls.update();
-			}
-		});
-
 		$effect(() => {
 			controls.autoRotate = autoRotate;
-			renderer.setAnimationLoop(() => {
-				controls.update();
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-			};
+			if (controls.autoRotate) {
+				renderer.setAnimationLoop(() => {
+					controls.update();
+				});
+				return () => {
+					renderer.setAnimationLoop(null);
+				};
+			}
 		});
 
 		$effect(() => {

@@ -14,8 +14,8 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let {
-		flatShading = true,
 		autoRotate = true,
+		flatShading = true,
 		canvasWidth = 1,
 		canvasHeight = 1,
 		aspect = canvasWidth / canvasHeight,
@@ -46,11 +46,6 @@
 		};
 	});
 
-	$effect(() => {
-		material.flatShading = flatShading;
-		material.needsUpdate = true;
-	});
-
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 </script>
 
@@ -73,14 +68,23 @@
 		controls.addEventListener("change", render);
 
 		$effect(() => {
-			controls.autoRotate = autoRotate;
-			renderer.setAnimationLoop(() => {
-				controls.update();
-			});
+			material.flatShading = flatShading;
+			material.needsUpdate = true;
+			if (!controls.autoRotate) {
+				render();
+			}
+		});
 
-			return () => {
-				renderer.setAnimationLoop(null);
-			};
+		$effect(() => {
+			controls.autoRotate = autoRotate;
+			if (controls.autoRotate) {
+				renderer.setAnimationLoop(() => {
+					controls.update();
+				});
+				return () => {
+					renderer.setAnimationLoop(null);
+				};
+			}
 		});
 
 		return () => {
