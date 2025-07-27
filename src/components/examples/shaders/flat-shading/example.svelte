@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { renderer } from "@attachments/renderer.svelte";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
@@ -10,6 +8,7 @@
 		PerspectiveCamera,
 		Scene,
 		SphereGeometry,
+		WebGLRenderer,
 	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -47,10 +46,17 @@
 	});
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
+
+	let loop: (() => void) | null = null;
 </script>
 
 <canvas
-	{@attach renderer((renderer) => {
+	{@attach (canvas) => {
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
+
 		$effect(() => {
 			renderer.setSize(canvasWidth, canvasHeight);
 		});
@@ -70,7 +76,7 @@
 		$effect(() => {
 			material.flatShading = flatShading;
 			material.needsUpdate = true;
-			if (!controls.autoRotate) {
+			if (loop === null) {
 				render();
 			}
 		});
@@ -78,11 +84,13 @@
 		$effect(() => {
 			controls.autoRotate = autoRotate;
 			if (controls.autoRotate) {
-				renderer.setAnimationLoop(() => {
-					controls.update();
-				});
+				renderer.setAnimationLoop(
+					(loop = () => {
+						controls.update();
+					}),
+				);
 				return () => {
-					renderer.setAnimationLoop(null);
+					renderer.setAnimationLoop((loop = null));
 				};
 			}
 		});
@@ -90,7 +98,8 @@
 		return () => {
 			controls.removeEventListener("change", render);
 			controls.disconnect();
+			renderer.dispose();
 		};
-	})}
+	}}
 >
 </canvas>

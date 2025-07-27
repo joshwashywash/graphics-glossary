@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { LodLevel } from "./types";
 
-	import { renderer } from "@attachments/renderer.svelte";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
@@ -14,6 +12,7 @@
 		MeshNormalMaterial,
 		PerspectiveCamera,
 		Scene,
+		WebGLRenderer,
 	} from "three";
 
 	let {
@@ -78,7 +77,12 @@
 </script>
 
 <canvas
-	{@attach renderer((renderer) => {
+	{@attach (canvas) => {
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
+
 		$effect(() => {
 			renderer.setSize(canvasWidth, canvasHeight);
 		});
@@ -97,6 +101,6 @@
 		return () => {
 			renderer.setAnimationLoop(null);
 		};
-	})}
+	}}
 >
 </canvas>

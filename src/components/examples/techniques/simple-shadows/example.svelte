@@ -10,8 +10,6 @@
 </script>
 
 <script lang="ts">
-	import { renderer } from "@attachments/renderer.svelte";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
@@ -26,6 +24,7 @@
 		PlaneGeometry,
 		Scene,
 		SphereGeometry,
+		WebGLRenderer,
 	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -130,7 +129,12 @@
 </script>
 
 <canvas
-	{@attach renderer((renderer) => {
+	{@attach (canvas) => {
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
+
 		$effect(() => {
 			renderer.setSize(canvasWidth, canvasHeight);
 		});
@@ -151,6 +155,6 @@
 			controls.disconnect();
 			renderer.setAnimationLoop(null);
 		};
-	})}
+	}}
 >
 </canvas>
