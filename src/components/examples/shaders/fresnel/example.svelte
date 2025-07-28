@@ -106,6 +106,7 @@
 		return () => {
 			controls.removeEventListener("change", render);
 			controls.disconnect();
+			renderer.dispose();
 		};
 	}}
 >

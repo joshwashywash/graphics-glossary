@@ -196,6 +196,7 @@
 			controls.removeEventListener("change", render);
 			controls.disconnect();
 			renderer.setAnimationLoop(null);
+			renderer.dispose();
 		};
 	}}
 >

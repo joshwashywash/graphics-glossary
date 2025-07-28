@@ -12,8 +12,10 @@
 <script lang="ts">
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import type { Attachment } from "svelte/attachments";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
+		Camera,
 		CanvasTexture,
 		Group,
 		Mesh,
@@ -126,35 +128,48 @@
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
 	const controls = new OrbitControls(camera);
+
+	const f = (
+		getWidth: () => number,
+		getHeight: () => number,
+		getPixelRatio: () => number,
+	): Attachment<HTMLCanvasElement> => {
+		return (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+			});
+
+			const render = () => {
+				renderer.render(scene, camera);
+			};
+
+			controls.addEventListener("change", render);
+			controls.connect(renderer.domElement);
+
+			$effect(() => {
+				renderer.setSize(getWidth(), getHeight());
+			});
+
+			$effect(() => {
+				renderer.setPixelRatio(getPixelRatio());
+			});
+
+			return () => {
+				controls.removeEventListener("change", render);
+				controls.disconnect();
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
+		};
+	};
 </script>
 
 <canvas
-	{@attach (canvas) => {
-		const renderer = new WebGLRenderer({
-			antialias: true,
-			canvas,
-		});
-
-		$effect(() => {
-			renderer.setSize(canvasWidth, canvasHeight);
-		});
-
-		$effect(() => {
-			renderer.setPixelRatio(pixelRatio);
-		});
-
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
-		controls.addEventListener("change", render);
-		controls.connect(renderer.domElement);
-
-		return () => {
-			controls.removeEventListener("change", render);
-			controls.disconnect();
-			renderer.setAnimationLoop(null);
-		};
-	}}
+	{@attach f(
+		() => canvasWidth,
+		() => canvasHeight,
+		() => pixelRatio,
+	)}
 >
 </canvas>
