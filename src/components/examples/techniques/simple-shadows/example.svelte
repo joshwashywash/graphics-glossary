@@ -15,7 +15,6 @@
 	import type { Attachment } from "svelte/attachments";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
-		Camera,
 		CanvasTexture,
 		Group,
 		Mesh,
@@ -77,12 +76,11 @@
 
 	const shadowGeometry = new PlaneGeometry(sphereDiameter, sphereDiameter);
 	const shadowMaterial = new MeshBasicMaterial({
+		depthTest: false,
 		depthWrite: false,
-		transparent: true,
-		opacity: 0.5,
 		map: texture,
-		polygonOffset: true,
-		polygonOffsetFactor: -1,
+		opacity: 0.5,
+		transparent: true,
 	});
 
 	const shadowMesh = new Mesh(shadowGeometry, shadowMaterial);
@@ -129,9 +127,21 @@
 
 	const controls = new OrbitControls(camera);
 
+	const getCanvasWidth = () => {
+		return canvasWidth;
+	};
+
+	const getCanvasHeight = () => {
+		return canvasHeight;
+	};
+
+	const getPixelRatio = () => {
+		return pixelRatio;
+	};
+
 	const f = (
-		getWidth: () => number,
-		getHeight: () => number,
+		getCanvasWidth: () => number,
+		getCanvasHeight: () => number,
 		getPixelRatio: () => number,
 	): Attachment<HTMLCanvasElement> => {
 		return (canvas) => {
@@ -148,7 +158,7 @@
 			controls.connect(renderer.domElement);
 
 			$effect(() => {
-				renderer.setSize(getWidth(), getHeight());
+				renderer.setSize(getCanvasWidth(), getCanvasHeight());
 			});
 
 			$effect(() => {
@@ -165,11 +175,4 @@
 	};
 </script>
 
-<canvas
-	{@attach f(
-		() => canvasWidth,
-		() => canvasHeight,
-		() => pixelRatio,
-	)}
->
-</canvas>
+<canvas {@attach f(getCanvasWidth, getCanvasHeight, getPixelRatio)}> </canvas>
