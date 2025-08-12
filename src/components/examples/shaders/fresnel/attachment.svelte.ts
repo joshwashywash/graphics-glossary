@@ -1,100 +1,105 @@
+import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
+
 import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 import type { Attachment } from "svelte/attachments";
 import {
 	Mesh,
-	MeshNormalMaterial,
 	PerspectiveCamera,
 	Scene,
-	SphereGeometry,
+	TorusGeometry,
 	WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 type Getters = {
+	getAspect: () => number;
 	getAutoRotate: () => boolean;
 	getCanvasHeight: () => number;
 	getCanvasWidth: () => number;
-	getAspect: () => number;
-	getFlatShading: () => boolean;
 	getPixelRatio: () => number;
+	getPower: () => number;
+	getBaseColor: () => string;
+	getFresnelColor: () => string;
 };
 
 export const createAttachment = ({
 	getAspect,
+	getPower,
+	getBaseColor,
+	getFresnelColor,
 	getAutoRotate,
 	getCanvasHeight,
 	getCanvasWidth,
-	getFlatShading,
 	getPixelRatio,
 }: Getters): Attachment<HTMLCanvasElement> => {
 	const camera = new PerspectiveCamera();
-	const updateCameraAspect = createUpdateCameraAspect(camera);
-	camera.position.set(0, 0, 3);
-	const controls = new OrbitControls(camera);
+	camera.position.set(0, 0, 4);
 
-	const material = new MeshNormalMaterial();
-	const geometry = new SphereGeometry(1, 16, 8);
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+
+	const geometry = new TorusGeometry();
+
+	const uniforms = createUniforms();
+	const material = new FresnelMaterial(uniforms);
 
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
-	let loop: (() => void) | null = null;
-	const loopIsNull = () => loop === null;
+	const controls = new OrbitControls(camera);
 
 	return (canvas) => {
+		$effect(() => {
+			updateCameraAspect(getAspect());
+			render();
+		});
+
+		$effect(() => {
+			uniforms.uBaseColor.value.set(getBaseColor());
+			render();
+		});
+
+		$effect(() => {
+			uniforms.uFresnelColor.value.set(getFresnelColor());
+			render();
+		});
+
+		$effect(() => {
+			uniforms.uPower.value = getPower();
+			render();
+		});
+
 		const renderer = new WebGLRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
-		$effect(() => {
-			updateCameraAspect(getAspect());
-			if (loopIsNull()) {
-				render();
-			}
-		});
-
 		$effect(() => {
 			renderer.setSize(getCanvasWidth(), getCanvasHeight());
-			if (loopIsNull()) {
-				render();
-			}
+			render();
 		});
 
 		$effect(() => {
 			renderer.setPixelRatio(getPixelRatio());
-			if (loopIsNull()) {
-				render();
-			}
+			render();
 		});
-
-		$effect(() => {
-			material.flatShading = getFlatShading();
-			material.needsUpdate = true;
-			if (loopIsNull()) {
-				render();
-			}
-		});
-
-		controls.addEventListener("change", render);
 
 		controls.connect(renderer.domElement);
+
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		controls.addEventListener("change", render);
 
 		$effect(() => {
 			controls.autoRotate = getAutoRotate();
 			if (controls.autoRotate) {
-				renderer.setAnimationLoop(
-					(loop = () => {
-						controls.update();
-					}),
-				);
+				renderer.setAnimationLoop(() => {
+					controls.update();
+				});
 				return () => {
-					renderer.setAnimationLoop((loop = null));
+					renderer.setAnimationLoop(null);
 				};
 			}
 		});
@@ -102,8 +107,6 @@ export const createAttachment = ({
 		return () => {
 			controls.removeEventListener("change", render);
 			controls.disconnect();
-			material.dispose();
-			geometry.dispose();
 			renderer.dispose();
 		};
 	};
