@@ -1,46 +1,45 @@
+import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
+
 import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 import type { Attachment } from "svelte/attachments";
 import {
 	Mesh,
-	MeshNormalMaterial,
+	MeshBasicMaterial,
 	PerspectiveCamera,
 	Scene,
-	SphereGeometry,
 	WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 type Getters = {
+	getAspect: () => number;
 	getAutoRotate: () => boolean;
 	getCanvasHeight: () => number;
 	getCanvasWidth: () => number;
-	getAspect: () => number;
-	getFlatShading: () => boolean;
 	getPixelRatio: () => number;
 };
 
 export const createAttachment = ({
-	getAspect,
 	getAutoRotate,
+	getAspect,
 	getCanvasHeight,
 	getCanvasWidth,
-	getFlatShading,
 	getPixelRatio,
 }: Getters): Attachment<HTMLCanvasElement> => {
 	const camera = new PerspectiveCamera();
-	const updateCameraAspect = createUpdateCameraAspect(camera);
 	camera.position.set(0, 0, 3);
+
 	const controls = new OrbitControls(camera);
 
-	const material = new MeshNormalMaterial();
-	const geometry = new SphereGeometry(1, 16, 8);
+	const geometry = new VertexColorsBoxGeometry();
+	const material = new MeshBasicMaterial({
+		vertexColors: true,
+	});
 
 	const mesh = new Mesh(geometry, material);
-	const scene = new Scene().add(mesh);
 
-	let loop: (() => void) | null = null;
-	const loopIsNull = () => loop === null;
+	const scene = new Scene().add(mesh);
 
 	const disposeScene = () => {
 		scene.remove(mesh);
@@ -48,7 +47,13 @@ export const createAttachment = ({
 		geometry.dispose();
 	};
 
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+
 	return (canvas) => {
+		$effect(() => {
+			updateCameraAspect(getAspect());
+		});
+
 		const renderer = new WebGLRenderer({
 			antialias: true,
 			canvas,
@@ -58,46 +63,28 @@ export const createAttachment = ({
 			renderer.render(scene, camera);
 		};
 
-		$effect(() => {
-			updateCameraAspect(getAspect());
-		});
+		controls.addEventListener("change", render);
 
 		$effect(() => {
 			renderer.setSize(getCanvasWidth(), getCanvasHeight());
-			if (loopIsNull()) {
-				render();
-			}
+			render();
 		});
 
 		$effect(() => {
 			renderer.setPixelRatio(getPixelRatio());
-			if (loopIsNull()) {
-				render();
-			}
+			render();
 		});
-
-		$effect(() => {
-			material.flatShading = getFlatShading();
-			material.needsUpdate = true;
-			if (loopIsNull()) {
-				render();
-			}
-		});
-
-		controls.addEventListener("change", render);
 
 		controls.connect(renderer.domElement);
 
 		$effect(() => {
 			controls.autoRotate = getAutoRotate();
 			if (controls.autoRotate) {
-				renderer.setAnimationLoop(
-					(loop = () => {
-						controls.update();
-					}),
-				);
+				renderer.setAnimationLoop(() => {
+					controls.update();
+				});
 				return () => {
-					renderer.setAnimationLoop((loop = null));
+					renderer.setAnimationLoop(null);
 				};
 			}
 		});

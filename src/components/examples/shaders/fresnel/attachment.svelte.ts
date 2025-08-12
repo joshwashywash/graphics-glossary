@@ -46,12 +46,17 @@ export const createAttachment = ({
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
+	const disposeScene = () => {
+		scene.remove(mesh);
+		material.dispose();
+		geometry.dispose();
+	};
+
 	const controls = new OrbitControls(camera);
 
 	return (canvas) => {
 		$effect(() => {
 			updateCameraAspect(getAspect());
-			render();
 		});
 
 		$effect(() => {
@@ -107,6 +112,7 @@ export const createAttachment = ({
 		return () => {
 			controls.removeEventListener("change", render);
 			controls.disconnect();
+			disposeScene();
 			renderer.dispose();
 		};
 	};
