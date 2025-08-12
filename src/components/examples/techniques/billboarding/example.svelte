@@ -119,19 +119,21 @@
 			canvas,
 		});
 
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
 		$effect(() => {
 			renderer.setSize(canvasWidth, canvasHeight);
+			render();
 		});
 
 		$effect(() => {
 			renderer.setPixelRatio(pixelRatio);
+			render();
 		});
 
 		controls.connect(renderer.domElement);
-
-		const render = () => {
-			renderer.render(scene, camera);
-		};
 
 		controls.addEventListener("change", render);
 

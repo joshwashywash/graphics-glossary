@@ -175,4 +175,4 @@
 	};
 </script>
 
-<canvas {@attach f(getCanvasWidth, getCanvasHeight, getPixelRatio)}> </canvas>
+<canvas {@attach f(getCanvasWidth, getCanvasHeight, getPixelRatio)}></canvas>
