@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createAttachment } from "./attachment.svelte";
 
-	import { Checkbox, List, type ListOptions, Pane } from "svelte-tweakpane-ui";
+	import { Checkbox, List, Pane } from "svelte-tweakpane-ui";
+	import type { ListOptions } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 
 	let flatShading = $state(true);
@@ -26,7 +27,7 @@
 		"3:2": 3 / 2,
 		"4:3": 4 / 3,
 		"16:9": 16 / 9,
-	};
+	} as const;
 </script>
 
 <div bind:clientWidth={canvasWidth}>

@@ -1,32 +1,32 @@
-<script lang="ts">
-	import type { LodLevel } from "./types";
+import type { LodLevel } from "./types";
 
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
-	import {
-		BufferGeometry,
-		IcosahedronGeometry,
-		LOD,
-		Mesh,
-		MeshNormalMaterial,
-		PerspectiveCamera,
-		Scene,
-		WebGLRenderer,
-	} from "three";
+import type { Attachment } from "svelte/attachments";
+import {
+	BufferGeometry,
+	IcosahedronGeometry,
+	LOD,
+	Mesh,
+	MeshNormalMaterial,
+	PerspectiveCamera,
+	Scene,
+	WebGLRenderer,
+} from "three";
 
-	let {
-		canvasWidth = 1,
-		canvasHeight = 1,
-		aspect = canvasWidth / canvasHeight,
-	} = $props();
+type Getters = {
+	getAspect: () => number;
+	getCanvasWidth: () => number;
+	getCanvasHeight: () => number;
+};
 
+export const createAttachment = ({
+	getAspect,
+	getCanvasHeight,
+	getCanvasWidth,
+}: Getters): Attachment<HTMLCanvasElement> => {
 	const camera = new PerspectiveCamera();
 	const updateCameraAspect = createUpdateCameraAspect(camera);
-
-	$effect(() => {
-		updateCameraAspect(aspect);
-	});
 
 	const z = 5;
 	const offset = 3;
@@ -57,38 +57,33 @@
 
 	const scene = new Scene().add(lod);
 
-	$effect(() => {
-		return () => {
-			scene.remove(lod);
+	const disposeScene = () => {
+		scene.remove(lod);
 
-			for (const distance of distances) {
-				lod.removeLevel(distance);
-			}
+		for (const distance of distances) {
+			lod.removeLevel(distance);
+		}
 
-			for (const geometry of geometries) {
-				geometry.dispose();
-			}
+		for (const geometry of geometries) {
+			geometry.dispose();
+		}
 
-			material.dispose();
-		};
-	});
+		material.dispose();
+	};
 
-	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
-</script>
+	return (canvas) => {
+		$effect(() => {
+			updateCameraAspect(getAspect());
+		});
 
-<canvas
-	{@attach (canvas) => {
 		const renderer = new WebGLRenderer({
 			antialias: true,
 			canvas,
 		});
 
 		$effect(() => {
-			renderer.setSize(canvasWidth, canvasHeight);
-		});
-
-		$effect(() => {
-			renderer.setPixelRatio(pixelRatio);
+			renderer.setSize(getCanvasWidth(), getCanvasHeight());
+			// no need to render since rendering is done in an animation loop
 		});
 
 		renderer.setAnimationLoop((time) => {
@@ -99,9 +94,9 @@
 		});
 
 		return () => {
+			disposeScene();
 			renderer.setAnimationLoop(null);
 			renderer.dispose();
 		};
-	}}
->
-</canvas>
+	};
+};
