@@ -159,10 +159,12 @@
 
 			$effect(() => {
 				renderer.setSize(getCanvasWidth(), getCanvasHeight());
+				render();
 			});
 
 			$effect(() => {
 				renderer.setPixelRatio(getPixelRatio());
+				render();
 			});
 
 			return () => {
