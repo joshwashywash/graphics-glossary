@@ -16,13 +16,68 @@ import {
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+const createSphereMesh = (radius = 1) => {
+	const geometry = new SphereGeometry(radius);
+	const material = new MeshNormalMaterial();
+
+	const mesh = new Mesh(geometry, material);
+
+	const dispose = () => {
+		geometry.dispose();
+		material.dispose();
+	};
+	return {
+		mesh,
+		dispose,
+	};
+};
+
+const createFloorMesh = (size = 1) => {
+	const geometry = new PlaneGeometry(size, size);
+	const material = new MeshBasicMaterial();
+	return {
+		mesh: new Mesh(geometry, material),
+		dispose: () => {
+			geometry.dispose();
+			material.dispose();
+		},
+	};
+};
+
+const createShadowMesh = (canvas: OffscreenCanvas, size = 1) => {
+	const geometry = new PlaneGeometry(size, size);
+
+	const map = new CanvasTexture(canvas);
+
+	const material = new MeshBasicMaterial({
+		depthTest: false,
+		depthWrite: false,
+		map,
+		opacity: 0.5,
+		transparent: true,
+	});
+
+	const mesh = new Mesh(geometry, material);
+
+	const dispose = () => {
+		geometry.dispose();
+		material.dispose();
+		map.dispose();
+	};
+
+	return {
+		dispose,
+		mesh,
+	};
+};
+
 const removeAllChildren = (object: Object3D) => {
 	for (const child of object.children) {
 		child.removeFromParent();
 	}
 };
 
-const createShadow = (context: OffscreenCanvasRenderingContext2D) => {
+const drawShadow = (context: OffscreenCanvasRenderingContext2D) => {
 	const textureCanvasHalfSize = 0.5 * context.canvas.width;
 	const gradient = context.createRadialGradient(
 		textureCanvasHalfSize,
@@ -45,29 +100,17 @@ type Getters = {
 	getCanvasHeight: () => number;
 };
 
-type Disposable = {
-	dispose(): void;
-};
-
 export const createAttachment = ({
 	getAspect,
 	getPixelRatio,
 	getCanvasHeight,
 	getCanvasWidth,
 }: Getters): Attachment<HTMLCanvasElement> => {
-	const disposables: Disposable[] = [];
-
 	const sphereRadius = 1;
-	const sphereGeometry = new SphereGeometry(sphereRadius);
-	disposables.push(sphereGeometry);
 
-	const sphereMaterial = new MeshNormalMaterial();
-	disposables.push(sphereMaterial);
-
-	const sphereMesh = new Mesh(sphereGeometry, sphereMaterial);
+	const { dispose: disposeSphere, mesh: sphereMesh } =
+		createSphereMesh(sphereRadius);
 	sphereMesh.position.y = 2;
-
-	const sphereDiameter = 2 * sphereRadius;
 
 	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
@@ -81,32 +124,15 @@ export const createAttachment = ({
 		throw new Error("canvas texture context is null");
 	}
 
-	createShadow(context);
+	drawShadow(context);
 
-	const texture = new CanvasTexture(textureCanvas);
-
-	const shadowGeometry = new PlaneGeometry(sphereDiameter, sphereDiameter);
-	disposables.push(shadowGeometry);
-
-	const shadowMaterial = new MeshBasicMaterial({
-		depthTest: false,
-		depthWrite: false,
-		map: texture,
-		opacity: 0.5,
-		transparent: true,
-	});
-	disposables.push(shadowMaterial);
-
-	const shadowMesh = new Mesh(shadowGeometry, shadowMaterial);
+	const { dispose: disposeShadow, mesh: shadowMesh } = createShadowMesh(
+		textureCanvas,
+		2 * sphereRadius,
+	);
 
 	const floorSize = 6;
-	const floorGeometry = new PlaneGeometry(floorSize, floorSize);
-	disposables.push(floorGeometry);
-
-	const floorMaterial = new MeshBasicMaterial();
-	disposables.push(floorMaterial);
-
-	const floorMesh = new Mesh(floorGeometry, floorMaterial);
+	const { dispose: disposeFloor, mesh: floorMesh } = createFloorMesh(floorSize);
 
 	const group = new Group().add(shadowMesh, floorMesh);
 	group.rotateX(-1 * 0.5 * Math.PI);
@@ -117,11 +143,9 @@ export const createAttachment = ({
 		removeAllChildren(scene);
 		removeAllChildren(group);
 
-		for (const disposable of disposables) {
-			disposable.dispose();
-		}
-
-		texture.dispose();
+		disposeSphere();
+		disposeFloor();
+		disposeShadow();
 	};
 
 	const camera = new PerspectiveCamera();
