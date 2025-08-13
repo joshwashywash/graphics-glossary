@@ -7,11 +7,12 @@
 
 	let flatShading = $state(true);
 	let autoRotate = $state(true);
-	let aspect = $state(16 / 9);
 
 	let canvasWidth = $state(1);
+	let aspect = $state(16 / 9);
 
 	const canvasHeight = $derived(canvasWidth / aspect);
+
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
 	const attachment = createAttachment({

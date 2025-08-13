@@ -33,11 +33,6 @@ export const createAttachment = ({
 	getCanvasWidth,
 	getPixelRatio,
 }: Getters): Attachment<HTMLCanvasElement> => {
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 4);
-
-	const updateCameraAspect = createUpdateCameraAspect(camera);
-
 	const geometry = new TorusGeometry();
 
 	const uniforms = createUniforms();
@@ -52,12 +47,25 @@ export const createAttachment = ({
 		geometry.dispose();
 	};
 
+	const camera = new PerspectiveCamera();
+	camera.position.set(0, 0, 4);
+
+	const updateCameraAspect = createUpdateCameraAspect(camera);
 	const controls = new OrbitControls(camera);
 
 	return (canvas) => {
 		$effect(() => {
 			updateCameraAspect(getAspect());
 		});
+
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
+
+		const render = () => {
+			renderer.render(scene, camera);
+		};
 
 		$effect(() => {
 			uniforms.uBaseColor.value.set(getBaseColor());
@@ -74,11 +82,6 @@ export const createAttachment = ({
 			render();
 		});
 
-		const renderer = new WebGLRenderer({
-			antialias: true,
-			canvas,
-		});
-
 		$effect(() => {
 			renderer.setSize(getCanvasWidth(), getCanvasHeight());
 			render();
@@ -89,13 +92,9 @@ export const createAttachment = ({
 			render();
 		});
 
-		controls.connect(renderer.domElement);
-
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
 		controls.addEventListener("change", render);
+
+		controls.connect(renderer.domElement);
 
 		$effect(() => {
 			controls.autoRotate = getAutoRotate();

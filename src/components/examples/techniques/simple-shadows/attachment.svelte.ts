@@ -112,12 +112,6 @@ export const createAttachment = ({
 	getCanvasHeight,
 	getCanvasWidth,
 }: Getters): Attachment<HTMLCanvasElement> => {
-	const sphereRadius = 1;
-
-	const { dispose: disposeSphere, mesh: sphereMesh } =
-		createSphereMesh(sphereRadius);
-	sphereMesh.position.y = 2;
-
 	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
 		textureCanvasSize,
@@ -132,6 +126,7 @@ export const createAttachment = ({
 
 	drawShadow(context);
 
+	const sphereRadius = 1;
 	const { dispose: disposeShadow, mesh: shadowMesh } = createShadowMesh(
 		textureCanvas,
 		2 * sphereRadius,
@@ -142,6 +137,10 @@ export const createAttachment = ({
 
 	const group = new Group().add(shadowMesh, floorMesh);
 	group.rotateX(-1 * 0.5 * Math.PI);
+
+	const { dispose: disposeSphere, mesh: sphereMesh } =
+		createSphereMesh(sphereRadius);
+	sphereMesh.position.y = 2;
 
 	const scene = new Scene().add(sphereMesh, group);
 

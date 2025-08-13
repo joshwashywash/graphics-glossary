@@ -29,8 +29,10 @@ export const createAttachment = ({
 	getPixelRatio,
 }: Getters): Attachment<HTMLCanvasElement> => {
 	const camera = new PerspectiveCamera();
-	const updateCameraAspect = createUpdateCameraAspect(camera);
 	camera.position.set(0, 0, 3);
+
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+
 	const controls = new OrbitControls(camera);
 
 	const material = new MeshNormalMaterial();
@@ -39,14 +41,14 @@ export const createAttachment = ({
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
-	let loop: (() => void) | null = null;
-	const loopIsNull = () => loop === null;
-
 	const disposeScene = () => {
 		scene.remove(mesh);
 		material.dispose();
 		geometry.dispose();
 	};
+
+	let loop: (() => void) | null = null;
+	const loopIsNull = () => loop === null;
 
 	return (canvas) => {
 		const renderer = new WebGLRenderer({

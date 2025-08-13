@@ -27,11 +27,6 @@ export const createAttachment = ({
 	getCanvasWidth,
 	getPixelRatio,
 }: Getters): Attachment<HTMLCanvasElement> => {
-	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 3);
-
-	const controls = new OrbitControls(camera);
-
 	const geometry = new VertexColorsBoxGeometry();
 	const material = new MeshBasicMaterial({
 		vertexColors: true,
@@ -47,8 +42,12 @@ export const createAttachment = ({
 		geometry.dispose();
 	};
 
+	const camera = new PerspectiveCamera();
+	camera.position.set(0, 0, 3);
+
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
+	const controls = new OrbitControls(camera);
 	return (canvas) => {
 		$effect(() => {
 			updateCameraAspect(getAspect());
@@ -63,8 +62,6 @@ export const createAttachment = ({
 			renderer.render(scene, camera);
 		};
 
-		controls.addEventListener("change", render);
-
 		$effect(() => {
 			renderer.setSize(getCanvasWidth(), getCanvasHeight());
 			render();
@@ -74,8 +71,6 @@ export const createAttachment = ({
 			renderer.setPixelRatio(getPixelRatio());
 			render();
 		});
-
-		controls.connect(renderer.domElement);
 
 		$effect(() => {
 			controls.autoRotate = getAutoRotate();
@@ -88,6 +83,10 @@ export const createAttachment = ({
 				};
 			}
 		});
+
+		controls.addEventListener("change", render);
+
+		controls.connect(renderer.domElement);
 
 		return () => {
 			controls.removeEventListener("change", render);
