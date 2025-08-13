@@ -20,27 +20,33 @@ const createSphereMesh = (radius = 1) => {
 	const geometry = new SphereGeometry(radius);
 	const material = new MeshNormalMaterial();
 
-	const mesh = new Mesh(geometry, material);
-
 	const dispose = () => {
 		geometry.dispose();
 		material.dispose();
 	};
+
+	const mesh = new Mesh(geometry, material);
+
 	return {
-		mesh,
 		dispose,
+		mesh,
 	};
 };
 
 const createFloorMesh = (size = 1) => {
 	const geometry = new PlaneGeometry(size, size);
 	const material = new MeshBasicMaterial();
+
+	const dispose = () => {
+		geometry.dispose();
+		material.dispose();
+	};
+
+	const mesh = new Mesh(geometry, material);
+
 	return {
-		mesh: new Mesh(geometry, material),
-		dispose: () => {
-			geometry.dispose();
-			material.dispose();
-		},
+		dispose,
+		mesh,
 	};
 };
 
@@ -57,13 +63,13 @@ const createShadowMesh = (canvas: OffscreenCanvas, size = 1) => {
 		transparent: true,
 	});
 
-	const mesh = new Mesh(geometry, material);
-
 	const dispose = () => {
 		geometry.dispose();
 		material.dispose();
 		map.dispose();
 	};
+
+	const mesh = new Mesh(geometry, material);
 
 	return {
 		dispose,
