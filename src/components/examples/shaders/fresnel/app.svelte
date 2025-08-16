@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
+	import Pane from "./pane.svelte";
 
 	import { attachment } from "@attachments/attachment.svelte";
 	import type { WithRenderer } from "@attachments/attachment.svelte";
@@ -8,8 +9,6 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { Checkbox, Color, List, Pane, Slider } from "svelte-tweakpane-ui";
-	import type { ListOptions } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { Mesh, PerspectiveCamera, Scene, TorusGeometry } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -24,12 +23,6 @@
 	let power = $state(1);
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
-
-	const aspects: ListOptions<number> = {
-		"3:2": 3 / 2,
-		"4:3": 4 / 3,
-		"16:9": 16 / 9,
-	} as const;
 
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 4);
@@ -119,32 +112,10 @@
 
 <div class="not-content">
 	<Pane
-		position="inline"
-		title="fresnel effect"
-	>
-		<Checkbox
-			bind:value={autoRotate}
-			label="auto rotate"
-		/>
-		<Color
-			bind:value={baseColor}
-			label="base color"
-		/>
-		<Color
-			bind:value={fresnelColor}
-			label="fresnel color"
-		/>
-		<Slider
-			bind:value={power}
-			label="power"
-			min={0}
-			max={5}
-			step={0.1}
-		/>
-		<List
-			bind:value={aspect}
-			options={aspects}
-			label="aspect ratio"
-		/>
-	</Pane>
+		bind:aspect
+		bind:autoRotate
+		bind:baseColor
+		bind:fresnelColor
+		bind:power
+	/>
 </div>

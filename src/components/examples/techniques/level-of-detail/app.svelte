@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Pane from "./pane.svelte";
 	import type { LodLevel } from "./types";
 
 	import type { WithRenderer } from "@attachments/attachment.svelte";
@@ -6,8 +7,6 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { List, Pane } from "svelte-tweakpane-ui";
-	import type { ListOptions } from "svelte-tweakpane-ui";
 	import {
 		BufferGeometry,
 		IcosahedronGeometry,
@@ -22,12 +21,6 @@
 	let aspect = $state(16 / 9);
 
 	const canvasHeight = $derived(canvasWidth / aspect);
-
-	const aspects: ListOptions<number> = {
-		"3:2": 3 / 2,
-		"4:3": 4 / 3,
-		"16:9": 16 / 9,
-	} as const;
 
 	const z = 5;
 	const offset = 3;
@@ -105,14 +98,5 @@
 </div>
 
 <div class="not-content">
-	<Pane
-		position="inline"
-		title="level-of-detail"
-	>
-		<List
-			bind:value={aspect}
-			options={aspects}
-			label="aspect ratio"
-		/>
-	</Pane>
+	<Pane bind:aspect />
 </div>

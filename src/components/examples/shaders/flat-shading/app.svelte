@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Pane from "./pane.svelte";
+
 	import { attachment } from "@attachments/attachment.svelte";
 	import type { WithRenderer } from "@attachments/attachment.svelte";
 
@@ -6,8 +8,6 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { Checkbox, List, Pane } from "svelte-tweakpane-ui";
-	import type { ListOptions } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		Mesh,
@@ -27,12 +27,6 @@
 	const canvasHeight = $derived(canvasWidth / aspect);
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
-
-	const aspects: ListOptions<number> = {
-		"3:2": 3 / 2,
-		"4:3": 4 / 3,
-		"16:9": 16 / 9,
-	} as const;
 
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 3);
@@ -120,21 +114,8 @@
 
 <div class="not-content">
 	<Pane
-		position="inline"
-		title="flat-shading"
-	>
-		<Checkbox
-			bind:value={flatShading}
-			label="use flat shading"
-		/>
-		<Checkbox
-			bind:value={autoRotate}
-			label="auto rotate"
-		/>
-		<List
-			bind:value={aspect}
-			options={aspects}
-			label="aspect ratio"
-		/>
-	</Pane>
+		bind:flatShading
+		bind:autoRotate
+		bind:aspect
+	/>
 </div>

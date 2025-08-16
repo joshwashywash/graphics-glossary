@@ -3,14 +3,13 @@
 	import { createShadowMesh } from "./createShadowMesh";
 	import { createSphereMesh } from "./createSphereMesh";
 	import { drawShadow } from "./drawShadow";
+	import Pane from "./pane.svelte";
 
 	import { attachment } from "@attachments/attachment.svelte";
 	import type { WithRenderer } from "@attachments/attachment.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { List, Pane } from "svelte-tweakpane-ui";
-	import type { ListOptions } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { Group, PerspectiveCamera, Scene } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -100,12 +99,6 @@
 			controls.removeEventListener("change", render);
 		};
 	};
-
-	const aspects: ListOptions<number> = {
-		"3:2": 3 / 2,
-		"4:3": 4 / 3,
-		"16:9": 16 / 9,
-	} as const;
 </script>
 
 <svelte:boundary>
@@ -119,14 +112,5 @@
 </svelte:boundary>
 
 <div class="not-content">
-	<Pane
-		position="inline"
-		title="level-of-detail"
-	>
-		<List
-			bind:value={aspect}
-			options={aspects}
-			label="aspect ratio"
-		/>
-	</Pane>
+	<Pane bind:aspect />
 </div>

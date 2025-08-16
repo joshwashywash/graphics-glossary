@@ -21,6 +21,7 @@
 
 <script lang="ts">
 	import { createCanvasTexture } from "./createCanvasTexture";
+	import Pane from "./pane.svelte";
 
 	import boo from "@assets/boo.png";
 
@@ -34,7 +35,6 @@
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
-	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		BoxGeometry,
@@ -217,13 +217,5 @@
 </svelte:boundary>
 
 <div class="not-content">
-	<Pane
-		position="inline"
-		title="billboarding"
-	>
-		<Checkbox
-			bind:value={autoRotate}
-			label="auto rotate camera"
-		/>
-	</Pane>
+	<Pane bind:autoRotate />
 </div>
