@@ -11,7 +11,7 @@
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { Group, PerspectiveCamera, Scene } from "three";
+	import { Group, MathUtils, PerspectiveCamera, Scene } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let canvasWidth = $state(1);
@@ -32,10 +32,13 @@
 	drawShadow(context);
 
 	const sphereRadius = 1;
-	const { dispose: disposeShadow, mesh: shadowMesh } = createShadowMesh(
-		textureCanvas,
-		2 * sphereRadius,
-	);
+	const {
+		dispose: disposeShadow,
+		material: shadowMaterial,
+		mesh: shadowMesh,
+	} = createShadowMesh(textureCanvas, 2 * sphereRadius);
+
+	shadowMesh.position.z = 0.01;
 
 	const floorSize = 6;
 	const { dispose: disposeFloor, mesh: floorMesh } = createFloorMesh(floorSize);
@@ -43,9 +46,9 @@
 	const group = new Group().add(shadowMesh, floorMesh);
 	group.rotateX(-1 * 0.5 * Math.PI);
 
+	const positionYInitial = 2.5;
 	const { dispose: disposeSphere, mesh: sphereMesh } =
 		createSphereMesh(sphereRadius);
-	sphereMesh.position.y = 2;
 
 	const scene = new Scene().add(sphereMesh, group);
 
@@ -61,7 +64,7 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	camera.position.setScalar(4);
+	camera.position.setScalar(5);
 	camera.lookAt(sphereMesh.position);
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
@@ -74,6 +77,8 @@
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
 	const controls = new OrbitControls(camera);
+
+	const speed = 1 / 1000;
 
 	const withRenderer: WithRenderer = (renderer) => {
 		const render = () => {
@@ -90,6 +95,18 @@
 			render();
 		});
 
+		renderer.setAnimationLoop((time) => {
+			time *= speed;
+			const sin = Math.sin(time);
+			sphereMesh.position.y = positionYInitial + sin;
+
+			// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+			const t = 0.5 * (1 + sin);
+
+			shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
+			render();
+		});
+
 		controls.connect(renderer.domElement);
 
 		controls.addEventListener("change", render);
@@ -97,6 +114,7 @@
 		return () => {
 			controls.disconnect();
 			controls.removeEventListener("change", render);
+			renderer.setAnimationLoop(null);
 		};
 	};
 </script>

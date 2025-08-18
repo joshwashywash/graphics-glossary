@@ -1,21 +1,13 @@
 <script lang="ts">
+	import { createLOD } from "./createLOD";
 	import Pane from "./pane.svelte";
-	import type { LodLevel } from "./types";
 
 	import type { WithRenderer } from "@attachments/attachment.svelte";
 	import { attachment } from "@attachments/attachment.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import {
-		BufferGeometry,
-		IcosahedronGeometry,
-		LOD,
-		Mesh,
-		MeshNormalMaterial,
-		PerspectiveCamera,
-		Scene,
-	} from "three";
+	import { PerspectiveCamera, Scene } from "three";
 
 	let canvasWidth = $state(1);
 	let aspect = $state(16 / 9);
@@ -26,28 +18,7 @@
 	const offset = 3;
 	const distances = [z - offset, offset, z + offset];
 
-	const levels: LodLevel[] = [];
-	const material = new MeshNormalMaterial({
-		wireframe: true,
-	});
-
-	const geometries: BufferGeometry[] = [];
-
-	for (let i = 0, l = distances.length; i < l; i += 1) {
-		const detail = l - i - 1;
-		const geometry = new IcosahedronGeometry(1, detail);
-		geometries.push(geometry);
-		const object = new Mesh(geometry, material);
-		const distance = distances[i];
-		levels.push({
-			object,
-			distance,
-		});
-	}
-
-	const lod = levels.reduce((lod, { distance, hysteresis, object }) => {
-		return lod.addLevel(object, distance, hysteresis);
-	}, new LOD());
+	const { lod, dispose: disposeLOD } = createLOD(distances);
 
 	const scene = new Scene().add(lod);
 
@@ -55,22 +26,12 @@
 		return () => {
 			scene.remove(lod);
 
-			for (const distance of distances) {
-				lod.removeLevel(distance);
-			}
-
-			for (const geometry of geometries) {
-				geometry.dispose();
-			}
-
-			material.dispose();
+			disposeLOD();
 		};
 	});
 
 	const camera = new PerspectiveCamera();
 	const updateCameraAspect = createUpdateCameraAspect(camera);
-
-	// because we're rendering in a loop, no need to render when some things are changed, they will just be picked up in the next animation loop
 
 	$effect(() => {
 		updateCameraAspect(aspect);

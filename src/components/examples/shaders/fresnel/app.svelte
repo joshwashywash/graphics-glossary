@@ -27,15 +27,14 @@
 	const camera = new PerspectiveCamera();
 	camera.position.set(0, 0, 4);
 
-	const controls = new OrbitControls(camera);
-
 	const updateCameraAspect = createUpdateCameraAspect(camera);
+
+	const controls = new OrbitControls(camera);
 
 	const geometry = new TorusGeometry();
 
 	const uniforms = createUniforms();
 	const material = new FresnelMaterial(uniforms);
-
 	const mesh = new Mesh(geometry, material);
 
 	const scene = new Scene().add(mesh);
@@ -49,32 +48,32 @@
 
 		$effect(() => {
 			updateCameraAspect(aspect);
-			if (!loopState.looping) render;
+			if (!loopState.isLooping) render;
 		});
 
 		$effect(() => {
 			uniforms.uBaseColor.value.set(baseColor);
-			if (!loopState.looping) render();
+			if (!loopState.isLooping) render();
 		});
 
 		$effect(() => {
 			uniforms.uFresnelColor.value.set(fresnelColor);
-			if (!loopState.looping) render();
+			if (!loopState.isLooping) render();
 		});
 
 		$effect(() => {
 			uniforms.uPower.value = power;
-			if (!loopState.looping) render();
+			if (!loopState.isLooping) render();
 		});
 
 		$effect(() => {
 			renderer.setSize(canvasWidth, canvasHeight);
-			if (!loopState.looping) render();
+			if (!loopState.isLooping) render();
 		});
 
 		$effect(() => {
 			renderer.setPixelRatio(pixelRatio);
-			if (!loopState.looping) render();
+			if (!loopState.isLooping) render();
 		});
 
 		$effect(() => {
@@ -82,7 +81,7 @@
 				renderer.setAnimationLoop(
 					(loopState.loop = () => {
 						controls.update();
-						renderer.render(scene, camera);
+						render();
 					}),
 				);
 

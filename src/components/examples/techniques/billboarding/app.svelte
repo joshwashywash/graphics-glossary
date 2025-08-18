@@ -125,12 +125,12 @@
 
 		$effect(() => {
 			renderer.setSize(canvasWidth, canvasHeight);
-			if (!loopState.looping) render();
+			if (!loopState.isLooping) render();
 		});
 
 		$effect(() => {
 			renderer.setPixelRatio(pixelRatio);
-			if (!loopState.looping) render();
+			if (!loopState.isLooping) render();
 		});
 
 		booImagePromise.then((image) => {

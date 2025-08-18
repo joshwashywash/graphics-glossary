@@ -6,10 +6,8 @@ export const createShadowMesh = (canvas: OffscreenCanvas, size = 1) => {
 	const map = new CanvasTexture(canvas);
 
 	const material = new MeshBasicMaterial({
-		depthTest: false,
 		depthWrite: false,
 		map,
-		opacity: 0.5,
 		transparent: true,
 	});
 
@@ -23,6 +21,7 @@ export const createShadowMesh = (canvas: OffscreenCanvas, size = 1) => {
 
 	return {
 		dispose,
+		material,
 		mesh,
 	};
 };

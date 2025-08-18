@@ -5,7 +5,7 @@ export class LoopState {
 		this.loop = loop;
 	}
 
-	get looping() {
+	get isLooping() {
 		return this.loop !== null;
 	}
 }
