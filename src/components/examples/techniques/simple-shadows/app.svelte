@@ -24,7 +24,7 @@
 	);
 
 	const context = textureCanvas.getContext("2d");
-	// can't really do anything if the conext is null so just let the boundary catch the error
+	// can't really do anything if the context is null so just let the boundary catch the error
 	if (context === null) {
 		throw new Error("canvas texture context is null");
 	}
@@ -38,6 +38,7 @@
 		mesh: shadowMesh,
 	} = createShadowMesh(textureCanvas, 2 * sphereRadius);
 
+	// offset in the z since the floor group will be rotated so that z is up
 	shadowMesh.position.z = 0.01;
 
 	const floorSize = 6;
@@ -72,11 +73,11 @@
 		updateCameraAspect(aspect);
 	});
 
+	const controls = new OrbitControls(camera);
+
 	const canvasHeight = $derived(canvasWidth / aspect);
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
-
-	const controls = new OrbitControls(camera);
 
 	const speed = 1 / 1000;
 
@@ -108,13 +109,12 @@
 		});
 
 		controls.connect(renderer.domElement);
-
 		controls.addEventListener("change", render);
 
 		return () => {
+			renderer.setAnimationLoop(null);
 			controls.disconnect();
 			controls.removeEventListener("change", render);
-			renderer.setAnimationLoop(null);
 		};
 	};
 </script>
