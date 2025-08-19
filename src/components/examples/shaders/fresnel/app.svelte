@@ -109,8 +109,8 @@
 	bind:clientWidth={canvasWidth}
 	class="sm:relative"
 >
+	<canvas {@attach attachment(withRenderer)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<canvas {@attach attachment(withRenderer)}></canvas>
 		<Pane
 			bind:aspect
 			bind:autoRotate
