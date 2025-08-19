@@ -57,7 +57,7 @@
 	}
 
 	let canvasWidth = $state(1);
-	let aspect = $state(16 / 9);
+	let aspect = $state(4 / 3);
 	const canvasHeight = $derived(canvasWidth / aspect);
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
@@ -203,8 +203,14 @@
 </script>
 
 <svelte:boundary>
-	<div bind:clientWidth={canvasWidth}>
+	<div
+		bind:clientWidth={canvasWidth}
+		class="sm:relative"
+	>
 		<canvas {@attach attachment(withRenderer)}></canvas>
+		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
+			<Pane bind:autoRotate />
+		</div>
 	</div>
 
 	{#snippet pending()}
@@ -215,7 +221,3 @@
 		<p>{error}</p>
 	{/snippet}
 </svelte:boundary>
-
-<div class="not-content">
-	<Pane bind:autoRotate />
-</div>

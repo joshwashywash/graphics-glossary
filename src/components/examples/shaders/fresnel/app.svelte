@@ -14,7 +14,7 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let canvasWidth = $state(1);
-	let aspect = $state(16 / 9);
+	let aspect = $state(4 / 3);
 	const canvasHeight = $derived(canvasWidth / aspect);
 
 	let autoRotate = $state(true);
@@ -105,16 +105,18 @@
 	};
 </script>
 
-<div bind:clientWidth={canvasWidth}>
-	<canvas {@attach attachment(withRenderer)}></canvas>
-</div>
-
-<div class="not-content">
-	<Pane
-		bind:aspect
-		bind:autoRotate
-		bind:baseColor
-		bind:fresnelColor
-		bind:power
-	/>
+<div
+	bind:clientWidth={canvasWidth}
+	class="sm:relative"
+>
+	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
+		<canvas {@attach attachment(withRenderer)}></canvas>
+		<Pane
+			bind:aspect
+			bind:autoRotate
+			bind:baseColor
+			bind:fresnelColor
+			bind:power
+		/>
+	</div>
 </div>

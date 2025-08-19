@@ -5,14 +5,11 @@
 	let {
 		flatShading = $bindable(true),
 		autoRotate = $bindable(true),
-		aspect = $bindable(16 / 9),
+		aspect = $bindable(4 / 3),
 	} = $props();
 </script>
 
-<Pane
-	position="inline"
-	title="flat-shading"
->
+<Pane position="inline">
 	<Checkbox
 		bind:value={flatShading}
 		label="use flat shading"

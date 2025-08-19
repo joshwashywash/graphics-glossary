@@ -15,7 +15,7 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let canvasWidth = $state(1);
-	let aspect = $state(16 / 9);
+	let aspect = $state(4 / 3);
 
 	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
@@ -120,7 +120,13 @@
 </script>
 
 <svelte:boundary>
-	<div bind:clientWidth={canvasWidth}>
+	<div
+		bind:clientWidth={canvasWidth}
+		class="sm:relative"
+	>
+		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
+			<Pane bind:aspect />
+		</div>
 		<canvas {@attach attachment(withRenderer)}></canvas>
 	</div>
 
@@ -128,7 +134,3 @@
 		<p>{error}</p>
 	{/snippet}
 </svelte:boundary>
-
-<div class="not-content">
-	<Pane bind:aspect />
-</div>

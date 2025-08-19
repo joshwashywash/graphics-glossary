@@ -2,13 +2,10 @@
 	import { aspects } from "@constants/aspects";
 	import { List, Pane } from "svelte-tweakpane-ui";
 
-	let { aspect = $bindable(16 / 9) } = $props();
+	let { aspect = $bindable(4 / 3) } = $props();
 </script>
 
-<Pane
-	position="inline"
-	title="level-of-detail"
->
+<Pane position="inline">
 	<List
 		bind:value={aspect}
 		options={aspects}

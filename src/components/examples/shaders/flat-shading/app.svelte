@@ -108,14 +108,16 @@
 	};
 </script>
 
-<div bind:clientWidth={canvasWidth}>
+<div
+	bind:clientWidth={canvasWidth}
+	class="sm:relative"
+>
 	<canvas {@attach attachment(withRenderer)}></canvas>
-</div>
-
-<div class="not-content">
-	<Pane
-		bind:flatShading
-		bind:autoRotate
-		bind:aspect
-	/>
+	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
+		<Pane
+			bind:aspect
+			bind:autoRotate
+			bind:flatShading
+		/>
+	</div>
 </div>
