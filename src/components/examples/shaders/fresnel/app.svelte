@@ -88,13 +88,12 @@
 				return () => {
 					renderer.setAnimationLoop((loopState.loop = null));
 				};
-			} else {
-				controls.addEventListener("change", render);
-
-				return () => {
-					controls.removeEventListener("change", render);
-				};
 			}
+			controls.addEventListener("change", render);
+
+			return () => {
+				controls.removeEventListener("change", render);
+			};
 		});
 
 		controls.connect(renderer.domElement);
