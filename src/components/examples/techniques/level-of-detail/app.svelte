@@ -4,7 +4,7 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import type { Attachment } from "svelte/attachments";
+	import type { CreateRendererAttachment } from "@types";
 	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 	import type { WebGLRendererParameters } from "three";
 
@@ -40,9 +40,7 @@
 		antialias: true,
 	});
 
-	const createAttachment = (
-		rendererParameters: WebGLRendererParameters,
-	): Attachment<HTMLCanvasElement> => {
+	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 			$effect(() => {

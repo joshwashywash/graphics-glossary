@@ -6,7 +6,7 @@
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import type { Attachment } from "svelte/attachments";
+	import type { CreateRendererAttachment } from "@types";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		Mesh,
@@ -58,9 +58,7 @@
 		antialias: true,
 	});
 
-	const createAttachment = (
-		rendererParameters: WebGLRendererParameters,
-	): Attachment<HTMLCanvasElement> => {
+	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
