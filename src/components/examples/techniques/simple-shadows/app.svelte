@@ -5,13 +5,18 @@
 	import { drawShadow } from "./drawShadow";
 	import Pane from "./pane.svelte";
 
-	import { attachment } from "@attachments/attachment.svelte";
-	import type { WithRenderer } from "@attachments/attachment.svelte";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import type { Attachment } from "svelte/attachments";
 	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { Group, MathUtils, PerspectiveCamera, Scene } from "three";
+	import {
+		Group,
+		MathUtils,
+		PerspectiveCamera,
+		Scene,
+		WebGLRenderer,
+	} from "three";
+	import type { WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let canvasWidth = $state(1);
@@ -81,40 +86,50 @@
 
 	const speed = 1 / 1000;
 
-	const withRenderer: WithRenderer = (renderer) => {
-		const render = () => {
-			renderer.render(scene, camera);
-		};
+	let rendererParameters = $state<WebGLRendererParameters>({
+		antialias: true,
+	});
 
-		$effect(() => {
-			renderer.setSize(canvasWidth, canvasHeight);
-			render();
-		});
+	const createAttachment = (
+		rendererParameters: WebGLRendererParameters,
+	): Attachment<HTMLCanvasElement> => {
+		return (canvas) => {
+			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
+			const render = () => {
+				renderer.render(scene, camera);
+			};
 
-		$effect(() => {
-			renderer.setPixelRatio(pixelRatio);
-			render();
-		});
+			$effect(() => {
+				renderer.setSize(canvasWidth, canvasHeight);
+				render();
+			});
 
-		renderer.setAnimationLoop((time) => {
-			time *= speed;
-			const sin = Math.sin(time);
-			sphereMesh.position.y = positionYInitial + sin;
+			$effect(() => {
+				renderer.setPixelRatio(pixelRatio);
+				render();
+			});
 
-			// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-			const t = 0.5 * (1 + sin);
+			renderer.setAnimationLoop((time) => {
+				time *= speed;
+				const sin = Math.sin(time);
+				sphereMesh.position.y = positionYInitial + sin;
 
-			shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
-			render();
-		});
+				// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+				const t = 0.5 * (1 + sin);
 
-		controls.connect(renderer.domElement);
-		controls.addEventListener("change", render);
+				shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
+				render();
+			});
 
-		return () => {
-			renderer.setAnimationLoop(null);
-			controls.disconnect();
-			controls.removeEventListener("change", render);
+			controls.connect(renderer.domElement);
+			controls.addEventListener("change", render);
+
+			return () => {
+				controls.disconnect();
+				controls.removeEventListener("change", render);
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
 		};
 	};
 </script>
@@ -127,7 +142,7 @@
 		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 			<Pane bind:aspect />
 		</div>
-		<canvas {@attach attachment(withRenderer)}></canvas>
+		<canvas {@attach createAttachment(rendererParameters)}></canvas>
 	</div>
 
 	{#snippet failed(error)}

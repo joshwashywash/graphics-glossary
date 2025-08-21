@@ -2,12 +2,11 @@
 	import { createLOD } from "./createLOD";
 	import Pane from "./pane.svelte";
 
-	import type { WithRenderer } from "@attachments/attachment.svelte";
-	import { attachment } from "@attachments/attachment.svelte";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	import { PerspectiveCamera, Scene } from "three";
+	import type { Attachment } from "svelte/attachments";
+	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
+	import type { WebGLRendererParameters } from "three";
 
 	let canvasWidth = $state(1);
 	let aspect = $state(4 / 3);
@@ -37,19 +36,30 @@
 		updateCameraAspect(aspect);
 	});
 
-	const withRenderer: WithRenderer = (renderer) => {
-		$effect(() => {
-			renderer.setSize(canvasWidth, canvasHeight);
-		});
+	let rendererParameters = $state<WebGLRendererParameters>({
+		antialias: true,
+	});
 
-		renderer.setAnimationLoop((time) => {
-			renderer.render(scene, camera);
+	const createAttachment = (
+		rendererParameters: WebGLRendererParameters,
+	): Attachment<HTMLCanvasElement> => {
+		return (canvas) => {
+			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
+			$effect(() => {
+				renderer.setSize(canvasWidth, canvasHeight);
+			});
 
-			time *= 1 / 1000;
-			camera.position.setZ(1 + z + 1.5 * offset * Math.sin(0.75 * time));
-		});
-		return () => {
-			renderer.setAnimationLoop(null);
+			renderer.setAnimationLoop((time) => {
+				renderer.render(scene, camera);
+
+				time *= 1 / 1000;
+				camera.position.setZ(1 + z + 1.5 * offset * Math.sin(0.75 * time));
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
 		};
 	};
 </script>
@@ -61,5 +71,5 @@
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane bind:aspect />
 	</div>
-	<canvas {@attach attachment(withRenderer)}></canvas>
+	<canvas {@attach createAttachment(rendererParameters)}></canvas>
 </div>

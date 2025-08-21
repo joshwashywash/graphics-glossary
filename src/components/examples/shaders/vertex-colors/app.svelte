@@ -2,15 +2,20 @@
 	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
 	import Pane from "./pane.svelte";
 
-	import { attachment } from "@attachments/attachment.svelte";
-	import type { WithRenderer } from "@attachments/attachment.svelte";
-
 	import { LoopState } from "@classes/loopState";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import type { Attachment } from "svelte/attachments";
 	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { Mesh, MeshBasicMaterial, PerspectiveCamera, Scene } from "three";
+	import {
+		Mesh,
+		MeshBasicMaterial,
+		PerspectiveCamera,
+		Scene,
+		WebGLRenderer,
+	} from "three";
+	import type { WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let autoRotate = $state(true);
@@ -49,49 +54,61 @@
 
 	const loopState = new LoopState();
 
-	const withRenderer: WithRenderer = (renderer) => {
-		const render = () => {
-			renderer.render(scene, camera);
-		};
+	let rendererParameters = $state<WebGLRendererParameters>({
+		antialias: true,
+	});
 
-		$effect(() => {
-			updateCameraAspect(aspect);
-			if (!loopState.isLooping) render();
-		});
+	const createAttachment = (
+		rendererParameters: WebGLRendererParameters,
+	): Attachment<HTMLCanvasElement> => {
+		return (canvas) => {
+			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
-		$effect(() => {
-			renderer.setSize(canvasWidth, canvasHeight);
-			if (!loopState.isLooping) render();
-		});
-
-		$effect(() => {
-			renderer.setPixelRatio(pixelRatio);
-			if (!loopState.isLooping) render();
-		});
-
-		$effect(() => {
-			if ((controls.autoRotate = autoRotate)) {
-				renderer.setAnimationLoop(
-					(loopState.loop = () => {
-						controls.update();
-						render();
-					}),
-				);
-
-				return () => {
-					renderer.setAnimationLoop((loopState.loop = null));
-				};
-			}
-
-			controls.addEventListener("change", render);
-			return () => {
-				controls.removeEventListener("change", render);
+			const render = () => {
+				renderer.render(scene, camera);
 			};
-		});
 
-		controls.connect(renderer.domElement);
-		return () => {
-			controls.disconnect();
+			$effect(() => {
+				updateCameraAspect(aspect);
+				if (!loopState.isLooping) render();
+			});
+
+			$effect(() => {
+				renderer.setSize(canvasWidth, canvasHeight);
+				if (!loopState.isLooping) render();
+			});
+
+			$effect(() => {
+				renderer.setPixelRatio(pixelRatio);
+				if (!loopState.isLooping) render();
+			});
+
+			const loop = () => {
+				controls.update();
+				render();
+			};
+
+			$effect(() => {
+				if ((controls.autoRotate = autoRotate)) {
+					renderer.setAnimationLoop((loopState.loop = loop));
+
+					return () => {
+						renderer.setAnimationLoop((loopState.loop = null));
+					};
+				}
+
+				controls.addEventListener("change", render);
+				return () => {
+					controls.removeEventListener("change", render);
+				};
+			});
+
+			controls.connect(renderer.domElement);
+
+			return () => {
+				controls.disconnect();
+				renderer.dispose();
+			};
 		};
 	};
 </script>
@@ -100,7 +117,7 @@
 	bind:clientWidth={canvasWidth}
 	class="sm:relative"
 >
-	<canvas {@attach attachment(withRenderer)}></canvas>
+	<canvas {@attach createAttachment(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane
 			bind:aspect

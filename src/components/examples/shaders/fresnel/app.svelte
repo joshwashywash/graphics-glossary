@@ -2,15 +2,20 @@
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 	import Pane from "./pane.svelte";
 
-	import { attachment } from "@attachments/attachment.svelte";
-	import type { WithRenderer } from "@attachments/attachment.svelte";
-
 	import { LoopState } from "@classes/loopState";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import type { Attachment } from "svelte/attachments";
 	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { Mesh, PerspectiveCamera, Scene, TorusGeometry } from "three";
+	import {
+		Mesh,
+		PerspectiveCamera,
+		Scene,
+		TorusGeometry,
+		WebGLRenderer,
+	} from "three";
+	import type { WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let canvasWidth = $state(1);
@@ -41,65 +46,75 @@
 
 	const loopState = new LoopState();
 
-	const withRenderer: WithRenderer = (renderer) => {
-		const render = () => {
-			renderer.render(scene, camera);
-		};
+	let rendererParameters = $state<WebGLRendererParameters>({
+		antialias: true,
+	});
 
-		$effect(() => {
-			updateCameraAspect(aspect);
-			if (!loopState.isLooping) render;
-		});
+	const createAttachment = (
+		rendererParameters: WebGLRendererParameters,
+	): Attachment<HTMLCanvasElement> => {
+		return (canvas) => {
+			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
+			const render = () => {
+				renderer.render(scene, camera);
+			};
 
-		$effect(() => {
-			uniforms.uBaseColor.value.set(baseColor);
-			if (!loopState.isLooping) render();
-		});
+			$effect(() => {
+				updateCameraAspect(aspect);
+				if (!loopState.isLooping) render;
+			});
 
-		$effect(() => {
-			uniforms.uFresnelColor.value.set(fresnelColor);
-			if (!loopState.isLooping) render();
-		});
+			$effect(() => {
+				uniforms.uBaseColor.value.set(baseColor);
+				if (!loopState.isLooping) render();
+			});
 
-		$effect(() => {
-			uniforms.uPower.value = power;
-			if (!loopState.isLooping) render();
-		});
+			$effect(() => {
+				uniforms.uFresnelColor.value.set(fresnelColor);
+				if (!loopState.isLooping) render();
+			});
 
-		$effect(() => {
-			renderer.setSize(canvasWidth, canvasHeight);
-			if (!loopState.isLooping) render();
-		});
+			$effect(() => {
+				uniforms.uPower.value = power;
+				if (!loopState.isLooping) render();
+			});
 
-		$effect(() => {
-			renderer.setPixelRatio(pixelRatio);
-			if (!loopState.isLooping) render();
-		});
+			$effect(() => {
+				renderer.setSize(canvasWidth, canvasHeight);
+				if (!loopState.isLooping) render();
+			});
 
-		$effect(() => {
-			if ((controls.autoRotate = autoRotate)) {
-				renderer.setAnimationLoop(
-					(loopState.loop = () => {
-						controls.update();
-						render();
-					}),
-				);
+			$effect(() => {
+				renderer.setPixelRatio(pixelRatio);
+				if (!loopState.isLooping) render();
+			});
+
+			const loop = () => {
+				controls.update();
+				render();
+			};
+
+			$effect(() => {
+				if ((controls.autoRotate = autoRotate)) {
+					renderer.setAnimationLoop((loopState.loop = loop));
+
+					return () => {
+						renderer.setAnimationLoop((loopState.loop = null));
+					};
+				}
+				controls.addEventListener("change", render);
 
 				return () => {
-					renderer.setAnimationLoop((loopState.loop = null));
+					controls.removeEventListener("change", render);
 				};
-			}
-			controls.addEventListener("change", render);
+			});
+
+			controls.connect(renderer.domElement);
 
 			return () => {
-				controls.removeEventListener("change", render);
+				controls.disconnect();
+				renderer.dispose();
 			};
-		});
-
-		controls.connect(renderer.domElement);
-
-		return () => {
-			controls.disconnect();
 		};
 	};
 </script>
@@ -108,7 +123,7 @@
 	bind:clientWidth={canvasWidth}
 	class="sm:relative"
 >
-	<canvas {@attach attachment(withRenderer)}></canvas>
+	<canvas {@attach createAttachment(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane
 			bind:aspect

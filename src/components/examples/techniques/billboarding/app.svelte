@@ -25,16 +25,12 @@
 
 	import boo from "@assets/boo.png";
 
-	import {
-		type WithRenderer,
-		attachment,
-	} from "@attachments/attachment.svelte";
-
 	import { LoopState } from "@classes/loopState";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
+	import type { Attachment } from "svelte/attachments";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		BoxGeometry,
@@ -45,7 +41,9 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
+		WebGLRenderer,
 	} from "three";
+	import type { WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	const booCanvas = new OffscreenCanvas(spriteWidth, boo.height);
@@ -118,86 +116,97 @@
 
 	const loopState = new LoopState();
 
-	const withRenderer: WithRenderer = (renderer) => {
-		const render = () => {
-			renderer.render(scene, camera);
-		};
+	let rendererParameters = $state<WebGLRendererParameters>({
+		antialias: true,
+	});
 
-		$effect(() => {
-			renderer.setSize(canvasWidth, canvasHeight);
-			if (!loopState.isLooping) render();
-		});
+	const createAttachment = (
+		rendererParameters: WebGLRendererParameters,
+	): Attachment<HTMLCanvasElement> => {
+		return (canvas) => {
+			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
-		$effect(() => {
-			renderer.setPixelRatio(pixelRatio);
-			if (!loopState.isLooping) render();
-		});
+			const render = () => {
+				renderer.render(scene, camera);
+			};
 
-		booImagePromise.then((image) => {
-			if (canceled) return;
-
-			renderer.setAnimationLoop(() => {
-				if (controls.autoRotate) {
-					controls.update();
-					render();
-				}
-
-				scratch.subVectors(camera.position, sprite.position);
-
-				// flip the position over the x-axis
-				scratch.z *= -1;
-
-				// in the xz-plane, the z part of the vector acts as the "y" argument of atan2
-				const angle = Math.atan2(scratch.z, scratch.x) + Math.PI;
-
-				let offset = Math.floor(frameCount * (angle / tau));
-
-				const backwards = offset >= forwardsFrameCount;
-
-				if (backwards) {
-					offset = backwardsFrameCount - (offset % forwardsFrameCount);
-				}
-
-				if (lastOffset === offset) return;
-
-				lastOffset = offset;
-
-				const directionX = 1 - 2 * +backwards;
-
-				booCanvasContext.resetTransform();
-				booCanvasContext.scale(directionX, 1);
-
-				booCanvasContext.clearRect(
-					0,
-					0,
-					directionX * booCanvasContext.canvas.width,
-					booCanvasContext.canvas.height,
-				);
-
-				booCanvasContext.drawImage(
-					image,
-					booCanvasContext.canvas.width * offset,
-					0,
-					spriteWidth,
-					boo.height,
-					0,
-					0,
-					directionX * spriteWidth,
-					boo.height,
-				);
-
-				canvasTexture.needsUpdate = true;
+			$effect(() => {
+				renderer.setSize(canvasWidth, canvasHeight);
+				if (!loopState.isLooping) render();
 			});
-		});
 
-		controls.addEventListener("change", render);
-		controls.connect(renderer.domElement);
+			$effect(() => {
+				renderer.setPixelRatio(pixelRatio);
+				if (!loopState.isLooping) render();
+			});
 
-		return () => {
-			canceled = true;
-			renderer.setAnimationLoop(null);
-			controls.removeEventListener("change", render);
-			controls.disconnect();
+			booImagePromise.then((image) => {
+				if (canceled) return;
+
+				renderer.setAnimationLoop(() => {
+					if (controls.autoRotate) {
+						controls.update();
+						render();
+					}
+
+					scratch.subVectors(camera.position, sprite.position);
+
+					// flip the position over the x-axis
+					scratch.z *= -1;
+
+					// in the xz-plane, the z part of the vector acts as the "y" argument of atan2
+					const angle = Math.atan2(scratch.z, scratch.x) + Math.PI;
+
+					let offset = Math.floor(frameCount * (angle / tau));
+
+					const backwards = offset >= forwardsFrameCount;
+
+					if (backwards) {
+						offset = backwardsFrameCount - (offset % forwardsFrameCount);
+					}
+
+					if (lastOffset === offset) return;
+
+					lastOffset = offset;
+
+					const directionX = 1 - 2 * +backwards;
+
+					booCanvasContext.resetTransform();
+					booCanvasContext.scale(directionX, 1);
+
+					booCanvasContext.clearRect(
+						0,
+						0,
+						directionX * booCanvasContext.canvas.width,
+						booCanvasContext.canvas.height,
+					);
+
+					booCanvasContext.drawImage(
+						image,
+						booCanvasContext.canvas.width * offset,
+						0,
+						spriteWidth,
+						boo.height,
+						0,
+						0,
+						directionX * spriteWidth,
+						boo.height,
+					);
+
+					canvasTexture.needsUpdate = true;
+				});
+			});
+
+			controls.addEventListener("change", render);
+			controls.connect(renderer.domElement);
+
+			return () => {
+				canceled = true;
+				renderer.setAnimationLoop(null);
+				controls.removeEventListener("change", render);
+				controls.disconnect();
+				renderer.dispose();
+			};
 		};
 	};
 </script>
@@ -207,7 +216,7 @@
 		bind:clientWidth={canvasWidth}
 		class="sm:relative"
 	>
-		<canvas {@attach attachment(withRenderer)}></canvas>
+		<canvas {@attach createAttachment(rendererParameters)}></canvas>
 		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 			<Pane bind:autoRotate />
 		</div>
