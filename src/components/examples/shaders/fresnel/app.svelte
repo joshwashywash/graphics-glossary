@@ -44,6 +44,14 @@
 
 	const scene = new Scene().add(mesh);
 
+	$effect(() => {
+		return () => {
+			scene.remove(mesh);
+			geometry.dispose();
+			material.dispose();
+		};
+	});
+
 	const loopState = new LoopState();
 
 	let rendererParameters = $state<WebGLRendererParameters>({
