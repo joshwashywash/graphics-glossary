@@ -69,12 +69,12 @@
 	});
 
 	const sprite = new Sprite(spriteMaterial);
-	sprite.position.setX(-1);
+	sprite.translateX(-1);
 
 	const material = new MeshNormalMaterial();
 	const geometry = new BoxGeometry();
 	const mesh = new Mesh(geometry, material);
-	mesh.position.x = 1;
+	mesh.translateX(1);
 
 	const scene = new Scene().add(sprite, mesh);
 
@@ -92,7 +92,7 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	camera.position.z = 3;
+	camera.translateZ(3);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 

@@ -29,7 +29,7 @@
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
 	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 3);
+	camera.translateZ(3);
 
 	const controls = new OrbitControls(camera);
 

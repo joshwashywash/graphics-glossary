@@ -51,7 +51,7 @@
 				renderer.render(scene, camera);
 
 				time *= 1 / 1000;
-				camera.position.setZ(1 + z + 1.5 * offset * Math.sin(0.75 * time));
+				camera.position.z = 1 + z + 1.5 * offset * Math.sin(0.75 * time);
 			});
 
 			return () => {

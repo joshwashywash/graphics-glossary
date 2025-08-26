@@ -1,20 +1,17 @@
 <script lang="ts">
+	import { createFloor } from "./createFloor";
+	import { createMesh } from "./createMesh";
+
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import type { CreateRendererAttachment } from "@types";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
-		AmbientLight,
 		DirectionalLight,
 		DirectionalLightHelper,
-		Mesh,
-		MeshNormalMaterial,
-		MeshPhongMaterial,
 		PerspectiveCamera,
 		Plane,
-		PlaneGeometry,
 		Scene,
-		TorusKnotGeometry,
 		Vector3,
 		Vector4,
 		WebGLRenderer,
@@ -30,38 +27,33 @@
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
-	const geometry = new TorusKnotGeometry();
-	const material = new MeshNormalMaterial();
-	const mesh = new Mesh(geometry, material);
+	const { mesh, dispose: disposeMesh } = createMesh();
 	mesh.translateY(2);
 
 	const shadowMesh = new ShadowMesh(mesh);
 
+	const floorSize = 15;
+	const { mesh: floorMesh, dispose: disposeFloor } = createFloor(floorSize);
+	floorMesh.rotateX(-1 * 0.5 * Math.PI);
+
 	const light = new DirectionalLight();
-	light.position.set(7, 7, -5);
+	const axis = new Vector3(1, 1, -1);
+	light.translateOnAxis(axis, 5);
 	light.target = mesh;
 
 	const lightHelper = new DirectionalLightHelper(light);
 
-	const light4D = new Vector4(...light.position, 0.001);
+	const light4D = new Vector4(...light.position, 0.1);
 
-	const size = 15;
-	const floorGeometry = new PlaneGeometry(size, size);
-	const floorMaterial = new MeshPhongMaterial();
-	const floor = new Mesh(floorGeometry, floorMaterial);
-	floor.rotateX(-1 * 0.5 * Math.PI);
-
-	const objects = [mesh, shadowMesh, light, floor, lightHelper];
+	const objects = [mesh, shadowMesh, light, floorMesh, lightHelper];
 
 	const scene = new Scene().add(...objects);
 
 	$effect(() => {
 		return () => {
 			scene.remove(...objects);
-			geometry.dispose();
-			material.dispose();
-			floorGeometry.dispose();
-			floorMaterial.dispose();
+			disposeMesh();
+			disposeFloor();
 			light.dispose();
 			lightHelper.dispose();
 		};

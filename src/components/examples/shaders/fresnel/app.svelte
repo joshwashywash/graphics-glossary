@@ -30,7 +30,7 @@
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
 	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 4);
+	camera.translateZ(4);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 

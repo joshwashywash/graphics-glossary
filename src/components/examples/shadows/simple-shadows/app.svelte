@@ -15,6 +15,7 @@
 		MathUtils,
 		PerspectiveCamera,
 		Scene,
+		Vector3,
 		WebGLRenderer,
 	} from "three";
 	import type { WebGLRendererParameters } from "three";
@@ -56,8 +57,8 @@
 		2 * sphereRadius,
 	);
 
-	// offset in the z since the floor group will be rotated so that z is up
-	shadowMesh.position.z = 0.01;
+	// offset in z since the floor group will be rotated so that z is up
+	shadowMesh.translateZ(0.01);
 
 	const floorSize = 6;
 	const { dispose: disposeFloor, mesh: floorMesh } = createFloorMesh(floorSize);
@@ -84,7 +85,8 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	camera.position.setScalar(5);
+	const axis = new Vector3(1, 1, 1);
+	camera.translateOnAxis(axis, 5);
 	camera.lookAt(sphereMesh.position);
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
@@ -122,11 +124,15 @@
 
 			renderer.setAnimationLoop((time) => {
 				time *= speed;
-				const sin = Math.sin(time);
-				sphereMesh.position.y = positionYInitial + sin;
 
 				// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-				const t = 0.5 * (1 + sin);
+				const t = 0.5 * (1 + Math.sin(time));
+
+				sphereMesh.position.y = MathUtils.lerp(
+					positionYInitial - 1,
+					positionYInitial + 1,
+					t,
+				);
 
 				shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
 				render();

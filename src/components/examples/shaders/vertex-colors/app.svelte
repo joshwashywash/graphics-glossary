@@ -46,7 +46,7 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	camera.position.set(0, 0, 3);
+	camera.translateZ(3);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
