@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { createFloorMesh } from "./createFloorMesh";
+	import { createShadowGradient } from "./createShadowGradient";
+	import { createShadowMaterial } from "./createShadowMaterial";
 	import { createShadowMesh } from "./createShadowMesh";
 	import { createSphereMesh } from "./createSphereMesh";
-	import { drawShadow } from "./drawShadow";
 	import Pane from "./pane.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
@@ -19,6 +20,8 @@
 	import type { WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+	let { backgroundColor = "rgba(0,0,0,0)", shadowColor = "black" } = $props();
+
 	let canvasWidth = $state(1);
 	let aspect = $state(4 / 3);
 
@@ -34,14 +37,22 @@
 		throw new Error("canvas texture context is null");
 	}
 
-	drawShadow(context);
+	const gradient = $derived(
+		createShadowGradient(context, backgroundColor, shadowColor),
+	);
+
+	$effect(() => {
+		context.fillStyle = gradient;
+		context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+	});
+
+	const shadowMaterial = createShadowMaterial(textureCanvas);
 
 	const sphereRadius = 1;
-	const {
-		dispose: disposeShadow,
-		material: shadowMaterial,
-		mesh: shadowMesh,
-	} = createShadowMesh(textureCanvas, 2 * sphereRadius);
+	const { dispose: disposeShadow, mesh: shadowMesh } = createShadowMesh(
+		shadowMaterial,
+		2 * sphereRadius,
+	);
 
 	// offset in the z since the floor group will be rotated so that z is up
 	shadowMesh.position.z = 0.01;
@@ -66,6 +77,7 @@
 			disposeSphere();
 			disposeFloor();
 			disposeShadow();
+			shadowMaterial.dispose();
 		};
 	});
 

@@ -31,6 +31,12 @@ export default defineConfig({
 					},
 				},
 				{
+					label: "Shadows",
+					autogenerate: {
+						directory: "shadows",
+					},
+				},
+				{
 					label: "Techniques",
 					autogenerate: {
 						directory: "techniques",
