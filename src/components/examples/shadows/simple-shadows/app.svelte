@@ -25,6 +25,8 @@
 	let canvasWidth = $state(1);
 	let aspect = $state(4 / 3);
 
+	const canvasHeight = $derived(canvasWidth / aspect);
+
 	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
 		textureCanvasSize,
@@ -92,8 +94,6 @@
 
 	const controls = new OrbitControls(camera);
 
-	const canvasHeight = $derived(canvasWidth / aspect);
-
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
 	const speed = 1 / 1000;
@@ -105,6 +105,7 @@
 	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
+
 			const render = () => {
 				renderer.render(scene, camera);
 			};

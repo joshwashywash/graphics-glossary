@@ -6,7 +6,7 @@ title: Level Of Detail
 import Tabs from "@components/codeTabs.astro";
 import App from "@components/examples/techniques/level-of-detail/app.svelte";
 
-import { Aside, Steps } from "@astrojs/starlight/components";
+import { Steps } from "@astrojs/starlight/components";
 
 Level of Detail or LOD is a performance-improving technique where the complexity of an object's geometry decreases relative to its distance from the camera. Objects that are further away are less complex because finer details will probably go unnoticed to the viewer.
 
@@ -15,10 +15,10 @@ Level of Detail or LOD is a performance-improving technique where the complexity
 
 The performance boost comes from the fact that lower-quality versions of the object take less time to render.
 
-<Aside type="tip">
-	Sometimes, when the object is very far away from the camera, a sprite is used.
-	See the [billboarding](/techniques/billboarding) article for details.
-</Aside>
+:::tip
+Sometimes, when the object is very far away from the camera, a sprite is used.
+See the [billboarding](/techniques/billboarding) article for details.
+:::
 
 ## Usage
 
