@@ -1,3 +1,11 @@
+<script
+	lang="ts"
+	module
+>
+	// reusable scratch vector
+	const axis = new Vector3();
+</script>
+
 <script lang="ts">
 	import { createFloor } from "./createFloor";
 	import { createMesh } from "./createMesh";
@@ -36,9 +44,10 @@
 	const { mesh: floorMesh, dispose: disposeFloor } = createFloor(floorSize);
 	floorMesh.rotateX(-1 * 0.5 * Math.PI);
 
-	const light = new DirectionalLight();
-	const axis = new Vector3(1, 1, -1);
-	light.translateOnAxis(axis, 5);
+	const light = new DirectionalLight().translateOnAxis(
+		axis.set(1, 1, -1).normalize(),
+		5,
+	);
 	light.target = mesh;
 
 	const lightHelper = new DirectionalLightHelper(light);
@@ -59,8 +68,10 @@
 		};
 	});
 
-	const camera = new PerspectiveCamera();
-	camera.position.set(15, 15, 10);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		axis.set(3, 3, 2).normalize(),
+		20,
+	);
 	camera.lookAt(scene.position);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
@@ -94,12 +105,10 @@
 
 			$effect(() => {
 				renderer.setSize(canvasWidth, canvasHeight);
-				render();
 			});
 
 			$effect(() => {
 				renderer.setPixelRatio(pixelRatio);
-				render();
 			});
 
 			controls.connect(renderer.domElement);
