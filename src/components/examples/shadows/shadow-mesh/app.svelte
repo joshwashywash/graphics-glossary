@@ -3,7 +3,7 @@
 	module
 >
 	// reusable scratch vector
-	const axis = new Vector3();
+	const translationAxis = new Vector3();
 </script>
 
 <script lang="ts">
@@ -45,7 +45,7 @@
 	floorMesh.rotateX(-1 * 0.5 * Math.PI);
 
 	const light = new DirectionalLight().translateOnAxis(
-		axis.set(1, 1, -1).normalize(),
+		translationAxis.set(1, 1, -1).normalize(),
 		5,
 	);
 	light.target = mesh;
@@ -69,7 +69,7 @@
 	});
 
 	const camera = new PerspectiveCamera().translateOnAxis(
-		axis.set(3, 3, 2).normalize(),
+		translationAxis.set(3, 3, 2).normalize(),
 		20,
 	);
 	camera.lookAt(scene.position);

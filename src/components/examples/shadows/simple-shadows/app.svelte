@@ -108,19 +108,17 @@
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
-			const render = () => {
-				renderer.render(scene, camera);
-			};
-
 			$effect(() => {
 				renderer.setSize(canvasWidth, canvasHeight);
-				render();
 			});
 
 			$effect(() => {
 				renderer.setPixelRatio(pixelRatio);
-				render();
 			});
+
+			const render = () => {
+				renderer.render(scene, camera);
+			};
 
 			renderer.setAnimationLoop((time) => {
 				time *= speed;

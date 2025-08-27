@@ -1,16 +1,23 @@
 <script lang="ts">
 	import { createShadowGradient } from "./createShadowGradient";
 
+	import type { HTMLCanvasAttributes } from "svelte/elements";
+
+	type Props = {
+		backgroundColor: string;
+		shadowColor: string;
+		size: number;
+	};
+
 	let {
 		backgroundColor = "black",
 		shadowColor = "rgba(0,0,0,0)",
-		size = 256,
-	} = $props();
+		...props
+	}: HTMLCanvasAttributes & Partial<Props> = $props();
 </script>
 
 <canvas
-	width={size}
-	height={size}
+	{...props}
 	{@attach (canvas) => {
 		const context = canvas.getContext("2d");
 		if (context === null) return;
@@ -23,7 +30,7 @@
 			);
 
 			context.fillStyle = gradient;
-			context.fillRect(0, 0, size, size);
+			context.fillRect(0, 0, context.canvas.width, context.canvas.height);
 		});
 	}}
 >

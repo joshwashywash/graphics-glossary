@@ -8,6 +8,7 @@ import App from "@components/examples/shadows/simple-shadows/app.svelte";
 import Shadow from "@components/examples/shadows/simple-shadows/shadow.svelte";
 
 export const backgroundColor = "white";
+export const size = 256;
 
 :::caution[under construction]
 this article is currently a work-in-progress
@@ -22,6 +23,9 @@ One way to create a fake shadow is to draw one to a canvas texture then use that
 <Shadow
 	client:load
 	backgroundColor={backgroundColor}
+	width={size}
+	height={size}
+	class="w-full"
 />
 
 Another upside to using this kind of shadow is that since it's a mesh it's very easy to translate, scale, or rotate it as needed.
