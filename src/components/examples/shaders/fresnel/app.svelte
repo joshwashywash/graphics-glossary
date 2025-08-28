@@ -2,8 +2,6 @@
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 	import Pane from "./pane.svelte";
 
-	import { LoopState } from "@classes/loopState";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import type { CreateRendererAttachment } from "@types";
@@ -22,7 +20,7 @@
 	let aspect = $state(4 / 3);
 	const canvasHeight = $derived(canvasWidth / aspect);
 
-	let autoRotate = $state(true);
+	let useAutoRotate = $state(true);
 	let baseColor = $state("#000000");
 	let fresnelColor = $state("#ffffff");
 	let power = $state(1);
@@ -52,13 +50,15 @@
 		};
 	});
 
-	const loopState = new LoopState();
-
 	let rendererParameters = $state<WebGLRendererParameters>({
 		antialias: true,
 	});
 
-	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
+	const fresnel: CreateRendererAttachment = (rendererParameters) => {
+		let loop: null | (() => void) = null;
+
+		const isLooping = () => loop !== null;
+
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 			const render = () => {
@@ -67,45 +67,45 @@
 
 			$effect(() => {
 				updateCameraAspect(aspect);
-				if (!loopState.isLooping) render;
+				if (!isLooping()) render;
 			});
 
 			$effect(() => {
 				uniforms.uBaseColor.value.set(baseColor);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				uniforms.uFresnelColor.value.set(fresnelColor);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				uniforms.uPower.value = power;
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				renderer.setSize(canvasWidth, canvasHeight);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				renderer.setPixelRatio(pixelRatio);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
-			const loop = () => {
-				controls.update();
-				render();
-			};
-
 			$effect(() => {
-				if ((controls.autoRotate = autoRotate)) {
-					renderer.setAnimationLoop((loopState.loop = loop));
+				if ((controls.autoRotate = useAutoRotate)) {
+					renderer.setAnimationLoop(
+						(loop = () => {
+							controls.update();
+							render();
+						}),
+					);
 
 					return () => {
-						renderer.setAnimationLoop((loopState.loop = null));
+						renderer.setAnimationLoop((loop = null));
 					};
 				}
 				controls.addEventListener("change", render);
@@ -129,11 +129,11 @@
 	bind:clientWidth={canvasWidth}
 	class="sm:relative"
 >
-	<canvas {@attach createAttachment(rendererParameters)}></canvas>
+	<canvas {@attach fresnel(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane
 			bind:aspect
-			bind:autoRotate
+			bind:useAutoRotate
 			bind:baseColor
 			bind:fresnelColor
 			bind:power

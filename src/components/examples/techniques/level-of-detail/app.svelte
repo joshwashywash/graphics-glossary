@@ -40,7 +40,7 @@
 		antialias: true,
 	});
 
-	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
+	const levelOfDetail: CreateRendererAttachment = (rendererParameters) => {
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 			$effect(() => {
@@ -69,5 +69,5 @@
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane bind:aspect />
 	</div>
-	<canvas {@attach createAttachment(rendererParameters)}></canvas>
+	<canvas {@attach levelOfDetail(rendererParameters)}></canvas>
 </div>

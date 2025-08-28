@@ -3,19 +3,19 @@
 	import { Checkbox, List, Pane } from "svelte-tweakpane-ui";
 
 	let {
-		flatShading = $bindable(true),
-		autoRotate = $bindable(true),
+		useFlatShading = $bindable(true),
+		autoRotateCamera = $bindable(true),
 		aspect = $bindable(4 / 3),
 	} = $props();
 </script>
 
 <Pane position="inline">
 	<Checkbox
-		bind:value={flatShading}
+		bind:value={useFlatShading}
 		label="use flat shading"
 	/>
 	<Checkbox
-		bind:value={autoRotate}
+		bind:value={autoRotateCamera}
 		label="auto rotate"
 	/>
 	<List

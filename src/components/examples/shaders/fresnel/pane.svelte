@@ -11,7 +11,7 @@
 
 	let {
 		aspect = $bindable(4 / 3),
-		autoRotate = $bindable(true),
+		useAutoRotate = $bindable(true),
 		baseColor = $bindable("#000000"),
 		fresnelColor = $bindable("#ffffff"),
 		power = $bindable(1),
@@ -25,8 +25,8 @@
 		label="aspect ratio"
 	/>
 	<Checkbox
-		bind:value={autoRotate}
-		label="auto rotate"
+		bind:value={useAutoRotate}
+		label="auto rotate camera"
 	/>
 	<Folder title="uniforms">
 		<Color

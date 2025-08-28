@@ -2,8 +2,6 @@
 	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
 	import Pane from "./pane.svelte";
 
-	import { LoopState } from "@classes/loopState";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import type { CreateRendererAttachment } from "@types";
@@ -18,7 +16,7 @@
 	import type { WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-	let autoRotate = $state(true);
+	let useAutoRotate = $state(true);
 
 	let canvasWidth = $state(1);
 
@@ -52,13 +50,15 @@
 
 	const controls = new OrbitControls(camera);
 
-	const loopState = new LoopState();
-
 	let rendererParameters = $state<WebGLRendererParameters>({
 		antialias: true,
 	});
 
-	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
+	const vertexColors: CreateRendererAttachment = (rendererParameters) => {
+		let loop: null | (() => void) = null;
+
+		const isLooping = () => loop !== null;
+
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
@@ -68,30 +68,30 @@
 
 			$effect(() => {
 				updateCameraAspect(aspect);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				renderer.setSize(canvasWidth, canvasHeight);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				renderer.setPixelRatio(pixelRatio);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
-			const loop = () => {
-				controls.update();
-				render();
-			};
-
 			$effect(() => {
-				if ((controls.autoRotate = autoRotate)) {
-					renderer.setAnimationLoop((loopState.loop = loop));
+				if ((controls.autoRotate = useAutoRotate)) {
+					renderer.setAnimationLoop(
+						(loop = () => {
+							controls.update();
+							render();
+						}),
+					);
 
 					return () => {
-						renderer.setAnimationLoop((loopState.loop = null));
+						renderer.setAnimationLoop((loop = null));
 					};
 				}
 
@@ -115,11 +115,11 @@
 	bind:clientWidth={canvasWidth}
 	class="sm:relative"
 >
-	<canvas {@attach createAttachment(rendererParameters)}></canvas>
+	<canvas {@attach vertexColors(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane
 			bind:aspect
-			bind:autoRotate
+			bind:useAutoRotate
 		/>
 	</div>
 </div>

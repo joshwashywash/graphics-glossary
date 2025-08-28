@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 
-	let { autoRotate = $bindable(4 / 3) } = $props();
+	let { useAutoRotate = $bindable(true) } = $props();
 </script>
 
 <Pane position="inline">
 	<Checkbox
-		bind:value={autoRotate}
+		bind:value={useAutoRotate}
 		label="auto rotate camera"
 	/>
 </Pane>

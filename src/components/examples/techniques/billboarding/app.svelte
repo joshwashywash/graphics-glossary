@@ -25,8 +25,6 @@
 
 	import boo from "@assets/boo.png";
 
-	import { LoopState } from "@classes/loopState";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
 
@@ -60,7 +58,7 @@
 
 	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
 
-	let autoRotate = $state(true);
+	let useAutoRotate = $state(true);
 
 	const canvasTexture = createCanvasTexture(booCanvas);
 
@@ -102,7 +100,7 @@
 
 	const controls = new OrbitControls(camera);
 	$effect(() => {
-		controls.autoRotate = autoRotate;
+		controls.autoRotate = useAutoRotate;
 	});
 
 	controls.autoRotateSpeed = 10;
@@ -114,13 +112,11 @@
 
 	const booImagePromise = loadImage(boo.src, boo.width, boo.height);
 
-	const loopState = new LoopState();
-
 	let rendererParameters = $state<WebGLRendererParameters>({
 		antialias: true,
 	});
 
-	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
+	const billboarding: CreateRendererAttachment = (rendererParameters) => {
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
@@ -130,12 +126,10 @@
 
 			$effect(() => {
 				renderer.setSize(canvasWidth, canvasHeight);
-				if (!loopState.isLooping) render();
 			});
 
 			$effect(() => {
 				renderer.setPixelRatio(pixelRatio);
-				if (!loopState.isLooping) render();
 			});
 
 			booImagePromise.then((image) => {
@@ -214,9 +208,9 @@
 		bind:clientWidth={canvasWidth}
 		class="sm:relative"
 	>
-		<canvas {@attach createAttachment(rendererParameters)}></canvas>
+		<canvas {@attach billboarding(rendererParameters)}></canvas>
 		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-			<Pane bind:autoRotate />
+			<Pane bind:useAutoRotate />
 		</div>
 	</div>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { createShadowGradient } from "../createShadowGradient";
 	import { createFloorMesh } from "./createFloorMesh";
-	import { createShadowGradient } from "./createShadowGradient";
 	import { createShadowMaterial } from "./createShadowMaterial";
 	import { createShadowMesh } from "./createShadowMesh";
 	import { createSphereMesh } from "./createSphereMesh";
@@ -41,7 +41,7 @@
 	}
 
 	const gradient = $derived(
-		createShadowGradient(context, backgroundColor, shadowColor),
+		createShadowGradient(context, shadowColor, backgroundColor),
 	);
 
 	$effect(() => {
@@ -85,8 +85,8 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	const axis = new Vector3(1, 1, 1);
-	camera.translateOnAxis(axis, 5);
+	const axis = new Vector3(1, 1, 1).normalize();
+	camera.translateOnAxis(axis, 10);
 	camera.lookAt(sphereMesh.position);
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
@@ -104,7 +104,7 @@
 		antialias: true,
 	});
 
-	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
+	const simpleShadow: CreateRendererAttachment = (rendererParameters) => {
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
@@ -131,17 +131,19 @@
 					positionYInitial + 1,
 					t,
 				);
+				shadowMesh.scale.setScalar(1 + t);
 
 				shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
 				render();
 			});
 
 			controls.connect(renderer.domElement);
+
 			controls.addEventListener("change", render);
 
 			return () => {
-				controls.disconnect();
 				controls.removeEventListener("change", render);
+				controls.disconnect();
 				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
@@ -157,7 +159,7 @@
 		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 			<Pane bind:aspect />
 		</div>
-		<canvas {@attach createAttachment(rendererParameters)}></canvas>
+		<canvas {@attach simpleShadow(rendererParameters)}></canvas>
 	</div>
 
 	{#snippet failed(error)}

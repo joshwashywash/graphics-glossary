@@ -1,17 +1,20 @@
 export const createShadowGradient = (
 	context: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D,
-	backgroundColor = "rgba(0,0,0,0)",
 	shadowColor = "black",
+	backgroundColor = "rgba(0,0,0,0)",
 ) => {
-	const canvasHalfSize = 0.5 * context.canvas.width;
+	const canvasHalfWidth = 0.5 * context.canvas.width;
+	const canvasHalfHeight = 0.5 * context.canvas.height;
+
+	const radius = Math.min(canvasHalfHeight, canvasHalfHeight);
 
 	const gradient = context.createRadialGradient(
-		canvasHalfSize,
-		canvasHalfSize,
+		canvasHalfWidth,
+		canvasHalfHeight,
 		0,
-		canvasHalfSize,
-		canvasHalfSize,
-		canvasHalfSize,
+		canvasHalfWidth,
+		canvasHalfHeight,
+		radius,
 	);
 
 	gradient.addColorStop(0, shadowColor);

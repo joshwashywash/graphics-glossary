@@ -1,34 +1,28 @@
 ---
 description: A detailed article about creating a simple shadow in three.js.
-title: Simple Shadows
+title: Simple Shadow
 ---
 
 import Tabs from "@components/codeTabs.astro";
-import App from "@components/examples/shadows/simple-shadows/app.svelte";
-import Shadow from "@components/examples/shadows/simple-shadows/shadow.svelte";
+import Shadow from "@components/examples/shadows/simple-shadow/shadow/app.svelte";
+import SimpleShadow from "@components/examples/shadows/simple-shadow/simple-shadow/app.svelte";
 
-export const backgroundColor = "white";
+export const shadowColor = "orangered";
 export const size = 256;
 
 :::caution[under construction]
 this article is currently a work-in-progress
 :::
 
-Probably the cheapest and easiest way to add "shadows" to an object is by creating a _shadow_ mesh that acts as the shadow for the object. This was a common technique in older 3D games such as Pokemon Stadium and Super Mario 64 both on the Nintendo 64.
+Probably the cheapest and easiest way to add a "shadow" to an object is by creating a _shadow_ mesh that acts as the shadow for the object. This was a common technique in older 3D games such as Pokemon Stadium and Super Mario 64 both on the Nintendo 64.
 
 ![a screenshot of pokemon stadium showing poliwhirl using the move "bubble" with a shadow mesh beneath it](@assets/poliwhirl.png)
 
 One way to create a fake shadow is to draw one to a canvas texture then use that texture as the color for a plane mesh. The plane mesh is placed below the object but above the ground. Note that it's important to offset the shadow mesh from the ground slightly to avoid z-fighting.
 
-<Shadow
-	client:load
-	backgroundColor={backgroundColor}
-	width={size}
-	height={size}
-	class="w-full"
-/>
+<Shadow client:load />
 
 Another upside to using this kind of shadow is that since it's a mesh it's very easy to translate, scale, or rotate it as needed.
 
-<App client:only />
-<Tabs directory="shadows/simple-shadows" />
+<SimpleShadow client:only />
+<Tabs directory="shadows/simple-shadow" />

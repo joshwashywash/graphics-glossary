@@ -24,7 +24,7 @@
 		Vector4,
 		WebGLRenderer,
 	} from "three";
-	import type { WebGLRendererParameters } from "three";
+	import type { Object3D, WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { ShadowMesh } from "three/examples/jsm/objects/ShadowMesh.js";
 
@@ -54,7 +54,7 @@
 
 	const light4D = new Vector4(...light.position, 0.1);
 
-	const objects = [mesh, shadowMesh, light, floorMesh, lightHelper];
+	const objects: Object3D[] = [mesh, shadowMesh, light, floorMesh, lightHelper];
 
 	const scene = new Scene().add(...objects);
 
@@ -63,8 +63,8 @@
 			scene.remove(...objects);
 			disposeMesh();
 			disposeFloor();
-			light.dispose();
 			lightHelper.dispose();
+			light.dispose();
 		};
 	});
 
@@ -80,9 +80,9 @@
 		updateCameraAspect(aspect);
 	});
 
-	const groundY = 0;
+	const floorY = 0;
 	const planeOffset = 0.01;
-	const planeConstant = groundY + planeOffset;
+	const planeConstant = floorY + planeOffset;
 
 	const yHat = new Vector3(0, 1, 0);
 	const plane = new Plane(yHat, planeConstant); //offset the plane slightly from the ground
@@ -96,6 +96,7 @@
 	controls.maxPolarAngle = (2 / 5) * Math.PI;
 
 	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
+		const rotationSpeed = 1 / 100;
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
@@ -113,13 +114,11 @@
 
 			controls.connect(renderer.domElement);
 
-			const loop = () => {
+			renderer.setAnimationLoop(() => {
 				render();
-				mesh.rotateY(0.01);
+				mesh.rotateY(Math.PI * rotationSpeed);
 				shadowMesh.update(plane, light4D);
-			};
-
-			renderer.setAnimationLoop(loop);
+			});
 
 			return () => {
 				controls.disconnect();

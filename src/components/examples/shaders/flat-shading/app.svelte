@@ -1,8 +1,6 @@
 <script lang="ts">
 	import Pane from "./pane.svelte";
 
-	import { LoopState } from "@classes/loopState";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
 	import type { CreateRendererAttachment } from "@types";
@@ -18,8 +16,8 @@
 	} from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-	let flatShading = $state(true);
-	let autoRotate = $state(true);
+	let useFlatShading = $state(true);
+	let autoRotateCamera = $state(true);
 
 	let canvasWidth = $state(1);
 	let aspect = $state(4 / 3);
@@ -53,31 +51,34 @@
 		};
 	});
 
-	const loopState = new LoopState();
-
 	let rendererParameters = $state<WebGLRendererParameters>({
 		antialias: true,
 	});
 
-	const createAttachment: CreateRendererAttachment = (rendererParameters) => {
+	const flatShading: CreateRendererAttachment = (rendererParameters) => {
+		let loop: null | (() => void) = null;
+
+		const isLooping = () => loop !== null;
+
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
+			renderer.setAnimationLoop;
 
 			const render = () => {
 				renderer.render(scene, camera);
 			};
 
-			const loop = () => {
-				controls.update();
-				render();
-			};
-
 			$effect(() => {
-				if ((controls.autoRotate = autoRotate)) {
-					renderer.setAnimationLoop((loopState.loop = loop));
+				if ((controls.autoRotate = autoRotateCamera)) {
+					renderer.setAnimationLoop(
+						(loop = () => {
+							controls.update();
+							render();
+						}),
+					);
 
 					return () => {
-						renderer.setAnimationLoop((loopState.loop = null));
+						renderer.setAnimationLoop((loop = null));
 					};
 				}
 
@@ -89,23 +90,23 @@
 
 			$effect(() => {
 				updateCameraAspect(aspect);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				renderer.setSize(canvasWidth, canvasHeight);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
 				renderer.setPixelRatio(pixelRatio);
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			$effect(() => {
-				material.flatShading = flatShading;
+				material.flatShading = useFlatShading;
 				material.needsUpdate = true;
-				if (!loopState.isLooping) render();
+				if (!isLooping()) render();
 			});
 
 			controls.connect(renderer.domElement);
@@ -122,12 +123,12 @@
 	bind:clientWidth={canvasWidth}
 	class="sm:relative"
 >
-	<canvas {@attach createAttachment(rendererParameters)}></canvas>
+	<canvas {@attach flatShading(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane
 			bind:aspect
-			bind:autoRotate
-			bind:flatShading
+			bind:autoRotateCamera
+			bind:useFlatShading
 		/>
 	</div>
 </div>
