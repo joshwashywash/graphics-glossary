@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
-	import Pane from "./pane.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import { aspects } from "@constants/aspects";
 	import type { CreateRendererAttachment } from "@types";
+	import { Checkbox, List, Pane } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		Mesh,
@@ -20,7 +21,7 @@
 
 	let canvasWidth = $state(1);
 
-	let aspect = $state(4 / 3);
+	let aspect = $state(aspects["4:3"]);
 
 	const canvasHeight = $derived(canvasWidth / aspect);
 
@@ -117,9 +118,16 @@
 >
 	<canvas {@attach vertexColors(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<Pane
-			bind:aspect
-			bind:useAutoRotate
-		/>
+		<Pane position="inline">
+			<Checkbox
+				bind:value={useAutoRotate}
+				label="auto rotate camera"
+			/>
+			<List
+				bind:value={aspect}
+				options={aspects}
+				label="aspect ratio"
+			/>
+		</Pane>
 	</div>
 </div>

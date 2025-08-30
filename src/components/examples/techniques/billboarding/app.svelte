@@ -21,7 +21,6 @@
 
 <script lang="ts">
 	import { createCanvasTexture } from "./createCanvasTexture";
-	import Pane from "./pane.svelte";
 
 	import boo from "@assets/boo.png";
 
@@ -29,6 +28,7 @@
 	import { loadImage } from "@functions/loadImage";
 
 	import type { CreateRendererAttachment } from "@types";
+	import { Checkbox, Pane } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		BoxGeometry,
@@ -210,7 +210,12 @@
 	>
 		<canvas {@attach billboarding(rendererParameters)}></canvas>
 		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-			<Pane bind:useAutoRotate />
+			<Pane position="inline">
+				<Checkbox
+					bind:value={useAutoRotate}
+					label="auto rotate camera"
+				/>
+			</Pane>
 		</div>
 	</div>
 

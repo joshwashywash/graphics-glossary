@@ -1,10 +1,18 @@
 <script lang="ts">
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
-	import Pane from "./pane.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import { aspects } from "@constants/aspects";
 	import type { CreateRendererAttachment } from "@types";
+	import {
+		Checkbox,
+		Color,
+		Folder,
+		List,
+		Pane,
+		Slider,
+	} from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		Mesh,
@@ -17,7 +25,7 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 	let canvasWidth = $state(1);
-	let aspect = $state(4 / 3);
+	let aspect = $state(aspects["4:3"]);
 	const canvasHeight = $derived(canvasWidth / aspect);
 
 	let useAutoRotate = $state(true);
@@ -108,6 +116,7 @@
 						renderer.setAnimationLoop((loop = null));
 					};
 				}
+
 				controls.addEventListener("change", render);
 
 				return () => {
@@ -131,12 +140,33 @@
 >
 	<canvas {@attach fresnel(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<Pane
-			bind:aspect
-			bind:useAutoRotate
-			bind:baseColor
-			bind:fresnelColor
-			bind:power
-		/>
+		<Pane position="inline">
+			<List
+				bind:value={aspect}
+				options={aspects}
+				label="aspect ratio"
+			/>
+			<Checkbox
+				bind:value={useAutoRotate}
+				label="auto rotate camera"
+			/>
+			<Folder title="uniforms">
+				<Color
+					bind:value={baseColor}
+					label="base color"
+				/>
+				<Color
+					bind:value={fresnelColor}
+					label="fresnel color"
+				/>
+				<Slider
+					bind:value={power}
+					label="power"
+					min={0}
+					max={5}
+					step={0.1}
+				/>
+			</Folder>
+		</Pane>
 	</div>
 </div>

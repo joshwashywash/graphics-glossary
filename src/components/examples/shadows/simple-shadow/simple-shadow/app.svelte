@@ -4,11 +4,12 @@
 	import { createShadowMaterial } from "./createShadowMaterial";
 	import { createShadowMesh } from "./createShadowMesh";
 	import { createSphereMesh } from "./createSphereMesh";
-	import Pane from "./pane.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import { aspects } from "@constants/aspects";
 	import type { CreateRendererAttachment } from "@types";
+	import { List, Pane } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		Group,
@@ -24,7 +25,7 @@
 	let { backgroundColor = "rgba(0,0,0,0)", shadowColor = "black" } = $props();
 
 	let canvasWidth = $state(1);
-	let aspect = $state(4 / 3);
+	let aspect = $state(aspects["4:3"]);
 
 	const canvasHeight = $derived(canvasWidth / aspect);
 
@@ -157,7 +158,13 @@
 		class="sm:relative"
 	>
 		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-			<Pane bind:aspect />
+			<Pane position="inline">
+				<List
+					bind:value={aspect}
+					options={aspects}
+					label="aspect ratio"
+				/>
+			</Pane>
 		</div>
 		<canvas {@attach simpleShadow(rendererParameters)}></canvas>
 	</div>

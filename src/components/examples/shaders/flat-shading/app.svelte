@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Pane from "./pane.svelte";
-
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import { aspects } from "@constants/aspects";
 	import type { CreateRendererAttachment } from "@types";
+	import { Checkbox, List, Pane } from "svelte-tweakpane-ui";
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import type { WebGLRendererParameters } from "three";
 	import {
@@ -20,7 +20,7 @@
 	let autoRotateCamera = $state(true);
 
 	let canvasWidth = $state(1);
-	let aspect = $state(4 / 3);
+	let aspect = $state(aspects["4:3"]);
 
 	const canvasHeight = $derived(canvasWidth / aspect);
 
@@ -32,10 +32,6 @@
 	const controls = new OrbitControls(camera);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
-
-	$effect(() => {
-		updateCameraAspect(aspect);
-	});
 
 	const material = new MeshNormalMaterial();
 	const geometry = new SphereGeometry(1, 16, 8);
@@ -125,10 +121,20 @@
 >
 	<canvas {@attach flatShading(rendererParameters)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<Pane
-			bind:aspect
-			bind:autoRotateCamera
-			bind:useFlatShading
-		/>
+		<Pane position="inline">
+			<Checkbox
+				bind:value={useFlatShading}
+				label="use flat shading"
+			/>
+			<Checkbox
+				bind:value={autoRotateCamera}
+				label="auto rotate camera"
+			/>
+			<List
+				bind:value={aspect}
+				options={aspects}
+				label="aspect ratio"
+			/>
+		</Pane>
 	</div>
 </div>

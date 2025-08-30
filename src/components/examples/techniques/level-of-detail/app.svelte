@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { createLOD } from "./createLOD";
-	import Pane from "./pane.svelte";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
+	import { aspects } from "@constants/aspects";
 	import type { CreateRendererAttachment } from "@types";
+	import { List, Pane } from "svelte-tweakpane-ui";
 	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 	import type { WebGLRendererParameters } from "three";
 
 	let canvasWidth = $state(1);
-	let aspect = $state(4 / 3);
+	let aspect = $state(aspects["4:3"]);
 
 	const canvasHeight = $derived(canvasWidth / aspect);
 
@@ -67,7 +68,13 @@
 	class="sm:relative"
 >
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<Pane bind:aspect />
+		<Pane position="inline">
+			<List
+				bind:value={aspect}
+				options={aspects}
+				label="aspect ratio"
+			/>
+		</Pane>
 	</div>
 	<canvas {@attach levelOfDetail(rendererParameters)}></canvas>
 </div>
