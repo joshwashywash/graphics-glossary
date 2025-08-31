@@ -66,7 +66,7 @@
 
 	const lightHelper = new DirectionalLightHelper(light);
 
-	const light4D = new Vector4(...light.position, 0.01);
+	const lightPosition4D = new Vector4(...light.position, 0.01);
 
 	const objects: Object3D[] = [mesh, shadowMesh, floorMesh, lightHelper];
 
@@ -124,7 +124,7 @@
 			renderer.setAnimationLoop(() => {
 				render();
 				mesh.rotateY(Math.PI * rotationSpeed);
-				shadowMesh.update(plane, light4D);
+				shadowMesh.update(plane, lightPosition4D);
 			});
 
 			return () => {

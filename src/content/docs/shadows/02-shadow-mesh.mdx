@@ -12,10 +12,18 @@ import { Steps } from "@astrojs/starlight/components";
 this article is currently a work-in-progress
 :::
 
-ThreeJS's ShadowMesh addon is a very performant alternative to shadow mapping. It makes use of the stencil buffer and a locally computed matrix to simulate very simple shadows.
+Three.js's **ShadowMesh** addon is a very performant alternative to shadow mapping. It makes use of the stencil buffer and a locally computed matrix to create very simple shadows.
 
 <App client:load />
 <Tabs directory="shadows/shadow-mesh" />
+
+## Limitations
+
+Although the ShadowMesh addon is very perfomant, it does come with a few limitations
+
+1. Shadows can only be cast onto flat planes.
+2. It does not support soft shadows.
+3. Like most things in three.js, it is not reactive - if you update the reference mesh's geometry, you must also update the shadow mesh's to match.
 
 ## Usage
 
@@ -86,18 +94,16 @@ floorMesh.lookAt(plane.normal);
 
 The light source should be a 4D Vector where the **w** component of the vector controls the _spread_ of the shadow. A **w** value close to 0 is used for directional lights whereas a value closer to 1 is more suited for point lights.
 
-The light source does not need to be added to the scene and since the light's position is the only things that is considered, it doesn't even need to be a light object.
+The light source does not need to be added to the scene as the only information that is needed is the light's position.
 
-For example if you have a directional light positioned somewhere in the scene that should cast a shadow, all you need is the light's position.
+For example, if you have a directional light positioned somewhere in the scene that should cast a shadow, all you need is the light's position.
 
 ```ts
-const lightPosition = new Vector3(5, 5, 5);
-const light4D = new Vector4(...lightPosition, 0.1);
+const lightPosition = new Vector3(1, 1, 1).normalize().multiplyScalar(5);
+const lightPosition4D = new Vector4(...lightPosition, 0.1);
 
-shadowMesh.update(plane, light4D);
+shadowMesh.update(plane, lightPosition4D);
 ```
-
-This is because the shadow mesh can only be _casted_ on planes and the only information that is needed from the light source when calculating the local matrix is the light source's position - the assumption being that the light source is pointed toward the plane.
 
 ## Resources
 
