@@ -1,8 +1,8 @@
-import { Mesh, MeshLambertMaterial, PlaneGeometry } from "three";
+import { Mesh, MeshBasicMaterial, PlaneGeometry } from "three";
 
-export const createFloor = (size = 1) => {
+export const createFloor = (size = 1, color = "white") => {
 	const geometry = new PlaneGeometry(size, size);
-	const material = new MeshLambertMaterial();
+	const material = new MeshBasicMaterial({ color });
 
 	const dispose = () => {
 		geometry.dispose();

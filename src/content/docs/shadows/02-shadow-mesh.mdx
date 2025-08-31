@@ -6,9 +6,99 @@ title: ShadowMesh
 import Tabs from "@components/codeTabs.astro";
 import App from "@components/examples/shadows/shadow-mesh/app.svelte";
 
+import { Steps } from "@astrojs/starlight/components";
+
 :::caution[under construction]
 this article is currently a work-in-progress
 :::
 
+ThreeJS's ShadowMesh addon is a very performant alternative to shadow mapping. It makes use of the stencil buffer and a locally computed matrix to simulate very simple shadows.
+
 <App client:load />
 <Tabs directory="shadows/shadow-mesh" />
+
+## Usage
+
+In order for the shadow mesh to work it needs a plane, a light source, and a shadow-casting mesh.
+
+{/* prettier-ignore-start */}
+
+<Steps>
+1. Enable the renderer's stencil buffer.
+
+    ```ts
+    const renderer = new WebGLRenderer({
+        canvas,
+        stencil: true,
+    })
+    ```
+
+2. Create the ShadowMesh instance and add it to the scene.
+
+    ```ts
+    const shadowMesh = new ShadowMesh(mesh);
+    scene.add(shadowMesh);
+    ```
+
+3. Create the plane that will be used when computing the shadow's matrix.
+
+    ```ts
+    const plane = new Plane(planeNormal, planeConstant);
+    ```
+
+4. Create the light source.
+
+    ```ts
+    const light = new DirectionalLight();
+    light.position.set(/* */);
+
+    const light4D = new Vector4(...light.position, 0.1);
+    ```
+
+5. Update the shadow mesh as needed using the plane and light source.
+    ```ts
+    shadowMesh.update(plane, light4D);
+    ```
+</Steps>
+
+{/* prettier-ignore-end */}
+
+### Offsetting and Orienting the Plane
+
+In order to avoid z-fighting, the plane should be offset slightly from the floor or ground which the shadow will be casted on.
+
+```ts
+const offset = 0.01;
+plane.constant = offset;
+```
+
+Unfortunately there's not an easy way to get a `Plane` instance from a `PlaneGeometry` without accessing the geometry's buffer attributes. Instead, you can create the plane and then rotate the mesh to look at the plane's normal.
+
+```ts
+const floor = new Mesh(new PlaneGeometry());
+const yHat = new Vector3(0, 1, 0);
+const plane = new Plane(yHat, 0.01);
+
+floorMesh.lookAt(plane.normal);
+```
+
+### Light Source
+
+The light source should be a 4D Vector where the **w** component of the vector controls the _spread_ of the shadow. A **w** value close to 0 is used for directional lights whereas a value closer to 1 is more suited for point lights.
+
+The light source does not need to be added to the scene and since the light's position is the only things that is considered, it doesn't even need to be a light object.
+
+For example if you have a directional light positioned somewhere in the scene that should cast a shadow, all you need is the light's position.
+
+```ts
+const lightPosition = new Vector3(5, 5, 5);
+const light4D = new Vector4(...lightPosition, 0.1);
+
+shadowMesh.update(plane, light4D);
+```
+
+This is because the shadow mesh can only be _casted_ on planes and the only information that is needed from the light source when calculating the local matrix is the light source's position - the assumption being that the light source is pointed toward the plane.
+
+## Resources
+
+- [three.js ShadowMesh implementation](https://github.com/mrdoob/three.js/blob/master/examples/jsm/objects/ShadowMesh.js)

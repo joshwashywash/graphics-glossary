@@ -41,20 +41,34 @@
 	const shadowMesh = new ShadowMesh(mesh);
 
 	const floorSize = 15;
-	const { mesh: floorMesh, dispose: disposeFloor } = createFloor(floorSize);
-	floorMesh.rotateX(-1 * 0.5 * Math.PI);
+	const floorColor = "#ccccaa";
+
+	// offset the plane slightly from the ground
+	const floorY = 0;
+	const planeOffset = 0.01;
+	const planeConstant = floorY + planeOffset;
+
+	const yHat = new Vector3(0, 1, 0);
+	const plane = new Plane(yHat, planeConstant);
+
+	const { mesh: floorMesh, dispose: disposeFloor } = createFloor(
+		floorSize,
+		floorColor,
+	);
+
+	floorMesh.lookAt(plane.normal);
 
 	const light = new DirectionalLight().translateOnAxis(
 		translationAxis.set(1, 1, -1).normalize(),
-		5,
+		7,
 	);
 	light.target = mesh;
 
 	const lightHelper = new DirectionalLightHelper(light);
 
-	const light4D = new Vector4(...light.position, 0.1);
+	const light4D = new Vector4(...light.position, 0.01);
 
-	const objects: Object3D[] = [mesh, shadowMesh, light, floorMesh, lightHelper];
+	const objects: Object3D[] = [mesh, shadowMesh, floorMesh, lightHelper];
 
 	const scene = new Scene().add(...objects);
 
@@ -79,13 +93,6 @@
 	$effect(() => {
 		updateCameraAspect(aspect);
 	});
-
-	const floorY = 0;
-	const planeOffset = 0.01;
-	const planeConstant = floorY + planeOffset;
-
-	const yHat = new Vector3(0, 1, 0);
-	const plane = new Plane(yHat, planeConstant); //offset the plane slightly from the ground
 
 	let rendererParameters = $state<WebGLRendererParameters>({
 		antialias: true,
