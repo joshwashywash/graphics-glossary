@@ -34,6 +34,8 @@
 			if (context === null) return;
 
 			$effect(() => {
+				canvasWidth;
+				canvasHeight;
 				const gradient = createShadowGradient(context, shadowColor);
 
 				context.fillStyle = gradient;
