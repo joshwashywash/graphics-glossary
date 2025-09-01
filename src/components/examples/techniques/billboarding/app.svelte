@@ -7,7 +7,7 @@
 	const forwardsFrameCount = 18;
 
 	/**
-	 * number of frames to show during the last half of the rotation.
+	 * number of frames to show during the last half of the rotation
 	 * equal to `frameCount` minus the first and last *frames*
 	 */
 	const backwardsFrameCount = forwardsFrameCount - 2;
@@ -18,8 +18,6 @@
 </script>
 
 <script lang="ts">
-	import { createCanvasTexture } from "./createCanvasTexture";
-
 	import booImageMetadata from "@assets/boo.png";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
@@ -30,13 +28,15 @@
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		BoxGeometry,
+		CanvasTexture,
 		Mesh,
 		MeshNormalMaterial,
+		NearestFilter,
 		PerspectiveCamera,
+		RepeatWrapping,
 		Scene,
 		Sprite,
 		SpriteMaterial,
-		Vector3,
 		WebGLRenderer,
 	} from "three";
 	import type { WebGLRendererParameters } from "three";
@@ -64,7 +64,14 @@
 
 	let useAutoRotate = $state(true);
 
-	const canvasTexture = createCanvasTexture(booCanvas);
+	const canvasTexture = new CanvasTexture(booCanvas);
+	canvasTexture.minFilter = NearestFilter;
+	canvasTexture.magFilter = NearestFilter;
+
+	canvasTexture.generateMipmaps = false;
+
+	canvasTexture.wrapS = RepeatWrapping;
+	canvasTexture.wrapT = RepeatWrapping;
 	canvasTexture.repeat.x = 1 / frameCount;
 
 	loadImage(
@@ -114,12 +121,12 @@
 		return () => {
 			scene.remove(sprite, mesh);
 			spriteMaterial.map = null;
+			canvasTexture.dispose();
+
 			spriteMaterial.dispose();
 
 			material.dispose();
 			geometry.dispose();
-
-			canvasTexture.dispose();
 		};
 	});
 
@@ -147,8 +154,6 @@
 
 	const billboarding: CreateRendererAttachment = (rendererParameters) => {
 		let lastOffset: number;
-
-		const scratch = new Vector3();
 
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
