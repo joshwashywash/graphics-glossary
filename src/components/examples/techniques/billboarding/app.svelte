@@ -14,15 +14,13 @@
 
 	const frameCount = forwardsFrameCount + backwardsFrameCount;
 
-	const spriteWidth = boo.width / forwardsFrameCount;
-
-	const scratch = new Vector3();
+	const spriteWidth = booImageMetadata.width / forwardsFrameCount;
 </script>
 
 <script lang="ts">
 	import { createCanvasTexture } from "./createCanvasTexture";
 
-	import boo from "@assets/boo.png";
+	import booImageMetadata from "@assets/boo.png";
 
 	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 	import { loadImage } from "@functions/loadImage";
@@ -44,7 +42,13 @@
 	import type { WebGLRendererParameters } from "three";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-	const booCanvas = new OffscreenCanvas(spriteWidth, boo.height);
+	/** the width of the image minus the width of the first and last sprites */
+	const extensionWidth = booImageMetadata.width - 2 * spriteWidth;
+
+	const booCanvas = new OffscreenCanvas(
+		booImageMetadata.width + extensionWidth,
+		booImageMetadata.height,
+	);
 	const booCanvasContext = booCanvas.getContext("2d");
 
 	// the example can not work without the context so just throw and let the boundary handle it
@@ -61,18 +65,48 @@
 	let useAutoRotate = $state(true);
 
 	const canvasTexture = createCanvasTexture(booCanvas);
+	canvasTexture.repeat.x = 1 / frameCount;
+
+	loadImage(
+		booImageMetadata.src,
+		booImageMetadata.width,
+		booImageMetadata.height,
+	).then((image) => {
+		booCanvasContext.drawImage(image, 0, 0);
+
+		booCanvasContext.save();
+		booCanvasContext.scale(-1, 1);
+
+		// draw the image flipped but leave out the first and last sprites
+		booCanvasContext.drawImage(
+			image,
+			spriteWidth,
+			0,
+			extensionWidth,
+			image.height,
+			-1 * image.width,
+			0,
+			-1 * extensionWidth,
+			image.height,
+		);
+		booCanvasContext.restore();
+
+		canvasTexture.needsUpdate = true;
+	});
 
 	const spriteMaterial = new SpriteMaterial({
 		map: canvasTexture,
 	});
 
 	const sprite = new Sprite(spriteMaterial);
-	sprite.translateX(-1);
+	sprite.translateZ(1);
 
 	const material = new MeshNormalMaterial();
 	const geometry = new BoxGeometry();
+
 	const mesh = new Mesh(geometry, material);
-	mesh.translateX(1);
+	mesh.scale.setScalar(0.5);
+	mesh.translateZ(-1);
 
 	const scene = new Scene().add(sprite, mesh);
 
@@ -90,7 +124,7 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	camera.translateZ(3);
+	camera.translateZ(4);
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
@@ -107,16 +141,15 @@
 	controls.maxPolarAngle = 0.5 * Math.PI;
 	controls.minPolarAngle = 0.5 * Math.PI;
 
-	let lastOffset: number;
-	let canceled = false;
-
-	const booImagePromise = loadImage(boo.src, boo.width, boo.height);
-
 	let rendererParameters = $state<WebGLRendererParameters>({
 		antialias: true,
 	});
 
 	const billboarding: CreateRendererAttachment = (rendererParameters) => {
+		let lastOffset: number;
+
+		const scratch = new Vector3();
+
 		return (canvas) => {
 			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
 
@@ -132,71 +165,35 @@
 				renderer.setPixelRatio(pixelRatio);
 			});
 
-			booImagePromise.then((image) => {
-				if (canceled) return;
+			renderer.setAnimationLoop(() => {
+				if (controls.autoRotate) {
+					controls.update();
+					render();
+				}
 
-				renderer.setAnimationLoop(() => {
-					if (controls.autoRotate) {
-						controls.update();
-						render();
-					}
+				let angle = camera.position.angleTo(sprite.position);
 
-					scratch.subVectors(camera.position, sprite.position);
+				// determine if the larger angle should be used
+				const o =
+					camera.position.x * sprite.position.z -
+					camera.position.z * sprite.position.x;
+				if (o < 0) angle = tau - angle;
 
-					// flip the position over the x-axis
-					scratch.z *= -1;
+				const offset = Math.floor(frameCount * (angle / tau));
 
-					// in the xz-plane, the z part of the vector acts as the "y" argument of atan2
-					const angle = Math.atan2(scratch.z, scratch.x) + Math.PI;
+				if (lastOffset === offset) return;
 
-					let offset = Math.floor(frameCount * (angle / tau));
-
-					const backwards = offset >= forwardsFrameCount;
-
-					if (backwards) {
-						offset = backwardsFrameCount - (offset % forwardsFrameCount);
-					}
-
-					if (lastOffset === offset) return;
-
-					lastOffset = offset;
-
-					const directionX = 1 - 2 * +backwards;
-
-					booCanvasContext.resetTransform();
-					booCanvasContext.scale(directionX, 1);
-
-					booCanvasContext.clearRect(
-						0,
-						0,
-						directionX * booCanvasContext.canvas.width,
-						booCanvasContext.canvas.height,
-					);
-
-					booCanvasContext.drawImage(
-						image,
-						booCanvasContext.canvas.width * offset,
-						0,
-						spriteWidth,
-						boo.height,
-						0,
-						0,
-						directionX * spriteWidth,
-						boo.height,
-					);
-
-					canvasTexture.needsUpdate = true;
-				});
+				canvasTexture.offset.x = offset / frameCount;
+				lastOffset = offset;
 			});
 
 			controls.addEventListener("change", render);
 			controls.connect(renderer.domElement);
 
 			return () => {
-				canceled = true;
-				renderer.setAnimationLoop(null);
 				controls.removeEventListener("change", render);
 				controls.disconnect();
+				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
 		};
