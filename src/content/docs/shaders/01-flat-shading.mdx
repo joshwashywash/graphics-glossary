@@ -9,9 +9,14 @@ import App from "@components/examples/shaders/flat-shading/app.svelte";
 Shading that assigns a uniform color across the entire face.
 
 <App client:visible />
-<Tabs directory="shaders/flat-shading" />
+<details>
+	<summary>code</summary>
+	<Tabs directory="shaders/flat-shading" />
+</details>
 
 ## Usage
+
+Most Three.js materials support flat shading.
 
 ```ts
 const material = new MeshStandardMaterial({
@@ -19,7 +24,12 @@ const material = new MeshStandardMaterial({
 });
 ```
 
-:::note
+If
+
 When switching between flat and non-flat shading, the **needsUpdate** prop of
-the material must be set to **true** for the material to be updated.
-:::
+the material must be set to **true** for the material to be properly updated.
+
+```ts
+material.flatShading = !material.flatShading;
+material.needsUpdate = true;
+```
