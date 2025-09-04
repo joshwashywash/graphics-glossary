@@ -1,130 +1,31 @@
 <script lang="ts">
-	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
-
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { createVertexColors } from "./attachment.svelte";
+	import { State } from "./state.svelte";
 
 	import { aspects } from "@constants/aspects";
-	import type { CreateRendererAttachment } from "@types";
 	import { Checkbox, List, Pane } from "svelte-tweakpane-ui";
-	import { devicePixelRatio } from "svelte/reactivity/window";
-	import {
-		Mesh,
-		MeshBasicMaterial,
-		PerspectiveCamera,
-		Scene,
-		WebGLRenderer,
-	} from "three";
-	import type { WebGLRendererParameters } from "three";
-	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-	let useAutoRotate = $state(true);
+	const state = new State();
 
-	let canvasWidth = $state(1);
-
-	let aspect = $state(aspects["4:3"]);
-
-	const canvasHeight = $derived(canvasWidth / aspect);
-
-	const pixelRatio = $derived(devicePixelRatio.current ?? 1);
-
-	const geometry = new VertexColorsBoxGeometry();
-	const material = new MeshBasicMaterial({
-		vertexColors: true,
-	});
-
-	const mesh = new Mesh(geometry, material);
-
-	const scene = new Scene().add(mesh);
-
+	const { attachment, dispose } = createVertexColors(state);
 	$effect(() => {
-		return () => {
-			scene.remove(mesh);
-			material.dispose();
-			geometry.dispose();
-		};
+		return dispose;
 	});
-
-	const camera = new PerspectiveCamera();
-	camera.translateZ(3);
-
-	const updateCameraAspect = createUpdateCameraAspect(camera);
-
-	const controls = new OrbitControls(camera);
-
-	let rendererParameters = $state<WebGLRendererParameters>({
-		antialias: true,
-	});
-
-	const vertexColors: CreateRendererAttachment = (rendererParameters) => {
-		let loop: null | (() => void) = null;
-
-		const isLooping = () => loop !== null;
-
-		return (canvas) => {
-			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
-
-			const render = () => {
-				renderer.render(scene, camera);
-			};
-
-			$effect(() => {
-				updateCameraAspect(aspect);
-				if (!isLooping()) render();
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasWidth, canvasHeight);
-				if (!isLooping()) render();
-			});
-
-			$effect(() => {
-				renderer.setPixelRatio(pixelRatio);
-				if (!isLooping()) render();
-			});
-
-			$effect(() => {
-				if ((controls.autoRotate = useAutoRotate)) {
-					renderer.setAnimationLoop(
-						(loop = () => {
-							controls.update();
-							render();
-						}),
-					);
-
-					return () => {
-						renderer.setAnimationLoop((loop = null));
-					};
-				}
-
-				controls.addEventListener("change", render);
-				return () => {
-					controls.removeEventListener("change", render);
-				};
-			});
-
-			controls.connect(renderer.domElement);
-
-			return () => {
-				controls.disconnect();
-				renderer.dispose();
-			};
-		};
-	};
 </script>
 
 <div
-	bind:clientWidth={canvasWidth}
+	bind:clientWidth={state.canvasWidth}
 	class="sm:relative"
 >
-	<canvas {@attach vertexColors(rendererParameters)}></canvas>
+	<canvas {@attach attachment}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane position="inline">
 			<Checkbox
-				bind:value={useAutoRotate}
+				bind:value={state.useAutoRotate}
 				label="auto rotate camera"
 			/>
 			<List
-				bind:value={aspect}
+				bind:value={state.aspect}
 				options={aspects}
 				label="aspect ratio"
 			/>

@@ -42,6 +42,12 @@ export default defineConfig({
 						directory: "techniques",
 					},
 				},
+				{
+					label: "Data Buffers",
+					autogenerate: {
+						directory: "data-buffers",
+					},
+				},
 			],
 		}),
 		svelte({

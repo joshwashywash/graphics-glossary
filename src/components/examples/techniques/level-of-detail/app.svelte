@@ -1,80 +1,31 @@
 <script lang="ts">
-	import { createLOD } from "./createLOD";
-
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { createLevelOfDetail } from "./attachment.svelte";
+	import { State } from "./state.svelte";
 
 	import { aspects } from "@constants/aspects";
-	import type { CreateRendererAttachment } from "@types";
 	import { List, Pane } from "svelte-tweakpane-ui";
-	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
-	import type { WebGLRendererParameters } from "three";
 
-	let canvasWidth = $state(1);
-	let aspect = $state(aspects["4:3"]);
+	const state = new State();
 
-	const canvasHeight = $derived(canvasWidth / aspect);
-
-	const z = 5;
-	const offset = 3;
-	const distances = [z - offset, offset, z + offset];
-
-	const { lod, dispose: disposeLOD } = createLOD(distances);
-
-	const scene = new Scene().add(lod);
+	const { attachment, dispose } = createLevelOfDetail(state);
 
 	$effect(() => {
-		return () => {
-			scene.remove(lod);
-
-			disposeLOD();
-		};
+		return dispose;
 	});
-
-	const camera = new PerspectiveCamera();
-	const updateCameraAspect = createUpdateCameraAspect(camera);
-
-	$effect(() => {
-		updateCameraAspect(aspect);
-	});
-
-	let rendererParameters = $state<WebGLRendererParameters>({
-		antialias: true,
-	});
-
-	const levelOfDetail: CreateRendererAttachment = (rendererParameters) => {
-		return (canvas) => {
-			const renderer = new WebGLRenderer({ canvas, ...rendererParameters });
-			$effect(() => {
-				renderer.setSize(canvasWidth, canvasHeight);
-			});
-
-			renderer.setAnimationLoop((time) => {
-				renderer.render(scene, camera);
-
-				time *= 1 / 1000;
-				camera.position.z = 1 + z + 1.5 * offset * Math.sin(0.75 * time);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-				renderer.dispose();
-			};
-		};
-	};
 </script>
 
 <div
-	bind:clientWidth={canvasWidth}
+	bind:clientWidth={state.canvasWidth}
 	class="sm:relative"
 >
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane position="inline">
 			<List
-				bind:value={aspect}
+				bind:value={state.aspect}
 				options={aspects}
 				label="aspect ratio"
 			/>
 		</Pane>
 	</div>
-	<canvas {@attach levelOfDetail(rendererParameters)}></canvas>
+	<canvas {@attach attachment}></canvas>
 </div>
