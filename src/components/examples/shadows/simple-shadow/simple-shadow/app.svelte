@@ -8,7 +8,6 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 	import { createFloorMesh } from "./createFloorMesh";
-	import { createShadowMesh } from "./createShadowMesh";
 	import { createSphereMesh } from "./createSphereMesh";
 
 	import {
@@ -23,8 +22,10 @@
 		CanvasTexture,
 		Group,
 		MathUtils,
+		Mesh,
 		MeshBasicMaterial,
 		PerspectiveCamera,
+		PlaneGeometry,
 		Scene,
 		Vector3,
 	} from "three";
@@ -62,15 +63,18 @@
 	});
 
 	const sphereRadius = 1;
-	const { dispose: disposeShadow, mesh: shadowMesh } = createShadowMesh(
-		shadowMaterial,
-		2 * sphereRadius,
-	);
+
+	const sphereDiameter = 2 * sphereRadius;
+	const shadowGeometry = new PlaneGeometry(sphereDiameter, sphereDiameter);
+	const shadowMesh = new Mesh(shadowGeometry, shadowMaterial);
 
 	shadowMesh.translateZ(0.01);
 
 	const floorSize = 7;
-	const { dispose: disposeFloor, mesh: floorMesh } = createFloorMesh(floorSize);
+	const { dispose: disposeFloor, mesh: floorMesh } = createFloorMesh(
+		floorSize,
+		{ color: "#ccccaa" },
+	);
 
 	const group = new Group().add(shadowMesh, floorMesh);
 	group.rotateX(-1 * 0.5 * Math.PI);
@@ -86,7 +90,7 @@
 
 			disposeSphere();
 			disposeFloor();
-			disposeShadow();
+			shadowGeometry.dispose();
 			shadowMap.dispose();
 			shadowMaterial.dispose();
 		};
