@@ -3,7 +3,6 @@ description: A detailed article about creating a simple shadow in three.js.
 title: Simple Shadow
 ---
 
-import Tabs from "@components/codeTabs.astro";
 import Shadow from "@components/examples/shadows/simple-shadow/shadow/app.svelte";
 import SimpleShadow from "@components/examples/shadows/simple-shadow/simple-shadow/app.svelte";
 
@@ -25,4 +24,3 @@ One way to create a fake shadow is to draw one to a canvas texture then use that
 Another upside to using this kind of shadow is that since it's a mesh it's very easy to translate, scale, or rotate it as needed.
 
 <SimpleShadow client:only />
-<Tabs directory="shadows/simple-shadow" />

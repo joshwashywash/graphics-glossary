@@ -1,34 +1,63 @@
 <script lang="ts">
-	import { createVertexColors } from "./attachment.svelte";
-	import { State } from "./state.svelte";
+	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
 
-	import { aspects } from "@constants/aspects";
-	import { Checkbox, List, Pane } from "svelte-tweakpane-ui";
+	import {
+		State,
+		createRendererAttachment,
+	} from "@attachments/createRendererAttachment.svelte";
 
-	const state = new State();
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	const { attachment, dispose } = createVertexColors(state);
-	$effect(() => {
-		return dispose;
+	import {
+		Mesh,
+		MeshBasicMaterial,
+		PerspectiveCamera,
+		Scene,
+		Vector3,
+	} from "three";
+
+	const s = new State();
+
+	const geometry = new VertexColorsBoxGeometry();
+	const material = new MeshBasicMaterial({
+		vertexColors: true,
 	});
+
+	const mesh = new Mesh(geometry, material);
+
+	const scene = new Scene().add(mesh);
+
+	$effect(() => {
+		return () => {
+			scene.remove(mesh);
+			geometry.dispose();
+			material.dispose();
+		};
+	});
+
+	const camera = new PerspectiveCamera();
+	camera.translateZ(3);
+
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+	$effect(() => {
+		updateCameraAspect(s.aspect);
+	});
+
+	const rotationAmount = (1 / 120) * Math.PI;
+
+	const axis = new Vector3(1, 1, -1).normalize();
+
+	s.withRenderer = (renderer) => {
+		renderer.setAnimationLoop(() => {
+			mesh.rotateOnAxis(axis, rotationAmount);
+			renderer.render(scene, camera);
+		});
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
 </script>
 
-<div
-	bind:clientWidth={state.canvasWidth}
-	class="sm:relative"
->
-	<canvas {@attach attachment}></canvas>
-	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<Pane position="inline">
-			<Checkbox
-				bind:value={state.useAutoRotate}
-				label="auto rotate camera"
-			/>
-			<List
-				bind:value={state.aspect}
-				options={aspects}
-				label="aspect ratio"
-			/>
-		</Pane>
-	</div>
+<div bind:clientWidth={s.canvasWidth}>
+	<canvas {@attach createRendererAttachment(s)}></canvas>
 </div>

@@ -1,31 +1,54 @@
 <script lang="ts">
-	import { createLevelOfDetail } from "./attachment.svelte";
-	import { State } from "./state.svelte";
+	import { createLOD } from "./createLOD";
 
-	import { aspects } from "@constants/aspects";
-	import { List, Pane } from "svelte-tweakpane-ui";
+	import {
+		State,
+		createRendererAttachment,
+	} from "@attachments/createRendererAttachment.svelte";
 
-	const state = new State();
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	const { attachment, dispose } = createLevelOfDetail(state);
+	import { PerspectiveCamera, Scene } from "three";
+
+	const z = 5;
+	const offset = 3;
+	const distances = [z - offset, offset, z + offset];
+
+	const { lod, dispose: disposeLOD } = createLOD(distances);
+
+	const scene = new Scene().add(lod);
 
 	$effect(() => {
-		return dispose;
+		return () => {
+			scene.remove(lod);
+			disposeLOD();
+		};
 	});
+
+	const camera = new PerspectiveCamera();
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+
+	const s = new State();
+	$effect(() => {
+		updateCameraAspect(s.aspect);
+	});
+
+	const speed = 1 / 1000;
+
+	s.withRenderer = (renderer) => {
+		renderer.setAnimationLoop((time) => {
+			renderer.render(scene, camera);
+
+			time *= speed;
+			camera.position.z = 1 + z + 1.5 * offset * Math.sin(0.75 * time);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
 </script>
 
-<div
-	bind:clientWidth={state.canvasWidth}
-	class="sm:relative"
->
-	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<Pane position="inline">
-			<List
-				bind:value={state.aspect}
-				options={aspects}
-				label="aspect ratio"
-			/>
-		</Pane>
-	</div>
-	<canvas {@attach attachment}></canvas>
+<div bind:clientWidth={s.canvasWidth}>
+	<canvas {@attach createRendererAttachment(s)}></canvas>
 </div>

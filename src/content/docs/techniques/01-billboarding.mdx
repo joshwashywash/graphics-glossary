@@ -3,7 +3,6 @@ description: An explanation of billboarding and sprites in three.js.
 title: Billboarding
 ---
 
-import Tabs from "@components/codeTabs.astro";
 import App from "@components/examples/techniques/billboarding/app.svelte";
 
 :::caution[under construction]
@@ -27,10 +26,6 @@ The racers weren't the only sprites in the game. Many background elements such a
 With this, we can choose which texture to apply to the sprite based on the position of the camera.
 
 <App client:only />
-<details>
-	<summary>code</summary>
-	<Tabs directory="techniques/billboarding" />
-</details>
 
 As the camera moves around the sprite, we see different angles of the boo. It gives the semblance of a 3D model but in reality, a 2D plane is being used and the corresponding texture is being applied.
 

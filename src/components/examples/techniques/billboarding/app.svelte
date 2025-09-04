@@ -1,39 +1,171 @@
-<script lang="ts">
-	import { createBillboarding } from "./attachment.svelte";
-	import { State } from "./state.svelte";
+<script
+	lang="ts"
+	module
+>
+	const tau = 2 * Math.PI;
 
-	import { Checkbox, Pane } from "svelte-tweakpane-ui";
+	const forwardsFrameCount = 18;
 
-	const state = new State();
+	/**
+	 * number of frames to show during the last half of the rotation
+	 * equal to `frameCount` minus the first and last *frames*
+	 */
+	const backwardsFrameCount = forwardsFrameCount - 2;
 
-	const { attachment, dispose } = createBillboarding(state);
+	const frameCount = forwardsFrameCount + backwardsFrameCount;
 
-	$effect(() => {
-		return dispose;
-	});
+	const spriteWidth = booImageMetadata.width / forwardsFrameCount;
+
+	/** the width of the image minus the width of the first and last sprites */
+	const extensionWidth = booImageMetadata.width - 2 * spriteWidth;
+
+	const _yHat = new Vector3(0, 1, 0);
 </script>
 
-<svelte:boundary>
-	<div
-		bind:clientWidth={state.canvasWidth}
-		class="sm:relative"
-	>
-		<canvas {@attach attachment}></canvas>
-		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-			<Pane position="inline">
-				<Checkbox
-					bind:value={state.useAutoRotate}
-					label="auto rotate camera"
-				/>
-			</Pane>
-		</div>
-	</div>
+<script lang="ts">
+	import booImageMetadata from "@assets/boo.png";
 
-	{#snippet pending()}
-		<p>loading</p>
-	{/snippet}
+	import {
+		State,
+		createRendererAttachment,
+	} from "@attachments/createRendererAttachment.svelte";
 
-	{#snippet failed(error)}
-		<p>{error}</p>
-	{/snippet}
-</svelte:boundary>
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { loadImage } from "@functions/loadImage";
+
+	import {
+		BoxGeometry,
+		CanvasTexture,
+		Mesh,
+		MeshNormalMaterial,
+		NearestFilter,
+		PerspectiveCamera,
+		RepeatWrapping,
+		Scene,
+		Sprite,
+		SpriteMaterial,
+		Vector3,
+	} from "three";
+
+	const booCanvas = new OffscreenCanvas(
+		booImageMetadata.width + extensionWidth,
+		booImageMetadata.height,
+	);
+	const booCanvasContext = booCanvas.getContext("2d");
+
+	// the example can not work without the context so just throw and let the boundary handle it
+	if (booCanvasContext === null) {
+		throw new Error("texture context is null");
+	}
+
+	const canvasTexture = new CanvasTexture(booCanvas);
+	canvasTexture.minFilter = NearestFilter;
+	canvasTexture.magFilter = NearestFilter;
+
+	canvasTexture.generateMipmaps = false;
+
+	canvasTexture.wrapS = RepeatWrapping;
+	canvasTexture.wrapT = RepeatWrapping;
+	canvasTexture.repeat.x = 1 / frameCount;
+
+	loadImage(
+		booImageMetadata.src,
+		booImageMetadata.width,
+		booImageMetadata.height,
+	).then((image) => {
+		booCanvasContext.drawImage(image, 0, 0);
+
+		booCanvasContext.save();
+		booCanvasContext.scale(-1, 1);
+
+		// draw the image flipped but leave out the first and last sprites
+		booCanvasContext.drawImage(
+			image,
+			spriteWidth,
+			0,
+			extensionWidth,
+			image.height,
+			-1 * image.width,
+			0,
+			-1 * extensionWidth,
+			image.height,
+		);
+		booCanvasContext.restore();
+
+		canvasTexture.needsUpdate = true;
+	});
+
+	const spriteMaterial = new SpriteMaterial({
+		map: canvasTexture,
+	});
+
+	const sprite = new Sprite(spriteMaterial);
+	sprite.translateZ(1);
+
+	const material = new MeshNormalMaterial();
+	const geometry = new BoxGeometry();
+
+	const mesh = new Mesh(geometry, material);
+	mesh.scale.setScalar(0.5);
+	mesh.translateZ(-1);
+
+	const scene = new Scene().add(sprite, mesh);
+
+	$effect(() => {
+		return () => {
+			scene.remove(sprite, mesh);
+			canvasTexture.dispose();
+
+			spriteMaterial.dispose();
+
+			material.dispose();
+			geometry.dispose();
+		};
+	});
+
+	const camera = new PerspectiveCamera();
+	camera.translateZ(4);
+
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+
+	const s = new State();
+	$effect(() => {
+		updateCameraAspect(s.aspect);
+	});
+
+	let lastOffset: number;
+
+	const cameraRotationSpeed = (1 / 180) * Math.PI;
+
+	s.withRenderer = (renderer) => {
+		renderer.setAnimationLoop(() => {
+			camera.position.applyAxisAngle(_yHat, cameraRotationSpeed);
+			camera.lookAt(scene.position);
+
+			let angle = camera.position.angleTo(sprite.position);
+
+			// determine if the larger angle should be used
+			const o =
+				camera.position.x * sprite.position.z -
+				camera.position.z * sprite.position.x;
+			if (o < 0) angle = tau - angle;
+
+			const offset = Math.floor(frameCount * (angle / tau));
+
+			if (lastOffset !== offset) {
+				canvasTexture.offset.x = offset / frameCount;
+				lastOffset = offset;
+			}
+
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
+</script>
+
+<div bind:clientWidth={s.canvasWidth}>
+	<canvas {@attach createRendererAttachment(s)}></canvas>
+</div>

@@ -37,8 +37,6 @@ export const createFresnel = (
 
 	const updateCameraAspect = createUpdateCameraAspect(camera);
 
-	const controls = new OrbitControls(camera);
-
 	return {
 		attachment(canvas) {
 			const renderer = new WebGLRenderer({

@@ -1,59 +1,97 @@
 <script lang="ts">
-	import { createFresnel } from "./attachment.svelte";
-	import { State } from "./state.svelte";
+	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 
-	import { aspects } from "@constants/aspects";
 	import {
-		Checkbox,
-		Color,
-		Folder,
-		List,
-		Pane,
-		Slider,
-	} from "svelte-tweakpane-ui";
+		State,
+		createRendererAttachment,
+	} from "@attachments/createRendererAttachment.svelte";
 
-	const state = new State();
+	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
 
-	const { attachment, dispose } = createFresnel(state);
+	import { Color, Pane, Slider } from "svelte-tweakpane-ui";
+	import { Mesh, PerspectiveCamera, Scene, TorusKnotGeometry } from "three";
+
+	const s = new State();
+
+	let baseColor = $state("#000000");
+	let fresnelColor = $state("#ffffff");
+	let power = $state(1);
+
+	s.withRenderer = (renderer) => {};
+
+	const geometry = new TorusKnotGeometry();
+
+	const uniforms = createUniforms();
+	const material = new FresnelMaterial(uniforms);
+
+	const mesh = new Mesh(geometry, material);
+
+	const scene = new Scene().add(mesh);
 
 	$effect(() => {
-		return dispose;
+		return () => {
+			scene.remove(mesh);
+			material.dispose();
+			geometry.dispose();
+		};
 	});
+
+	const camera = new PerspectiveCamera();
+	camera.translateZ(5);
+
+	const updateCameraAspect = createUpdateCameraAspect(camera);
+
+	$effect(() => {
+		updateCameraAspect(s.aspect);
+	});
+
+	const rotationAmount = (1 / 100) * Math.PI;
+
+	$effect(() => {
+		uniforms.uBaseColor.value.set(baseColor);
+	});
+
+	$effect(() => {
+		uniforms.uFresnelColor.value.set(fresnelColor);
+	});
+
+	$effect(() => {
+		uniforms.uPower.value = power;
+	});
+
+	s.withRenderer = (renderer) => {
+		renderer.setAnimationLoop(() => {
+			mesh.rotateY(rotationAmount);
+			renderer.render(scene, camera);
+		});
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
 </script>
 
 <div
-	bind:clientWidth={state.canvasWidth}
+	bind:clientWidth={s.canvasWidth}
 	class="sm:relative"
 >
-	<canvas {@attach attachment}></canvas>
+	<canvas {@attach createRendererAttachment(s)}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane position="inline">
-			<List
-				bind:value={state.aspect}
-				options={aspects}
-				label="aspect ratio"
+			<Color
+				bind:value={baseColor}
+				label="base color"
 			/>
-			<Checkbox
-				bind:value={state.useAutoRotate}
-				label="auto rotate camera"
+			<Color
+				bind:value={fresnelColor}
+				label="fresnel color"
 			/>
-			<Folder title="uniforms">
-				<Color
-					bind:value={state.baseColor}
-					label="base color"
-				/>
-				<Color
-					bind:value={state.fresnelColor}
-					label="fresnel color"
-				/>
-				<Slider
-					bind:value={state.power}
-					label="power"
-					min={0}
-					max={5}
-					step={0.1}
-				/>
-			</Folder>
+			<Slider
+				bind:value={power}
+				label="power"
+				min={0}
+				max={5}
+				step={0.1}
+			/>
 		</Pane>
 	</div>
 </div>

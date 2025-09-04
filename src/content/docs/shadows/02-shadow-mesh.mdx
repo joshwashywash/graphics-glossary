@@ -3,7 +3,6 @@ description: An article about three.js's ShadowMesh addon and how to use it.
 title: ShadowMesh
 ---
 
-import Tabs from "@components/codeTabs.astro";
 import App from "@components/examples/shadows/shadow-mesh/app.svelte";
 
 import { Steps } from "@astrojs/starlight/components";
@@ -15,7 +14,6 @@ this article is currently a work-in-progress
 Three.js's **ShadowMesh** addon is a very performant alternative to shadow mapping. It makes use of the stencil buffer and a locally computed matrix to create very simple shadows.
 
 <App client:visible />
-<Tabs directory="shadows/shadow-mesh" />
 
 ## Limitations
 

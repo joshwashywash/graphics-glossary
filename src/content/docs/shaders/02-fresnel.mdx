@@ -3,7 +3,6 @@ description: An explanation of the fresnel effect as it applies to 3D graphics
 title: Fresnel
 ---
 
-import Tabs from "@components/codeTabs.astro";
 import App from "@components/examples/shaders/fresnel/app.svelte";
 
 :::caution[under construction]
@@ -11,7 +10,6 @@ this article is under construction
 :::
 
 <App client:visible />
-<Tabs directory="shaders/fresnel" />
 
 In most physically-based rendering models surfaces will have more [specular reflection](https://en.wikipedia.org/wiki/Specular_reflection) when viewed at near-grazing angles. This phenomenon is typically called the fresnel effect. The fresnel factor is often approximated using [Schlick's approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation).
 

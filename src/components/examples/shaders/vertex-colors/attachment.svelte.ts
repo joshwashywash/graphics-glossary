@@ -20,25 +20,7 @@ export const createVertexColors = (
 	attachment: Attachment<HTMLCanvasElement>;
 	dispose(): void;
 } => {
-	const geometry = new VertexColorsBoxGeometry();
-	const material = new MeshBasicMaterial({
-		vertexColors: true,
-	});
-
-	const mesh = new Mesh(geometry, material);
-
-	const scene = new Scene().add(mesh);
-
-	const camera = new PerspectiveCamera();
-	camera.translateZ(3);
-
-	const updateCameraAspect = createUpdateCameraAspect(camera);
-
 	const controls = new OrbitControls(camera);
-
-	let loop: null | (() => void) = null;
-
-	const isLooping = () => loop !== null;
 
 	return {
 		attachment(canvas) {

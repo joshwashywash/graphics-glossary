@@ -3,16 +3,11 @@ description: An explanation of flat shading in three.js.
 title: Flat Shading
 ---
 
-import Tabs from "@components/codeTabs.astro";
 import App from "@components/examples/shaders/flat-shading/app.svelte";
 
 Shading that assigns a uniform color across the entire face.
 
 <App client:visible />
-<details>
-	<summary>code</summary>
-	<Tabs directory="shaders/flat-shading" />
-</details>
 
 ## Usage
 
@@ -23,8 +18,6 @@ const material = new MeshStandardMaterial({
 	flatShading: true,
 });
 ```
-
-If
 
 When switching between flat and non-flat shading, the **needsUpdate** prop of
 the material must be set to **true** for the material to be properly updated.
