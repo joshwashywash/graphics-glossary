@@ -9,7 +9,7 @@ export class State {
 	canvasHeight = $derived(this.canvasWidth / this.aspect);
 	rendererParameters = $state.raw<WebGLRendererParameters>({ antialias: true });
 	withRenderer = $state<
-		null | ((renderer: WebGLRenderer) => () => void | void)
+		null | ((renderer: WebGLRenderer) => (() => void) | void)
 	>(null);
 }
 
