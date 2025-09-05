@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { createLOD } from "./createLOD";
 
-	import {
-		State,
-		createRendererAttachment,
-	} from "@attachments/createRendererAttachment.svelte";
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { Size } from "@classes/Size.svelte";
 
 	import { PerspectiveCamera, Scene } from "three";
 
@@ -26,29 +23,39 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	const updateCameraAspect = createUpdateCameraAspect(camera);
 
-	const s = new State();
+	const canvasSize = new Size();
+
 	$effect(() => {
-		updateCameraAspect(s.aspect);
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
 	});
 
 	const speed = 1 / 1000;
 
-	s.withRenderer = (renderer) => {
-		renderer.setAnimationLoop((time) => {
-			renderer.render(scene, camera);
+	const levelOfDetialAttachment = createRendererAttachment({
+		getRendererParameters: () => ({
+			antialias: true,
+		}),
+		getWithRenderer: () => (renderer) => {
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height);
+			});
 
-			time *= speed;
-			camera.position.z = 1 + z + 1.5 * offset * Math.sin(0.75 * time);
-		});
+			renderer.setAnimationLoop((time) => {
+				time *= speed;
+				camera.position.z = 1 + z + 1.5 * offset * Math.sin(0.75 * time);
 
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		},
+	});
 </script>
 
-<div bind:clientWidth={s.canvasWidth}>
-	<canvas {@attach createRendererAttachment(s)}></canvas>
+<div bind:clientWidth={canvasSize.width}>
+	<canvas {@attach levelOfDetialAttachment}></canvas>
 </div>

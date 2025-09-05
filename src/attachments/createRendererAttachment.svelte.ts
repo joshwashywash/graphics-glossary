@@ -1,42 +1,82 @@
 import type { Attachment } from "svelte/attachments";
-import { devicePixelRatio } from "svelte/reactivity/window";
 import type { WebGLRendererParameters } from "three";
 import { WebGLRenderer } from "three";
 
-export class State {
-	canvasWidth = $state(1);
-	aspect = $state(1);
-	canvasHeight = $derived(this.canvasWidth / this.aspect);
-	rendererParameters = $state.raw<WebGLRendererParameters>({ antialias: true });
-	withRenderer = $state<
-		null | ((renderer: WebGLRenderer) => (() => void) | void)
-	>(null);
-}
+/**
+ * a function to call with the created WebGLRenderer, it may return a clean up function
+ *
+ * @example
+ * ```ts
+ * let withRenderer = $state<WithRenderer>((renderer) => {
+ *   renderer.setAnimationLoop(() => {
+ *     renderer.render(scene, camera);
+ *   });
+ *
+ *   return () => {
+ *     renderer.setAnimationLoop(null);
+ *   };
+ * });
+ * ```
+ */
+export type WithRenderer = (renderer: WebGLRenderer) => (() => void) | void;
 
-export const createRendererAttachment = (
-	state: State,
-): Attachment<HTMLCanvasElement> => {
+/**
+ * returns an attachment that creates a WebGLRenderer instance and runs the returned function of `getWithRenderer` in an effect.
+ *
+ * @example
+ *
+ * ```svelte
+ * <script>
+ *   const attachment = createRendererAttachment({
+ *     getRendererParameters: () => { antialias: true }),
+ *     getWithRenderer: () => (renderer) => {
+ *       renderer.render(scene, camera);
+ *     },
+ *   });
+ * </script>
+ *
+ * <canvas {@attach attachment}></canvas>
+ * ```
+ *
+ * parameters are getters so that $states may be used, thus a new renderer is created if the renderer parameters update and the $effect will rerun if `withRenderer` updates
+ *
+ * @example
+ *
+ * ```svelte
+ * <script>
+ *   let rendererParameters = $state.raw({ antialias: true });
+ *
+ *   let withRenderer = $state((renderer) => {
+ *     renderer.render(scene, camera);
+ *   };
+ *
+ *   const attachment = createRendererAttachment({
+ *     getRendererParameters: () => rendererParameters,
+ *     getWithRenderer: () => withRenderer,
+ *   });
+ * </script>
+ *
+ * <canvas {@attach attachment}></canvas>
+ * ```
+ */
+export const createRendererAttachment = ({
+	getRendererParameters = () => ({}),
+	getWithRenderer = () => () => {},
+}: {
+	getRendererParameters: () => WebGLRendererParameters;
+	getWithRenderer: () => WithRenderer;
+}): Attachment<HTMLCanvasElement> => {
 	return (canvas) => {
 		const renderer = new WebGLRenderer({
 			canvas,
-			...state.rendererParameters,
+			...getRendererParameters(),
 		});
 
 		$effect(() => {
-			const cleanup = state.withRenderer?.(renderer);
+			const cleanup = getWithRenderer()?.(renderer);
 			return cleanup;
 		});
 
-		$effect(() => {
-			renderer.setSize(state.canvasWidth, state.canvasHeight);
-		});
-
-		$effect(() => {
-			renderer.setPixelRatio(devicePixelRatio.current ?? 1);
-		});
-
-		return () => {
-			renderer.dispose();
-		};
+		return renderer.dispose;
 	};
 };

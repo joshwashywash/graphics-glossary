@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
 
-	import {
-		State,
-		createRendererAttachment,
-	} from "@attachments/createRendererAttachment.svelte";
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { Size } from "@classes/Size.svelte";
 
 	import {
 		Mesh,
@@ -15,8 +12,6 @@
 		Scene,
 		Vector3,
 	} from "three";
-
-	const s = new State();
 
 	const geometry = new VertexColorsBoxGeometry();
 	const material = new MeshBasicMaterial({
@@ -38,26 +33,35 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(3);
 
-	const updateCameraAspect = createUpdateCameraAspect(camera);
+	const canvasSize = new Size();
 	$effect(() => {
-		updateCameraAspect(s.aspect);
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
 	});
 
 	const rotationAmount = (1 / 120) * Math.PI;
 
 	const axis = new Vector3(1, 1, -1).normalize();
 
-	s.withRenderer = (renderer) => {
-		renderer.setAnimationLoop(() => {
-			mesh.rotateOnAxis(axis, rotationAmount);
-			renderer.render(scene, camera);
-		});
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+	const vertexColorsAttachment = createRendererAttachment({
+		getRendererParameters: () => ({ antialias: true }),
+		getWithRenderer: () => (renderer) => {
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height);
+			});
+
+			renderer.setAnimationLoop(() => {
+				mesh.rotateOnAxis(axis, rotationAmount);
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		},
+	});
 </script>
 
-<div bind:clientWidth={s.canvasWidth}>
-	<canvas {@attach createRendererAttachment(s)}></canvas>
+<div bind:clientWidth={canvasSize.width}>
+	<canvas {@attach vertexColorsAttachment}></canvas>
 </div>

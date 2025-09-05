@@ -1,10 +1,7 @@
 <script lang="ts">
-	import {
-		State,
-		createRendererAttachment,
-	} from "@attachments/createRendererAttachment.svelte";
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { Size } from "@classes/Size.svelte";
 
 	import {
 		Mesh,
@@ -16,8 +13,6 @@
 
 	const distance = 5;
 	const halfDistance = 0.5 * distance;
-
-	const s = new State();
 
 	const geometry = new TorusKnotGeometry();
 
@@ -37,15 +32,6 @@
 
 	const scene = new Scene().add(...meshes);
 
-	const camera = new PerspectiveCamera();
-	camera.translateZ(10);
-
-	const updateCameraAspect = createUpdateCameraAspect(camera);
-
-	$effect(() => {
-		updateCameraAspect(s.aspect);
-	});
-
 	$effect(() => {
 		return () => {
 			scene.remove(...meshes);
@@ -54,20 +40,37 @@
 		};
 	});
 
-	const rotationAmount = (1 / 100) * Math.PI;
+	const camera = new PerspectiveCamera();
+	camera.translateZ(10);
 
-	s.withRenderer = (renderer) => {
-		renderer.setAnimationLoop(() => {
-			mesh.rotateY(rotationAmount);
-			flatShadingMesh.rotateY(rotationAmount);
-			renderer.render(scene, camera);
-		});
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+	const canvasSize = new Size();
+
+	$effect(() => {
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
+	});
+
+	const rotationAmount = (1 / 180) * Math.PI;
+
+	const flatShadingAttachment = createRendererAttachment({
+		getRendererParameters: () => ({ antialias: true }),
+		getWithRenderer: () => (renderer) => {
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height);
+			});
+
+			renderer.setAnimationLoop(() => {
+				for (const mesh of meshes) mesh.rotateY(rotationAmount);
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		},
+	});
 </script>
 
-<div bind:clientWidth={s.canvasWidth}>
-	<canvas {@attach createRendererAttachment(s)}></canvas>
+<div bind:clientWidth={canvasSize.width}>
+	<canvas {@attach flatShadingAttachment}></canvas>
 </div>

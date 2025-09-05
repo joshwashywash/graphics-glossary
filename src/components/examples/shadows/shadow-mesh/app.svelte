@@ -7,12 +7,9 @@
 </script>
 
 <script lang="ts">
-	import {
-		State,
-		createRendererAttachment,
-	} from "@attachments/createRendererAttachment.svelte";
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { Size } from "@classes/Size.svelte";
 
 	import {
 		DirectionalLight,
@@ -85,28 +82,38 @@
 	);
 	camera.lookAt(scene.position);
 
-	const updateCameraAspect = createUpdateCameraAspect(camera);
+	const canvasSize = new Size();
 
-	const s = new State();
-	s.rendererParameters = { antialias: true, stencil: true };
 	$effect(() => {
-		updateCameraAspect(s.aspect);
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
 	});
 
 	const rotationSpeed = (1 / 180) * Math.PI;
 
-	s.withRenderer = (renderer) => {
-		renderer.setAnimationLoop(() => {
-			mesh.rotateY(Math.PI * rotationSpeed);
-			shadowMesh.update(plane, lightPosition4D);
-			renderer.render(scene, camera);
-		});
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+	const shadowMeshAttachment = createRendererAttachment({
+		getRendererParameters: () => ({
+			antialias: true,
+			stencil: true,
+		}),
+		getWithRenderer: () => (renderer) => {
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height);
+			});
+
+			renderer.setAnimationLoop(() => {
+				mesh.rotateY(Math.PI * rotationSpeed);
+				shadowMesh.update(plane, lightPosition4D);
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		},
+	});
 </script>
 
-<div bind:clientWidth={s.canvasWidth}>
-	<canvas {@attach createRendererAttachment(s)}></canvas>
+<div bind:clientWidth={canvasSize.width}>
+	<canvas {@attach shadowMeshAttachment}></canvas>
 </div>

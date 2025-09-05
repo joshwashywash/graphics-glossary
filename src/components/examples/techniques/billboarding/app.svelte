@@ -25,12 +25,10 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
-	import {
-		State,
-		createRendererAttachment,
-	} from "@attachments/createRendererAttachment.svelte";
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { Size } from "@classes/Size.svelte";
+
 	import { loadImage } from "@functions/loadImage";
 
 	import {
@@ -126,46 +124,55 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(4);
 
-	const updateCameraAspect = createUpdateCameraAspect(camera);
+	const canvasSize = new Size();
 
-	const s = new State();
 	$effect(() => {
-		updateCameraAspect(s.aspect);
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
 	});
 
 	let lastOffset: number;
 
 	const cameraRotationSpeed = (1 / 180) * Math.PI;
 
-	s.withRenderer = (renderer) => {
-		renderer.setAnimationLoop(() => {
-			camera.position.applyAxisAngle(_yHat, cameraRotationSpeed);
-			camera.lookAt(scene.position);
+	const billboardingAttachment = createRendererAttachment({
+		getRendererParameters: () => ({
+			antialias: true,
+		}),
+		getWithRenderer: () => (renderer) => {
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height);
+			});
 
-			let angle = camera.position.angleTo(sprite.position);
+			renderer.setAnimationLoop(() => {
+				camera.position.applyAxisAngle(_yHat, cameraRotationSpeed);
+				camera.lookAt(scene.position);
 
-			// determine if the larger angle should be used
-			const o =
-				camera.position.x * sprite.position.z -
-				camera.position.z * sprite.position.x;
-			if (o < 0) angle = tau - angle;
+				let angle = camera.position.angleTo(sprite.position);
 
-			const offset = Math.floor(frameCount * (angle / tau));
+				// determine if the larger angle should be used
+				const o =
+					camera.position.x * sprite.position.z -
+					camera.position.z * sprite.position.x;
+				if (o < 0) angle = tau - angle;
 
-			if (lastOffset !== offset) {
-				canvasTexture.offset.x = offset / frameCount;
-				lastOffset = offset;
-			}
+				const offset = Math.floor(frameCount * (angle / tau));
 
-			renderer.render(scene, camera);
-		});
+				if (lastOffset !== offset) {
+					canvasTexture.offset.x = offset / frameCount;
+					lastOffset = offset;
+				}
 
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		},
+	});
 </script>
 
-<div bind:clientWidth={s.canvasWidth}>
-	<canvas {@attach createRendererAttachment(s)}></canvas>
+<div bind:clientWidth={canvasSize.width}>
+	<canvas {@attach billboardingAttachment}></canvas>
 </div>

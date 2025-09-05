@@ -10,12 +10,9 @@
 	import { createFloorMesh } from "./createFloorMesh";
 	import { createSphereMesh } from "./createSphereMesh";
 
-	import {
-		State,
-		createRendererAttachment,
-	} from "@attachments/createRendererAttachment.svelte";
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
-	import { createUpdateCameraAspect } from "@functions/createUpdateCameraAspect.svelte";
+	import { Size } from "@classes/Size.svelte";
 
 	import { Color, Pane } from "svelte-tweakpane-ui";
 	import {
@@ -100,43 +97,52 @@
 	camera.translateOnAxis(_cameraAxis, 12);
 	camera.lookAt(sphereMesh.position);
 
-	const updateCameraAspect = createUpdateCameraAspect(camera);
+	const canvasSize = new Size();
 
-	const s = new State();
 	$effect(() => {
-		updateCameraAspect(s.aspect);
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
 	});
 
 	const positionYInitial = 2.5;
 	const speed = 1 / 1000;
 
-	s.withRenderer = (renderer) => {
-		renderer.setAnimationLoop((time) => {
-			time *= speed;
+	const simpleShadowAttachment = createRendererAttachment({
+		getRendererParameters: () => ({
+			antialias: true,
+		}),
+		getWithRenderer: () => (renderer) => {
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height);
+			});
 
-			// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-			const t = 0.5 * (1 + Math.sin(time));
+			renderer.setAnimationLoop((time) => {
+				time *= speed;
 
-			sphereMesh.position.y = MathUtils.lerp(
-				positionYInitial - 1,
-				positionYInitial + 1,
-				t,
-			);
-			shadowMesh.scale.setScalar(1 + t);
+				// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+				const t = 0.5 * (1 + Math.sin(time));
 
-			shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
-			renderer.render(scene, camera);
-		});
+				sphereMesh.position.y = MathUtils.lerp(
+					positionYInitial - 1,
+					positionYInitial + 1,
+					t,
+				);
+				shadowMesh.scale.setScalar(1 + t);
 
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+				shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+			};
+		},
+	});
 </script>
 
 <svelte:boundary>
 	<div
-		bind:clientWidth={s.canvasWidth}
+		bind:clientWidth={canvasSize.width}
 		class="sm:relative"
 	>
 		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
@@ -147,7 +153,7 @@
 				/>
 			</Pane>
 		</div>
-		<canvas {@attach createRendererAttachment(s)}></canvas>
+		<canvas {@attach simpleShadowAttachment}></canvas>
 	</div>
 
 	{#snippet failed(error)}
