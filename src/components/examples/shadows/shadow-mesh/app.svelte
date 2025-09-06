@@ -89,7 +89,7 @@
 		camera.updateProjectionMatrix();
 	});
 
-	const rotationSpeed = (1 / 180) * Math.PI;
+	const rotationAmount = (1 / 180) * Math.PI;
 
 	const shadowMeshAttachment = createRendererAttachment({
 		getRendererParameters: () => ({
@@ -102,7 +102,7 @@
 			});
 
 			renderer.setAnimationLoop(() => {
-				mesh.rotateY(Math.PI * rotationSpeed);
+				mesh.rotateY(rotationAmount);
 				shadowMesh.update(plane, lightPosition4D);
 				renderer.render(scene, camera);
 			});

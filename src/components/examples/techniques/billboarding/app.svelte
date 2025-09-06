@@ -136,9 +136,7 @@
 	const cameraRotationSpeed = (1 / 180) * Math.PI;
 
 	const billboardingAttachment = createRendererAttachment({
-		getRendererParameters: () => ({
-			antialias: true,
-		}),
+		getRendererParameters: () => ({ antialias: true }),
 		getWithRenderer: () => (renderer) => {
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);

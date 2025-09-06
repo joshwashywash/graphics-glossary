@@ -33,7 +33,7 @@
 
 	const speed = 1 / 1000;
 
-	const levelOfDetialAttachment = createRendererAttachment({
+	const levelOfDetailAttachment = createRendererAttachment({
 		getRendererParameters: () => ({
 			antialias: true,
 		}),
@@ -57,5 +57,5 @@
 </script>
 
 <div bind:clientWidth={canvasSize.width}>
-	<canvas {@attach levelOfDetialAttachment}></canvas>
+	<canvas {@attach levelOfDetailAttachment}></canvas>
 </div>

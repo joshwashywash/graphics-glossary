@@ -117,10 +117,8 @@
 			});
 
 			renderer.setAnimationLoop((time) => {
-				time *= speed;
-
 				// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-				const t = 0.5 * (1 + Math.sin(time));
+				const t = 0.5 * (1 + Math.sin(time * speed));
 
 				sphereMesh.position.y = MathUtils.lerp(
 					positionYInitial - 1,
