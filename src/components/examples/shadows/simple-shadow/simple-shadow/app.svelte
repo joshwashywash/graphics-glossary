@@ -7,8 +7,6 @@
 
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
-	import { createFloorMesh } from "./createFloorMesh";
-	import { createSphereMesh } from "./createSphereMesh";
 
 	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
@@ -18,14 +16,16 @@
 	import {
 		CanvasTexture,
 		Group,
-		MathUtils,
 		Mesh,
 		MeshBasicMaterial,
+		MeshNormalMaterial,
 		PerspectiveCamera,
 		PlaneGeometry,
 		Scene,
+		SphereGeometry,
 		Vector3,
 	} from "three";
+	import { lerp } from "three/src/math/MathUtils.js";
 
 	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
@@ -42,20 +42,21 @@
 	let shadowColor = $state("#000000");
 	const gradient = $derived(createShadowGradient(context, shadowColor));
 
+	const shadowTexture = new CanvasTexture(textureCanvas);
+
 	$effect(() => {
 		context.fillStyle = gradient;
 		context.fillRect(0, 0, context.canvas.width, context.canvas.height);
-		shadowMap.needsUpdate = true;
+		shadowTexture.needsUpdate = true;
 		return () => {
 			context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-			shadowMap.needsUpdate = true;
+			shadowTexture.needsUpdate = true;
 		};
 	});
 
-	const shadowMap = new CanvasTexture(textureCanvas);
 	const shadowMaterial = new MeshBasicMaterial({
 		depthWrite: false,
-		map: shadowMap,
+		map: shadowTexture,
 		transparent: true,
 	});
 
@@ -68,15 +69,28 @@
 	shadowMesh.translateZ(0.01);
 
 	const floorSize = 7;
-	const { dispose: disposeFloor, mesh: floorMesh } = createFloorMesh(
-		floorSize,
-		{ color: "#ccccaa" },
-	);
+	const floorGeometry = new PlaneGeometry(floorSize, floorSize);
+
+	const floorMaterial = new MeshBasicMaterial({ color: "#ccccaa" });
+
+	const floorMesh = new Mesh(floorGeometry, floorMaterial);
+
+	const disposeFloor = () => {
+		floorGeometry.dispose();
+		floorMaterial.dispose();
+	};
 
 	const group = new Group().add(shadowMesh, floorMesh);
 	group.rotateX(-1 * 0.5 * Math.PI);
 
-	const { dispose: disposeSphere, mesh: sphereMesh } = createSphereMesh(1);
+	const sphereGeometry = new SphereGeometry();
+	const sphereMaterial = new MeshNormalMaterial();
+	const sphereMesh = new Mesh(sphereGeometry, sphereMaterial);
+
+	const disposeSphere = () => {
+		sphereGeometry.dispose();
+		sphereMaterial.dispose();
+	};
 
 	const scene = new Scene().add(sphereMesh, group);
 
@@ -88,7 +102,7 @@
 			disposeSphere();
 			disposeFloor();
 			shadowGeometry.dispose();
-			shadowMap.dispose();
+			shadowTexture.dispose();
 			shadowMaterial.dispose();
 		};
 	});
@@ -120,14 +134,14 @@
 				// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
 				const t = 0.5 * (1 + Math.sin(time * speed));
 
-				sphereMesh.position.y = MathUtils.lerp(
+				sphereMesh.position.y = lerp(
 					positionYInitial - 1,
 					positionYInitial + 1,
 					t,
 				);
 				shadowMesh.scale.setScalar(1 + t);
 
-				shadowMaterial.opacity = MathUtils.lerp(1, 0, t);
+				shadowMaterial.opacity = lerp(1, 0, t);
 				renderer.render(scene, camera);
 			});
 

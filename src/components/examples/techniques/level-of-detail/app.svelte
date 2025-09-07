@@ -6,12 +6,15 @@
 	import { Size } from "@classes/Size.svelte";
 
 	import { PerspectiveCamera, Scene } from "three";
+	import { lerp } from "three/src/math/MathUtils.js";
 
-	const z = 5;
-	const offset = 3;
-	const distances = [z - offset, offset, z + offset];
+	const maxDistance = 15;
+	const minDistance = 3;
+	const halfway = 0.5 * (maxDistance + minDistance);
+	const distances = [maxDistance, halfway, minDistance];
 
-	const { lod, dispose: disposeLOD } = createLOD(distances);
+	const radius = 1;
+	const { lod, dispose: disposeLOD } = createLOD(distances, radius);
 
 	const scene = new Scene().add(lod);
 
@@ -43,8 +46,12 @@
 			});
 
 			renderer.setAnimationLoop((time) => {
-				time *= speed;
-				camera.position.z = 1 + z + 1.5 * offset * Math.sin(0.75 * time);
+				const t = 0.5 * (1 + Math.sin(time * speed));
+				camera.position.z = lerp(
+					maxDistance + 2,
+					lod.position.z + radius + 2,
+					t,
+				);
 
 				renderer.render(scene, camera);
 			});

@@ -43,9 +43,8 @@
 	const plane = new Plane(_yHat, planeConstant);
 
 	const floorSize = 15;
-	const floorColor = "#ccccaa";
 	const floorGeometry = new PlaneGeometry(floorSize, floorSize);
-	const floorMaterial = new MeshBasicMaterial({ color: floorColor });
+	const floorMaterial = new MeshBasicMaterial({ color: "#ccccaa" });
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
 
 	floorMesh.lookAt(plane.normal);
