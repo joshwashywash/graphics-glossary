@@ -25,8 +25,6 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/Size.svelte";
 
 	import { loadImage } from "@functions/loadImage";
@@ -43,6 +41,7 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
+		WebGLRenderer,
 	} from "three";
 
 	const booCanvas = new OffscreenCanvas(
@@ -134,10 +133,16 @@
 	let lastOffset: number;
 
 	const cameraRotationSpeed = (1 / 180) * Math.PI;
+</script>
 
-	const billboardingAttachment = createRendererAttachment({
-		getRendererParameters: () => ({ antialias: true }),
-		getWithRenderer: () => (renderer) => {
+<div bind:clientWidth={canvasSize.width}>
+	<canvas
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+			});
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
 			});
@@ -166,11 +171,9 @@
 
 			return () => {
 				renderer.setAnimationLoop(null);
+				renderer.dispose();
 			};
-		},
-	});
-</script>
-
-<div bind:clientWidth={canvasSize.width}>
-	<canvas {@attach billboardingAttachment}></canvas>
+		}}
+	>
+	</canvas>
 </div>

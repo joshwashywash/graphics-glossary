@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/Size.svelte";
 
 	import {
@@ -11,6 +9,7 @@
 		PerspectiveCamera,
 		Scene,
 		Vector3,
+		WebGLRenderer,
 	} from "three";
 
 	const geometry = new VertexColorsBoxGeometry();
@@ -42,10 +41,16 @@
 	const rotationAmount = (1 / 120) * Math.PI;
 
 	const axis = new Vector3(1, 1, -1).normalize();
+</script>
 
-	const vertexColorsAttachment = createRendererAttachment({
-		getRendererParameters: () => ({ antialias: true }),
-		getWithRenderer: () => (renderer) => {
+<div bind:clientWidth={canvasSize.width}>
+	<canvas
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				canvas,
+				antialias: true,
+			});
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
 			});
@@ -57,11 +62,8 @@
 
 			return () => {
 				renderer.setAnimationLoop(null);
+				renderer.dispose();
 			};
-		},
-	});
-</script>
-
-<div bind:clientWidth={canvasSize.width}>
-	<canvas {@attach vertexColorsAttachment}></canvas>
+		}}
+	></canvas>
 </div>

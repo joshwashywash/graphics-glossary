@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/Size.svelte";
 
 	import { Color, Pane, Slider } from "svelte-tweakpane-ui";
-	import { Mesh, PerspectiveCamera, Scene, TorusKnotGeometry } from "three";
+	import {
+		Mesh,
+		PerspectiveCamera,
+		Scene,
+		TorusKnotGeometry,
+		WebGLRenderer,
+	} from "three";
 
 	let baseColor = $state("#000000");
 	let fresnelColor = $state("#ffffff");
@@ -52,10 +56,19 @@
 	});
 
 	const rotationAmount = (1 / 180) * Math.PI;
+</script>
 
-	const fresnelAttachment = createRendererAttachment({
-		getRendererParameters: () => ({ antialias: true }),
-		getWithRenderer: () => (renderer) => {
+<div
+	bind:clientWidth={canvasSize.width}
+	class="sm:relative"
+>
+	<canvas
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				canvas,
+				antialias: true,
+			});
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
 			});
@@ -67,16 +80,12 @@
 
 			return () => {
 				renderer.setAnimationLoop(null);
+				renderer.dispose();
 			};
-		},
-	});
-</script>
+		}}
+	>
+	</canvas>
 
-<div
-	bind:clientWidth={canvasSize.width}
-	class="sm:relative"
->
-	<canvas {@attach fresnelAttachment}></canvas>
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
 		<Pane position="inline">
 			<Color

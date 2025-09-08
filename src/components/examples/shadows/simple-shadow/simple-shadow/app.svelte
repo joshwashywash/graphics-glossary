@@ -8,8 +8,6 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/Size.svelte";
 
 	import { Color, Pane } from "svelte-tweakpane-ui";
@@ -24,6 +22,7 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
+		WebGLRenderer,
 	} from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
 
@@ -120,36 +119,6 @@
 
 	const positionYInitial = 2.5;
 	const speed = 1 / 1000;
-
-	const simpleShadowAttachment = createRendererAttachment({
-		getRendererParameters: () => ({
-			antialias: true,
-		}),
-		getWithRenderer: () => (renderer) => {
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height);
-			});
-
-			renderer.setAnimationLoop((time) => {
-				// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-				const t = 0.5 * (1 + Math.sin(time * speed));
-
-				sphereMesh.position.y = lerp(
-					positionYInitial - 1,
-					positionYInitial + 1,
-					t,
-				);
-				shadowMesh.scale.setScalar(1 + t);
-
-				shadowMaterial.opacity = lerp(1, 0, t);
-				renderer.render(scene, camera);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-			};
-		},
-	});
 </script>
 
 <svelte:boundary>
@@ -165,7 +134,39 @@
 				/>
 			</Pane>
 		</div>
-		<canvas {@attach simpleShadowAttachment}></canvas>
+		<canvas
+			{@attach (canvas) => {
+				const renderer = new WebGLRenderer({
+					antialias: true,
+					canvas,
+				});
+
+				$effect(() => {
+					renderer.setSize(canvasSize.width, canvasSize.height);
+				});
+
+				renderer.setAnimationLoop((time) => {
+					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+					const t = 0.5 * (1 + Math.sin(time * speed));
+
+					sphereMesh.position.y = lerp(
+						positionYInitial - 1,
+						positionYInitial + 1,
+						t,
+					);
+					shadowMesh.scale.setScalar(1 + t);
+
+					shadowMaterial.opacity = lerp(1, 0, t);
+					renderer.render(scene, camera);
+				});
+
+				return () => {
+					renderer.setAnimationLoop(null);
+					renderer.dispose();
+				};
+			}}
+		>
+		</canvas>
 	</div>
 
 	{#snippet failed(error)}

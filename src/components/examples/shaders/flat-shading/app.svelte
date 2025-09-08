@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/Size.svelte";
 
 	import {
@@ -9,6 +7,7 @@
 		PerspectiveCamera,
 		Scene,
 		TorusKnotGeometry,
+		WebGLRenderer,
 	} from "three";
 
 	const distance = 5;
@@ -51,10 +50,16 @@
 	});
 
 	const rotationAmount = (1 / 180) * Math.PI;
+</script>
 
-	const flatShadingAttachment = createRendererAttachment({
-		getRendererParameters: () => ({ antialias: true }),
-		getWithRenderer: () => (renderer) => {
+<div bind:clientWidth={canvasSize.width}>
+	<canvas
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				canvas,
+				antialias: true,
+			});
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
 			});
@@ -66,11 +71,8 @@
 
 			return () => {
 				renderer.setAnimationLoop(null);
+				renderer.dispose();
 			};
-		},
-	});
-</script>
-
-<div bind:clientWidth={canvasSize.width}>
-	<canvas {@attach flatShadingAttachment}></canvas>
+		}}
+	></canvas>
 </div>

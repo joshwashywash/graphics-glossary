@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { createLOD } from "./createLOD";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/Size.svelte";
 
-	import { PerspectiveCamera, Scene } from "three";
+	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
 
 	const maxDistance = 15;
@@ -35,12 +33,16 @@
 	});
 
 	const speed = 1 / 1000;
+</script>
 
-	const levelOfDetailAttachment = createRendererAttachment({
-		getRendererParameters: () => ({
-			antialias: true,
-		}),
-		getWithRenderer: () => (renderer) => {
+<div bind:clientWidth={canvasSize.width}>
+	<canvas
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+			});
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
 			});
@@ -58,11 +60,9 @@
 
 			return () => {
 				renderer.setAnimationLoop(null);
+				renderer.dispose();
 			};
-		},
-	});
-</script>
-
-<div bind:clientWidth={canvasSize.width}>
-	<canvas {@attach levelOfDetailAttachment}></canvas>
+		}}
+	>
+	</canvas>
 </div>

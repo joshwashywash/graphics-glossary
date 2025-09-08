@@ -7,8 +7,6 @@
 </script>
 
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/Size.svelte";
 
 	import {
@@ -25,6 +23,7 @@
 		TorusKnotGeometry,
 		Vector3,
 		Vector4,
+		WebGLRenderer,
 	} from "three";
 	import { ShadowMesh } from "three/examples/jsm/objects/ShadowMesh.js";
 
@@ -89,13 +88,17 @@
 	});
 
 	const rotationAmount = (1 / 180) * Math.PI;
+</script>
 
-	const shadowMeshAttachment = createRendererAttachment({
-		getRendererParameters: () => ({
-			antialias: true,
-			stencil: true,
-		}),
-		getWithRenderer: () => (renderer) => {
+<div bind:clientWidth={canvasSize.width}>
+	<canvas
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+				stencil: true,
+			});
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
 			});
@@ -108,11 +111,9 @@
 
 			return () => {
 				renderer.setAnimationLoop(null);
+				renderer.dispose();
 			};
-		},
-	});
-</script>
-
-<div bind:clientWidth={canvasSize.width}>
-	<canvas {@attach shadowMeshAttachment}></canvas>
+		}}
+	>
+	</canvas>
 </div>
