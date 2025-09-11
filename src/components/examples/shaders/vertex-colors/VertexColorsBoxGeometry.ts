@@ -1,22 +1,13 @@
-import createColorAttribute from "./createColorAttribute";
+import { BoxGeometry, Matrix4, Vector3 } from "three";
 
-import { BoxGeometry } from "three";
-
-// the default box geometry positions range from -0.5 -> 0.5
-// `f` remaps this to 0 -> 1
-const f = (n: number): number => 0.5 + n;
-
-const map = {
-	x: f,
-	y: f,
-	z: f,
-};
+const _matrix = new Matrix4().makeTranslation(new Vector3().setScalar(0.5));
 
 export class VertexColorsBoxGeometry extends BoxGeometry {
-	constructor() {
+	constructor(matrix = _matrix) {
 		super();
 		const positionAttribute = this.getAttribute("position");
-		const colorAttribute = createColorAttribute(positionAttribute, map);
+
+		const colorAttribute = positionAttribute.clone().applyMatrix4(matrix);
 		this.setAttribute("color", colorAttribute);
 	}
 }

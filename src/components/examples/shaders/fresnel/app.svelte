@@ -65,8 +65,8 @@
 	<canvas
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
-				canvas,
 				antialias: true,
+				canvas,
 			});
 
 			$effect(() => {
@@ -87,7 +87,10 @@
 	</canvas>
 
 	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
-		<Pane position="inline">
+		<Pane
+			position="inline"
+			title="uniforms"
+		>
 			<Color
 				bind:value={baseColor}
 				label="base color"
