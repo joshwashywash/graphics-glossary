@@ -12,23 +12,7 @@
 		WebGLRenderer,
 	} from "three";
 
-	let baseColor = $state("#000000");
-	let fresnelColor = $state("#ffffff");
-	let power = $state(1);
-
 	const uniforms = createUniforms();
-
-	$effect(() => {
-		uniforms.uBaseColor.value.set(baseColor);
-	});
-
-	$effect(() => {
-		uniforms.uFresnelColor.value.set(fresnelColor);
-	});
-
-	$effect(() => {
-		uniforms.uPower.value = power;
-	});
 
 	const material = new FresnelMaterial(uniforms);
 
@@ -60,7 +44,7 @@
 
 <div
 	bind:clientWidth={canvasSize.width}
-	class="sm:relative"
+	class="relative"
 >
 	<canvas
 		{@attach (canvas) => {
@@ -86,24 +70,30 @@
 	>
 	</canvas>
 
-	<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
+	<div class="absolute bottom-4 right-4 not-content">
 		<Pane
 			position="inline"
 			title="uniforms"
 		>
 			<Color
-				bind:value={baseColor}
+				bind:value={
+					() => `#${uniforms.uBaseColor.value.getHexString()}`,
+					(value) => uniforms.uBaseColor.value.setStyle(value)
+				}
 				label="base color"
 			/>
 			<Color
-				bind:value={fresnelColor}
+				bind:value={
+					() => `#${uniforms.uFresnelColor.value.getHexString()}`,
+					(value) => uniforms.uFresnelColor.value.setStyle(value)
+				}
 				label="fresnel color"
 			/>
 			<Slider
-				bind:value={power}
+				bind:value={uniforms.uPower.value}
 				label="power"
-				min={0}
-				max={5}
+				min={0.5}
+				max={3}
 				step={0.1}
 			/>
 		</Pane>

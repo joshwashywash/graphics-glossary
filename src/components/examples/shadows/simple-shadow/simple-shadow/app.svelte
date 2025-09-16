@@ -124,9 +124,9 @@
 <svelte:boundary>
 	<div
 		bind:clientWidth={canvasSize.width}
-		class="sm:relative"
+		class="relative"
 	>
-		<div class="sm:absolute sm:bottom-4 sm:right-4 not-content">
+		<div class="absolute bottom-4 right-4 not-content">
 			<Pane position="inline">
 				<Color
 					bind:value={shadowColor}
