@@ -48,7 +48,6 @@
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
 				canvas,
-				antialias: true,
 			});
 
 			$effect(() => {

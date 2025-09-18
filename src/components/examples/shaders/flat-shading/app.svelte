@@ -56,7 +56,6 @@
 	<canvas
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
-				antialias: true,
 				canvas,
 			});
 
