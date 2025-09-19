@@ -23,7 +23,6 @@
 
 	$effect(() => {
 		return () => {
-			scene.remove(mesh);
 			geometry.dispose();
 			material.dispose();
 		};

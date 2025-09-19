@@ -68,7 +68,6 @@
 	const scene = new Scene().add(...objects);
 	$effect(() => {
 		return () => {
-			scene.remove(...objects);
 			geometry.dispose();
 			material.dispose();
 			floorGeometry.dispose();

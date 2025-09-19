@@ -23,7 +23,6 @@
 
 	$effect(() => {
 		return () => {
-			scene.remove(mesh);
 			material.dispose();
 			geometry.dispose();
 		};
@@ -40,6 +39,21 @@
 	});
 
 	const rotationAmount = (1 / 180) * Math.PI;
+
+	let baseColor = $state(`#${uniforms.uBaseColor.value.getHexString()}`);
+	$effect(() => {
+		uniforms.uBaseColor.value.setStyle(baseColor);
+	});
+
+	let fresnelColor = $state(`#${uniforms.uFresnelColor.value.getHexString()}`);
+	$effect(() => {
+		uniforms.uFresnelColor.value.setStyle(fresnelColor);
+	});
+
+	let power = $state(uniforms.uPower.value);
+	$effect(() => {
+		uniforms.uPower.value = power;
+	});
 </script>
 
 <div
@@ -75,21 +89,15 @@
 			title="uniforms"
 		>
 			<Color
-				bind:value={
-					() => `#${uniforms.uBaseColor.value.getHexString()}`,
-					(value) => uniforms.uBaseColor.value.setStyle(value)
-				}
+				bind:value={baseColor}
 				label="base color"
 			/>
 			<Color
-				bind:value={
-					() => `#${uniforms.uFresnelColor.value.getHexString()}`,
-					(value) => uniforms.uFresnelColor.value.setStyle(value)
-				}
+				bind:value={fresnelColor}
 				label="fresnel color"
 			/>
 			<Slider
-				bind:value={uniforms.uPower.value}
+				bind:value={power}
 				label="power"
 				min={0.5}
 				max={3}

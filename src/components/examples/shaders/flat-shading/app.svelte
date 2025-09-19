@@ -33,7 +33,6 @@
 
 	$effect(() => {
 		return () => {
-			scene.remove(...meshes);
 			for (const material of materials) material.dispose();
 			geometry.dispose();
 		};

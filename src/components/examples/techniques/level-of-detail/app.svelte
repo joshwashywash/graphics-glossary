@@ -18,7 +18,6 @@
 
 	$effect(() => {
 		return () => {
-			scene.remove(lod);
 			disposeLOD();
 		};
 	});

@@ -11,8 +11,8 @@ type Uniforms = {
 
 export const createUniforms = (): Uniforms => {
 	return {
-		uBaseColor: new Uniform(new Color("black")),
-		uFresnelColor: new Uniform(new Color("white")),
+		uBaseColor: new Uniform(new Color("#583558")),
+		uFresnelColor: new Uniform(new Color("#ccccaa")),
 		uPower: new Uniform(1),
 	};
 };

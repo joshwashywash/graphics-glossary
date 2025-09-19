@@ -110,7 +110,6 @@
 
 	$effect(() => {
 		return () => {
-			scene.remove(sprite, mesh);
 			canvasTexture.dispose();
 
 			spriteMaterial.dispose();
