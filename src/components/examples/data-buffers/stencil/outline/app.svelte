@@ -39,16 +39,10 @@
 	const names = ["box", "torus", "knot"] as const;
 	type Name = (typeof names)[number];
 
-	const meshRecord: Record<Name, Mesh> = {
-		box: new Mesh(new BoxGeometry(), material),
-		torus: new Mesh(new TorusGeometry(), material),
-		knot: new Mesh(new TorusKnotGeometry(), material),
-	};
-
 	const outlineMeshRecord: Record<Name, Mesh> = {
-		box: new Mesh(meshRecord.box.geometry, outlineMaterial),
-		torus: new Mesh(meshRecord.torus.geometry, outlineMaterial),
-		knot: new Mesh(meshRecord.knot.geometry, outlineMaterial),
+		box: new Mesh(new BoxGeometry(), outlineMaterial),
+		torus: new Mesh(new TorusGeometry(), outlineMaterial),
+		knot: new Mesh(new TorusKnotGeometry(), outlineMaterial),
 	};
 
 	const scaleAmount = 1.05;
@@ -64,10 +58,10 @@
 
 	const a = (2 * Math.PI) / names.length;
 	for (const name of names) {
-		const mesh = meshRecord[name];
 		const outlineMesh = outlineMeshRecord[name];
 		outlineMesh.visible = false;
 
+		const mesh = new Mesh(outlineMeshRecord[name].geometry, material);
 		const group = new Group().add(mesh, outlineMesh);
 
 		axis.applyAxisAngle(kHat, a);
@@ -85,7 +79,9 @@
 		return () => {
 			material.dispose();
 			outlineMaterial.dispose();
-			for (const name of names) meshRecord[name].geometry.dispose();
+			for (const name of names) {
+				outlineMeshRecord[name].geometry.dispose();
+			}
 		};
 	});
 
