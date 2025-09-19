@@ -3,7 +3,6 @@
 
 	import {
 		BoxGeometry,
-		ConeGeometry,
 		Group,
 		Mesh,
 		MeshBasicMaterial,
