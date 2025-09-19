@@ -1,25 +1,24 @@
 <script lang="ts">
 	import { Size } from "@classes/Size.svelte";
 
-	import type { Intersection } from "three";
 	import {
+		BoxGeometry,
+		ConeGeometry,
+		Group,
 		Mesh,
 		MeshBasicMaterial,
 		MeshNormalMaterial,
 		NotEqualStencilFunc,
 		PerspectiveCamera,
-		Raycaster,
 		ReplaceStencilOp,
 		Scene,
 		TorusGeometry,
-		Vector2,
+		TorusKnotGeometry,
 		Vector3,
 		WebGLRenderer,
 	} from "three";
 
 	const canvasSize = new Size();
-
-	const geometry = new TorusGeometry();
 
 	const stencilRef = 1;
 
@@ -28,7 +27,6 @@
 		stencilWrite: true,
 		stencilZPass: ReplaceStencilOp,
 	});
-	const mesh = new Mesh(geometry, material);
 
 	const outlineMaterial = new MeshBasicMaterial({
 		depthTest: false,
@@ -37,78 +35,69 @@
 		stencilRef,
 		stencilWrite: true,
 	});
-	const outlineMesh = new Mesh(geometry, outlineMaterial);
-	let last = false;
-	outlineMesh.visible = last;
-	outlineMesh.scale.setScalar(1.05);
 
-	const meshes = [outlineMesh, mesh];
+	const geometries = [
+		new BoxGeometry(),
+		new TorusGeometry(),
+		new TorusKnotGeometry(),
+	];
 
-	const scene = new Scene().add(...meshes);
+	const scaleAmount = 1.05;
+	const translationAmount = 3;
+	const kHat = new Vector3(0, 0, 1);
+	const axis = new Vector3(1, 0, 0);
+
+	const groups: Group[] = [];
+
+	const a = (2 * Math.PI) / geometries.length;
+	for (const geometry of geometries) {
+		const mesh = new Mesh(geometry, material);
+		const outlineMesh = new Mesh(geometry, outlineMaterial);
+		outlineMesh.scale.setScalar(scaleAmount);
+		const group = new Group().add(mesh, outlineMesh);
+		groups.push(group);
+
+		axis.applyAxisAngle(kHat, a);
+		group.translateOnAxis(axis, translationAmount);
+		groups.push(group);
+	}
+
+	const scene = new Scene().add(...groups);
 
 	const camera = new PerspectiveCamera();
-	const axis = new Vector3(2, 1, 2).normalize();
-	camera.translateOnAxis(axis, 5);
+	camera.translateOnAxis(kHat, 10);
 	camera.lookAt(scene.position);
 
 	$effect(() => {
 		return () => {
-			scene.remove(...meshes);
 			material.dispose();
 			outlineMaterial.dispose();
-			geometry.dispose();
+			for (const geometry of geometries) geometry.dispose();
 		};
 	});
 
-	let rect: DOMRect;
-	const raycaster = new Raycaster();
-	const coords = new Vector2();
-
-	let intersections: Intersection[] = [];
-	let render: () => void;
+	const rotationAmount = (1 / 180) * Math.PI;
 </script>
 
 <div bind:clientWidth={canvasSize.width}>
 	<canvas
-		onpointerenter={(e) => {
-			rect = e.currentTarget.getBoundingClientRect();
-		}}
-		onpointermove={(e) => {
-			// remap to 0 -> 1
-			let x = (e.clientX - rect.left) / rect.width;
-			let y = (e.clientY - rect.top) / rect.height;
-
-			// remap to -1 -> 1
-			x = 2 * x - 1;
-			y = -1 * 2 * y + 1;
-
-			raycaster.setFromCamera(coords.set(x, y), camera);
-
-			intersections.length = 0;
-			raycaster.intersectObject(mesh, false, intersections);
-			const visible = (outlineMesh.visible = intersections.length > 0);
-
-			if (last !== visible) {
-				render();
-				last = visible;
-			}
-		}}
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
 				canvas,
 				stencil: true,
 			});
 
-			render = () => {
-				renderer.render(scene, camera);
-			};
-
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
-				render();
+			});
+
+			renderer.setAnimationLoop(() => {
+				for (const group of groups) group.rotateY(rotationAmount);
+				renderer.render(scene, camera);
 			});
 
 			return () => {
+				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
 		}}
