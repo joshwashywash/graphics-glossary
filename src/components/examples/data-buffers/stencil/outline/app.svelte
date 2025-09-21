@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Size } from "@classes/Size.svelte";
 
-	import { List, Pane } from "svelte-tweakpane-ui";
+	import GUI from "lil-gui";
+	import { untrack } from "svelte";
 	import {
 		BoxGeometry,
 		Group,
@@ -39,30 +40,26 @@
 	const names = ["box", "torus", "knot"] as const;
 	type Name = (typeof names)[number];
 
-	const outlineMeshRecord: Record<Name, Mesh> = {
+	const outlineMeshes: Record<Name, Mesh> = {
 		box: new Mesh(new BoxGeometry(), outlineMaterial),
 		torus: new Mesh(new TorusGeometry(), outlineMaterial),
 		knot: new Mesh(new TorusKnotGeometry(), outlineMaterial),
 	};
 
-	const scaleAmount = 1.05;
-	for (const name of names) {
-		outlineMeshRecord[name].scale.setScalar(scaleAmount);
-	}
-
 	const translationAmount = 3;
+	const scaleAmount = 1.05;
+
 	const kHat = new Vector3(0, 0, 1);
 	const axis = new Vector3(1, 0, 0);
 
 	const groups: Group[] = [];
 
 	const a = (2 * Math.PI) / names.length;
-	for (const name of names) {
-		const outlineMesh = outlineMeshRecord[name];
-		outlineMesh.visible = false;
+	for (const mesh of Object.values(outlineMeshes)) {
+		mesh.visible = false;
+		mesh.scale.setScalar(scaleAmount);
 
-		const mesh = new Mesh(outlineMeshRecord[name].geometry, material);
-		const group = new Group().add(mesh, outlineMesh);
+		const group = new Group().add(mesh, new Mesh(mesh.geometry, material));
 
 		axis.applyAxisAngle(kHat, a);
 		group.translateOnAxis(axis, translationAmount);
@@ -72,7 +69,7 @@
 	const scene = new Scene().add(...groups);
 
 	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(kHat, 15);
+	camera.translateOnAxis(kHat, 5 * translationAmount);
 	camera.lookAt(scene.position);
 
 	$effect(() => {
@@ -80,21 +77,31 @@
 			material.dispose();
 			outlineMaterial.dispose();
 			for (const name of names) {
-				outlineMeshRecord[name].geometry.dispose();
+				outlineMeshes[name].geometry.dispose();
 			}
 		};
 	});
 
-	const rotationAmount = (1 / 180) * Math.PI;
-
-	let outlineMesh = $state(outlineMeshRecord.knot);
+	let outlineMesh = $state(outlineMeshes.torus);
 	$effect(() => {
 		const mesh = outlineMesh;
+		const last = mesh.visible;
 		mesh.visible = true;
 		return () => {
-			mesh.visible = false;
+			mesh.visible = last;
 		};
 	});
+
+	const params = {
+		get outlineMesh() {
+			return untrack(() => outlineMesh);
+		},
+		set outlineMesh(value) {
+			outlineMesh = value;
+		},
+	};
+
+	const rotationAmount = (1 / 180) * Math.PI;
 </script>
 
 <div
@@ -124,13 +131,16 @@
 		}}
 	>
 	</canvas>
-	<div class="absolute bottom-2 right-2 not-content">
-		<Pane position="inline">
-			<List
-				bind:value={outlineMesh}
-				label="add outline to "
-				options={outlineMeshRecord}
-			/>
-		</Pane>
-	</div>
+	<div
+		class="absolute top-0 right-4 not-content"
+		{@attach (container) => {
+			const gui = new GUI({
+				container,
+			});
+
+			gui.add(params, "outlineMesh", outlineMeshes).name("apply outline to");
+
+			return gui.destroy;
+		}}
+	></div>
 </div>

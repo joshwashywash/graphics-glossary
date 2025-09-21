@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import { Color, Pane } from "svelte-tweakpane-ui";
+	import GUI from "lil-gui";
+	import { untrack } from "svelte";
 	import type { SvelteHTMLElements } from "svelte/elements";
 
 	let { ...props }: SvelteHTMLElements["div"] = $props();
@@ -11,6 +12,15 @@
 	const canvasHeight = $derived(canvasWidth / aspect);
 
 	let shadowColor = $state("#ffffff");
+
+	const params = {
+		get shadowColor() {
+			return untrack(() => shadowColor);
+		},
+		set shadowColor(value) {
+			shadowColor = value;
+		},
+	};
 </script>
 
 <div
@@ -18,14 +28,18 @@
 	class="relative"
 	{...props}
 >
-	<div class="absolute bottom-2 right-2 not-content">
-		<Pane position="inline">
-			<Color
-				bind:value={shadowColor}
-				label="shadow color"
-			/>
-		</Pane>
-	</div>
+	<div
+		class="absolute top-0 right-4 not-content"
+		{@attach (container) => {
+			const gui = new GUI({
+				container,
+			});
+
+			gui.addColor(params, "shadowColor").name("shadow color");
+
+			return gui.destroy;
+		}}
+	></div>
 	<canvas
 		width={canvasWidth}
 		height={canvasHeight}

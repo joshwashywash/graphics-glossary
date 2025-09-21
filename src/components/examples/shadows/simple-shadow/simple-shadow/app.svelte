@@ -10,7 +10,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
-	import { Color, Pane } from "svelte-tweakpane-ui";
+	import GUI from "lil-gui";
+	import { untrack } from "svelte";
 	import {
 		CanvasTexture,
 		Group,
@@ -39,6 +40,16 @@
 	}
 
 	let shadowColor = $state("#000000");
+
+	const params = {
+		get shadowColor() {
+			return untrack(() => shadowColor);
+		},
+		set shadowColor(value) {
+			shadowColor = value;
+		},
+	};
+
 	const gradient = $derived(createShadowGradient(context, shadowColor));
 
 	const shadowTexture = new CanvasTexture(textureCanvas);
@@ -126,14 +137,18 @@
 		bind:clientWidth={canvasSize.width}
 		class="relative"
 	>
-		<div class="absolute bottom-2 right-2 not-content">
-			<Pane position="inline">
-				<Color
-					bind:value={shadowColor}
-					label="shadow color"
-				/>
-			</Pane>
-		</div>
+		<div
+			class="absolute top-0 right-4 not-content"
+			{@attach (container) => {
+				const gui = new GUI({
+					container,
+				});
+
+				gui.addColor(params, "shadowColor").name("shadow color");
+
+				return gui.destroy;
+			}}
+		></div>
 		<canvas
 			{@attach (canvas) => {
 				const renderer = new WebGLRenderer({

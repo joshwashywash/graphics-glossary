@@ -9,11 +9,17 @@ type Uniforms = {
 	uPower: Uniform<number>;
 };
 
+export const powerConstraints = {
+	min: 0,
+	max: 3,
+	step: 0.5,
+};
+
 export const createUniforms = (): Uniforms => {
 	return {
 		uBaseColor: new Uniform(new Color("#583558")),
 		uFresnelColor: new Uniform(new Color("#ccccaa")),
-		uPower: new Uniform(1),
+		uPower: new Uniform(0.5 * (powerConstraints.max - powerConstraints.min)),
 	};
 };
 

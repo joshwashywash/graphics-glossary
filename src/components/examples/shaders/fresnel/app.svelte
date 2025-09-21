@@ -1,9 +1,13 @@
 <script lang="ts">
-	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
+	import {
+		FresnelMaterial,
+		createUniforms,
+		powerConstraints,
+	} from "./FresnelMaterial";
 
 	import { Size } from "@classes/Size.svelte";
 
-	import { Color, Pane, Slider } from "svelte-tweakpane-ui";
+	import GUI from "lil-gui";
 	import {
 		Mesh,
 		PerspectiveCamera,
@@ -13,6 +17,21 @@
 	} from "three";
 
 	const uniforms = createUniforms();
+
+	const colors = {
+		get baseColor() {
+			return `#${uniforms.uBaseColor.value.getHexString()}`;
+		},
+		set baseColor(value) {
+			uniforms.uBaseColor.value.setStyle(value);
+		},
+		get fresnelColor() {
+			return `#${uniforms.uFresnelColor.value.getHexString()}`;
+		},
+		set fresnelColor(value) {
+			uniforms.uFresnelColor.value.setStyle(value);
+		},
+	};
 
 	const material = new FresnelMaterial(uniforms);
 
@@ -39,27 +58,34 @@
 	});
 
 	const rotationAmount = (1 / 180) * Math.PI;
-
-	let baseColor = $state(`#${uniforms.uBaseColor.value.getHexString()}`);
-	$effect(() => {
-		uniforms.uBaseColor.value.setStyle(baseColor);
-	});
-
-	let fresnelColor = $state(`#${uniforms.uFresnelColor.value.getHexString()}`);
-	$effect(() => {
-		uniforms.uFresnelColor.value.setStyle(fresnelColor);
-	});
-
-	let power = $state(uniforms.uPower.value);
-	$effect(() => {
-		uniforms.uPower.value = power;
-	});
 </script>
 
 <div
 	bind:clientWidth={canvasSize.width}
 	class="relative"
 >
+	<div
+		class="absolute top-0 right-4 not-content"
+		{@attach (container) => {
+			const gui = new GUI({
+				container,
+			});
+
+			gui.addColor(colors, "fresnelColor").name("fresnel color");
+			gui.addColor(colors, "baseColor").name("base color");
+			gui
+				.add(
+					uniforms.uPower,
+					"value",
+					powerConstraints.min,
+					powerConstraints.max,
+					powerConstraints.step,
+				)
+				.name("power");
+
+			return gui.destroy;
+		}}
+	></div>
 	<canvas
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
@@ -82,27 +108,4 @@
 		}}
 	>
 	</canvas>
-
-	<div class="absolute bottom-2 right-2 not-content">
-		<Pane
-			position="inline"
-			title="uniforms"
-		>
-			<Color
-				bind:value={baseColor}
-				label="base color"
-			/>
-			<Color
-				bind:value={fresnelColor}
-				label="fresnel color"
-			/>
-			<Slider
-				bind:value={power}
-				label="power"
-				min={0.5}
-				max={3}
-				step={0.1}
-			/>
-		</Pane>
-	</div>
 </div>
