@@ -7,13 +7,15 @@ import { defineConfig } from "astro/config";
 
 const site = "https://graphics-glossary.vercel.app";
 
+const repoURL = "https://github.com/joshwashywash/graphics-glossary";
+
 // https://astro.build/config
 export default defineConfig({
 	integrations: [
 		starlight({
 			customCss: ["./src/styles/global.css"],
 			editLink: {
-				baseUrl: "https://github.com/joshwashywash/graphics-glossary/edit/main",
+				baseUrl: `${repoURL}/edit/main`,
 			},
 			expressiveCode: {
 				themes: ["rose-pine", "rose-pine-dawn"],
@@ -48,7 +50,7 @@ export default defineConfig({
 				{
 					icon: "github",
 					label: "GitHub",
-					href: "https://github.com/joshwashywash/graphics-glossary",
+					href: repoURL,
 				},
 			],
 			title: "3d graphics glossary",
