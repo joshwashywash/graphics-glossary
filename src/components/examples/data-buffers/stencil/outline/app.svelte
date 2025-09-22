@@ -3,12 +3,12 @@
 	module
 >
 	const translationAmount = 3;
-	const scaleAmount = 1.05;
 
 	const kHat = new Vector3(0, 0, 1);
 	const axis = new Vector3(1, 0, 0);
 
 	const rotationAmount = (1 / 180) * Math.PI;
+	const initialOutlineScale = 1.1;
 </script>
 
 <script lang="ts">
@@ -69,7 +69,6 @@
 		const mesh = new Mesh(geometry, material);
 
 		const outlineMesh = new Mesh(geometry, outlineMaterial);
-		outlineMesh.scale.setScalar(scaleAmount);
 		outlineMeshes.push(outlineMesh);
 
 		const group = new Group().add(mesh, outlineMesh);
@@ -114,6 +113,11 @@
 		outlineMaterial.color.setStyle(outlineColor);
 	});
 
+	let outlineScale = $state(initialOutlineScale);
+	$effect(() => {
+		for (const mesh of outlineMeshes) mesh.scale.setScalar(outlineScale);
+	});
+
 	const params = {
 		get outlineColor() {
 			return untrack(() => outlineColor);
@@ -127,6 +131,12 @@
 		set outlinesVisible(value) {
 			outlinesVisible = value;
 		},
+		get outlineScale() {
+			return untrack(() => outlineScale);
+		},
+		set outlineScale(value) {
+			outlineScale = value;
+		},
 	};
 
 	const gui: Attachment<HTMLElement> = (container) => {
@@ -137,6 +147,8 @@
 		gui.add(params, "outlinesVisible").name("show outlines");
 
 		gui.addColor(params, "outlineColor").name("outline color");
+
+		gui.add(params, "outlineScale", 1, 1.2, 0.05).name("outline size");
 
 		return gui.destroy;
 	};
