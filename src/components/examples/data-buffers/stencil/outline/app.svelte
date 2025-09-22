@@ -1,10 +1,25 @@
+<script
+	lang="ts"
+	module
+>
+	const translationAmount = 3;
+	const scaleAmount = 1.05;
+
+	const kHat = new Vector3(0, 0, 1);
+	const axis = new Vector3(1, 0, 0);
+
+	const rotationAmount = (1 / 180) * Math.PI;
+</script>
+
 <script lang="ts">
 	import { Size } from "@classes/Size.svelte";
 
 	import GUI from "lil-gui";
 	import { untrack } from "svelte";
+	import type { Attachment } from "svelte/attachments";
 	import {
 		BoxGeometry,
+		BufferGeometry,
 		Group,
 		Mesh,
 		MeshBasicMaterial,
@@ -37,36 +52,34 @@
 		stencilWrite: true,
 	});
 
-	const names = ["box", "torus", "knot"] as const;
-	type Name = (typeof names)[number];
+	const geometries: BufferGeometry[] = [
+		new BoxGeometry(),
+		new TorusKnotGeometry(),
+		new TorusGeometry(),
+	];
 
-	const outlineMeshes: Record<Name, Mesh> = {
-		box: new Mesh(new BoxGeometry(), outlineMaterial),
-		torus: new Mesh(new TorusGeometry(), outlineMaterial),
-		knot: new Mesh(new TorusKnotGeometry(), outlineMaterial),
-	};
-
-	const translationAmount = 3;
-	const scaleAmount = 1.05;
-
-	const kHat = new Vector3(0, 0, 1);
-	const axis = new Vector3(1, 0, 0);
+	const a = (2 * Math.PI) / geometries.length;
 
 	const groups: Group[] = [];
+	const outlineMeshes: Mesh[] = [];
 
-	const a = (2 * Math.PI) / names.length;
-	for (const mesh of Object.values(outlineMeshes)) {
-		mesh.visible = false;
-		mesh.scale.setScalar(scaleAmount);
+	const scene = new Scene();
 
-		const group = new Group().add(mesh, new Mesh(mesh.geometry, material));
+	for (const geometry of geometries) {
+		const mesh = new Mesh(geometry, material);
+
+		const outlineMesh = new Mesh(geometry, outlineMaterial);
+		outlineMesh.scale.setScalar(scaleAmount);
+		outlineMeshes.push(outlineMesh);
+
+		const group = new Group().add(mesh, outlineMesh);
 
 		axis.applyAxisAngle(kHat, a);
 		group.translateOnAxis(axis, translationAmount);
 		groups.push(group);
 	}
 
-	const scene = new Scene().add(...groups);
+	scene.add(...groups);
 
 	const camera = new PerspectiveCamera();
 	camera.translateOnAxis(kHat, 5 * translationAmount);
@@ -76,32 +89,57 @@
 		return () => {
 			material.dispose();
 			outlineMaterial.dispose();
-			for (const name of names) {
-				outlineMeshes[name].geometry.dispose();
+			for (const geometry of geometries) {
+				geometry.dispose();
 			}
 		};
 	});
 
-	let outlineMesh = $state(outlineMeshes.torus);
-	$effect(() => {
-		const mesh = outlineMesh;
-		const last = mesh.visible;
-		mesh.visible = true;
+	const createAnimationLoop = (renderer: WebGLRenderer) => {
 		return () => {
-			mesh.visible = last;
+			for (const group of groups) group.rotateY(rotationAmount);
+			renderer.render(scene, camera);
 		};
+	};
+
+	let outlinesVisible = $state(true);
+	$effect(() => {
+		for (const outlineMesh of outlineMeshes) {
+			outlineMesh.visible = outlinesVisible;
+		}
+	});
+
+	let outlineColor = $state("#ffffff");
+	$effect(() => {
+		outlineMaterial.color.setStyle(outlineColor);
 	});
 
 	const params = {
-		get outlineMesh() {
-			return untrack(() => outlineMesh);
+		get outlineColor() {
+			return untrack(() => outlineColor);
 		},
-		set outlineMesh(value) {
-			outlineMesh = value;
+		set outlineColor(value) {
+			outlineColor = value;
+		},
+		get outlinesVisible() {
+			return untrack(() => outlinesVisible);
+		},
+		set outlinesVisible(value) {
+			outlinesVisible = value;
 		},
 	};
 
-	const rotationAmount = (1 / 180) * Math.PI;
+	const gui: Attachment<HTMLElement> = (container) => {
+		const gui = new GUI({
+			container,
+		});
+
+		gui.add(params, "outlinesVisible").name("show outlines");
+
+		gui.addColor(params, "outlineColor").name("outline color");
+
+		return gui.destroy;
+	};
 </script>
 
 <div
@@ -119,10 +157,9 @@
 				renderer.setSize(canvasSize.width, canvasSize.height);
 			});
 
-			renderer.setAnimationLoop(() => {
-				for (const group of groups) group.rotateY(rotationAmount);
-				renderer.render(scene, camera);
-			});
+			const animationLoop = createAnimationLoop(renderer);
+
+			renderer.setAnimationLoop(animationLoop);
 
 			return () => {
 				renderer.setAnimationLoop(null);
@@ -133,14 +170,6 @@
 	</canvas>
 	<div
 		class="absolute top-0 right-4 not-content"
-		{@attach (container) => {
-			const gui = new GUI({
-				container,
-			});
-
-			gui.add(params, "outlineMesh", outlineMeshes).name("apply outline to");
-
-			return gui.destroy;
-		}}
+		{@attach gui}
 	></div>
 </div>
