@@ -12,17 +12,12 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			customCss: ["./src/styles/global.css"],
+			editLink: {
+				baseUrl: "https://github.com/joshwashywash/graphics-glossary/edit/main",
+			},
 			expressiveCode: {
 				themes: ["rose-pine", "rose-pine-dawn"],
 			},
-			title: "3d graphics glossary",
-			social: [
-				{
-					icon: "github",
-					label: "GitHub",
-					href: "https://github.com/joshwashywash/graphics-glossary",
-				},
-			],
 			sidebar: [
 				{
 					label: "Shaders",
@@ -49,6 +44,14 @@ export default defineConfig({
 					},
 				},
 			],
+			social: [
+				{
+					icon: "github",
+					label: "GitHub",
+					href: "https://github.com/joshwashywash/graphics-glossary",
+				},
+			],
+			title: "3d graphics glossary",
 		}),
 		svelte({
 			compilerOptions: {
