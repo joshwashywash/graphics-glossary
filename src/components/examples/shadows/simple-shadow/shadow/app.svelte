@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import GUI from "lil-gui";
 	import { untrack } from "svelte";
+	import type { Attachment } from "svelte/attachments";
 	import type { SvelteHTMLElements } from "svelte/elements";
+	import { Pane } from "tweakpane";
 
-	let { ...props }: SvelteHTMLElements["div"] = $props();
+	let props: SvelteHTMLElements["div"] = $props();
 
 	let aspect = $state(4 / 3);
 	let canvasWidth = $state(1);
@@ -13,14 +14,33 @@
 
 	let shadowColor = $state("#ffffff");
 
-	const params = {
+	const createPaneAttachment = (params: {
+		shadowColor: string;
+	}): Attachment<HTMLElement> => {
+		return (container) => {
+			const pane = new Pane({
+				container,
+				title: "controls",
+			});
+
+			pane.addBinding(params, "shadowColor", {
+				label: "shadow color",
+			});
+
+			return () => {
+				pane.dispose();
+			};
+		};
+	};
+
+	const pane = createPaneAttachment({
 		get shadowColor() {
 			return untrack(() => shadowColor);
 		},
 		set shadowColor(value) {
 			shadowColor = value;
 		},
-	};
+	});
 </script>
 
 <div
@@ -30,15 +50,7 @@
 >
 	<div
 		class="absolute top-0 right-4 not-content"
-		{@attach (container) => {
-			const gui = new GUI({
-				container,
-			});
-
-			gui.addColor(params, "shadowColor").name("shadow color");
-
-			return gui.destroy;
-		}}
+		{@attach pane}
 	></div>
 	<canvas
 		width={canvasWidth}

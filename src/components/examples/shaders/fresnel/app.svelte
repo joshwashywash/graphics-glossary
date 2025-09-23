@@ -2,12 +2,12 @@
 	import {
 		FresnelMaterial,
 		createUniforms,
-		powerConstraints,
+		powerParams,
 	} from "./FresnelMaterial";
 
 	import { Size } from "@classes/Size.svelte";
 
-	import GUI from "lil-gui";
+	import type { Attachment } from "svelte/attachments";
 	import {
 		Mesh,
 		PerspectiveCamera,
@@ -15,23 +15,9 @@
 		TorusKnotGeometry,
 		WebGLRenderer,
 	} from "three";
+	import { Pane } from "tweakpane";
 
 	const uniforms = createUniforms();
-
-	const colors = {
-		get baseColor() {
-			return `#${uniforms.uBaseColor.value.getHexString()}`;
-		},
-		set baseColor(value) {
-			uniforms.uBaseColor.value.setStyle(value);
-		},
-		get fresnelColor() {
-			return `#${uniforms.uFresnelColor.value.getHexString()}`;
-		},
-		set fresnelColor(value) {
-			uniforms.uFresnelColor.value.setStyle(value);
-		},
-	};
 
 	const material = new FresnelMaterial(uniforms);
 
@@ -58,6 +44,59 @@
 	});
 
 	const rotationAmount = (1 / 180) * Math.PI;
+
+	const createParams = (uniforms = createUniforms()) => {
+		return {
+			get baseColor() {
+				return `#${uniforms.uBaseColor.value.getHexString()}`;
+			},
+			set baseColor(value) {
+				uniforms.uBaseColor.value.setStyle(value);
+			},
+			get fresnelColor() {
+				return `#${uniforms.uFresnelColor.value.getHexString()}`;
+			},
+			set fresnelColor(value) {
+				uniforms.uFresnelColor.value.setStyle(value);
+			},
+			get power() {
+				return uniforms.uPower.value;
+			},
+			set power(value: number) {
+				uniforms.uPower.value = value;
+			},
+		};
+	};
+
+	const createPaneAttachment = (
+		params: {
+			baseColor: string;
+			fresnelColor: string;
+			power: number;
+		} = createParams(),
+	): Attachment<HTMLElement> => {
+		return (container) => {
+			const pane = new Pane({ container, title: "uniforms" });
+
+			pane.addBinding(params, "baseColor", {
+				label: "base color",
+			});
+
+			pane.addBinding(params, "fresnelColor", {
+				label: "fresnel color",
+			});
+
+			pane.addBinding(uniforms.uPower, "value", powerParams);
+
+			return () => {
+				pane.dispose();
+			};
+		};
+	};
+
+	const params = createParams(uniforms);
+
+	const pane = createPaneAttachment(params);
 </script>
 
 <div
@@ -65,26 +104,8 @@
 	class="relative"
 >
 	<div
-		class="absolute top-0 right-4 not-content"
-		{@attach (container) => {
-			const gui = new GUI({
-				container,
-			});
-
-			gui.addColor(colors, "fresnelColor").name("fresnel color");
-			gui.addColor(colors, "baseColor").name("base color");
-			gui
-				.add(
-					uniforms.uPower,
-					"value",
-					powerConstraints.min,
-					powerConstraints.max,
-					powerConstraints.step,
-				)
-				.name("power");
-
-			return gui.destroy;
-		}}
+		class="absolute top-2 right-2 not-content"
+		{@attach pane}
 	></div>
 	<canvas
 		{@attach (canvas) => {

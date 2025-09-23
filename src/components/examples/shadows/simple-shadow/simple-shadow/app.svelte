@@ -2,7 +2,9 @@
 	lang="ts"
 	module
 >
-	const _cameraAxis = new Vector3(1, 1, 1).normalize();
+	const cameraAxis = new Vector3(1, 1, 1).normalize();
+	const positionYInitial = 2.5;
+	const speed = 1 / 1000;
 </script>
 
 <script lang="ts">
@@ -10,8 +12,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
-	import GUI from "lil-gui";
 	import { untrack } from "svelte";
+	import type { Attachment } from "svelte/attachments";
 	import {
 		CanvasTexture,
 		Group,
@@ -26,6 +28,7 @@
 		WebGLRenderer,
 	} from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
+	import { Pane } from "tweakpane";
 
 	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
@@ -40,15 +43,6 @@
 	}
 
 	let shadowColor = $state("#000000");
-
-	const params = {
-		get shadowColor() {
-			return untrack(() => shadowColor);
-		},
-		set shadowColor(value) {
-			shadowColor = value;
-		},
-	};
 
 	const gradient = $derived(createShadowGradient(context, shadowColor));
 
@@ -118,7 +112,7 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(_cameraAxis, 12);
+	camera.translateOnAxis(cameraAxis, 12);
 	camera.lookAt(sphereMesh.position);
 
 	const canvasSize = new Size();
@@ -128,8 +122,33 @@
 		camera.updateProjectionMatrix();
 	});
 
-	const positionYInitial = 2.5;
-	const speed = 1 / 1000;
+	const createPaneAttachment = (params: {
+		shadowColor: string;
+	}): Attachment<HTMLElement> => {
+		return (container) => {
+			const pane = new Pane({
+				container,
+				title: "controls",
+			});
+
+			pane.addBinding(params, "shadowColor", {
+				label: "shadow color",
+			});
+
+			return () => {
+				pane.dispose();
+			};
+		};
+	};
+
+	const pane = createPaneAttachment({
+		get shadowColor() {
+			return untrack(() => shadowColor);
+		},
+		set shadowColor(value) {
+			shadowColor = value;
+		},
+	});
 </script>
 
 <svelte:boundary>
@@ -139,15 +158,7 @@
 	>
 		<div
 			class="absolute top-0 right-4 not-content"
-			{@attach (container) => {
-				const gui = new GUI({
-					container,
-				});
-
-				gui.addColor(params, "shadowColor").name("shadow color");
-
-				return gui.destroy;
-			}}
+			{@attach pane}
 		></div>
 		<canvas
 			{@attach (canvas) => {

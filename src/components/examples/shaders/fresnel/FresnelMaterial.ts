@@ -3,23 +3,28 @@ import vertexShader from "./vertex.glsl?raw";
 
 import { Color, ShaderMaterial, Uniform } from "three";
 
-type Uniforms = {
+export type Uniforms = {
 	uBaseColor: Uniform<Color>;
 	uFresnelColor: Uniform<Color>;
 	uPower: Uniform<number>;
 };
 
-export const powerConstraints = {
+export const powerParams = {
 	min: 0,
 	max: 3,
 	step: 0.5,
+	label: "power",
 };
 
-export const createUniforms = (): Uniforms => {
+export const createUniforms = ({
+	initialBaseColor = "#583583",
+	initialFresnelColor = "#ccccaa",
+	initialPower = 0.5 * (powerParams.max - powerParams.min),
+} = {}): Uniforms => {
 	return {
-		uBaseColor: new Uniform(new Color("#583558")),
-		uFresnelColor: new Uniform(new Color("#ccccaa")),
-		uPower: new Uniform(0.5 * (powerConstraints.max - powerConstraints.min)),
+		uBaseColor: new Uniform(new Color(initialBaseColor)),
+		uFresnelColor: new Uniform(new Color(initialFresnelColor)),
+		uPower: new Uniform(initialPower),
 	};
 };
 
