@@ -1,15 +1,9 @@
-<script
-	lang="ts"
-	module
->
-	const cameraAxis = new Vector3(0, 0, 1);
-</script>
-
 <script lang="ts">
+	import { createAttachment } from "./pane";
+
 	import { Size } from "@classes/Size.svelte";
 
 	import { untrack } from "svelte";
-	import type { Attachment } from "svelte/attachments";
 	import {
 		CircleGeometry,
 		EqualStencilFunc,
@@ -23,13 +17,9 @@
 		RingGeometry,
 		Scene,
 		TorusKnotGeometry,
-		Vector3,
 		WebGLRenderer,
 	} from "three";
 	import { TransformControls } from "three/addons/controls/TransformControls.js";
-	import { Pane } from "tweakpane";
-
-	const canvasSize = new Size();
 
 	const stencilRef = 1;
 
@@ -46,8 +36,8 @@
 
 	const meshGeometry = new TorusKnotGeometry();
 	const meshMaterial = new MeshNormalMaterial({
-		stencilWrite: true,
 		stencilRef,
+		stencilWrite: true,
 	});
 
 	const ringGeometry = new RingGeometry(1, 1.05);
@@ -55,20 +45,6 @@
 
 	const ringMesh = new Mesh(ringGeometry, ringMaterial);
 	const mesh = new Mesh(meshGeometry, meshMaterial);
-
-	const group = new Group().add(ringMesh, maskMesh);
-	group.translateZ(1);
-
-	const scene = new Scene().add(mesh, group);
-
-	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(cameraAxis, 5);
-	camera.lookAt(scene.position);
-
-	$effect(() => {
-		camera.aspect = canvasSize.aspect;
-		camera.updateProjectionMatrix();
-	});
 
 	$effect(() => {
 		return () => {
@@ -79,21 +55,23 @@
 		};
 	});
 
-	const createPane = (params: { invert: boolean }): Attachment<HTMLElement> => {
-		return (container) => {
-			const pane = new Pane({ container, title: "controls" });
+	const group = new Group().add(ringMesh, maskMesh).translateZ(1);
 
-			pane.addBinding(params, "invert");
+	const scene = new Scene().add(mesh, group);
 
-			return () => {
-				pane.dispose();
-			};
-		};
-	};
+	const camera = new PerspectiveCamera();
+	camera.translateZ(5);
+	camera.lookAt(scene.position);
+
+	const canvasSize = new Size();
+	$effect(() => {
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
+	});
 
 	let invert = $state(false);
 
-	const pane = createPane({
+	const pane = createAttachment({
 		get invert() {
 			return untrack(() => invert);
 		},

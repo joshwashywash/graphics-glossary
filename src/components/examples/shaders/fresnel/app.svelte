@@ -1,13 +1,10 @@
 <script lang="ts">
-	import {
-		FresnelMaterial,
-		createUniforms,
-		powerParams,
-	} from "./FresnelMaterial";
+	import type { Uniforms } from "./FresnelMaterial";
+	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
+	import { createAttachment } from "./pane";
 
 	import { Size } from "@classes/Size.svelte";
 
-	import type { Attachment } from "svelte/attachments";
 	import {
 		Mesh,
 		PerspectiveCamera,
@@ -15,7 +12,6 @@
 		TorusKnotGeometry,
 		WebGLRenderer,
 	} from "three";
-	import { Pane } from "tweakpane";
 
 	const uniforms = createUniforms();
 
@@ -45,7 +41,7 @@
 
 	const rotationAmount = (1 / 180) * Math.PI;
 
-	const createParams = (uniforms = createUniforms()) => {
+	const createParams = (uniforms: Uniforms) => {
 		return {
 			get baseColor() {
 				return `#${uniforms.uBaseColor.value.getHexString()}`;
@@ -68,35 +64,9 @@
 		};
 	};
 
-	const createPaneAttachment = (
-		params: {
-			baseColor: string;
-			fresnelColor: string;
-			power: number;
-		} = createParams(),
-	): Attachment<HTMLElement> => {
-		return (container) => {
-			const pane = new Pane({ container, title: "uniforms" });
-
-			pane.addBinding(params, "baseColor", {
-				label: "base color",
-			});
-
-			pane.addBinding(params, "fresnelColor", {
-				label: "fresnel color",
-			});
-
-			pane.addBinding(uniforms.uPower, "value", powerParams);
-
-			return () => {
-				pane.dispose();
-			};
-		};
-	};
-
 	const params = createParams(uniforms);
 
-	const pane = createPaneAttachment(params);
+	const pane = createAttachment(params);
 </script>
 
 <div

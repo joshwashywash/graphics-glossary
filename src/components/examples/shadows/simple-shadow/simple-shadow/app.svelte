@@ -9,11 +9,11 @@
 
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
+	import { createAttachment } from "./pane";
 
 	import { Size } from "@classes/Size.svelte";
 
 	import { untrack } from "svelte";
-	import type { Attachment } from "svelte/attachments";
 	import {
 		CanvasTexture,
 		Group,
@@ -28,7 +28,6 @@
 		WebGLRenderer,
 	} from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
-	import { Pane } from "tweakpane";
 
 	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
@@ -122,26 +121,7 @@
 		camera.updateProjectionMatrix();
 	});
 
-	const createPaneAttachment = (params: {
-		shadowColor: string;
-	}): Attachment<HTMLElement> => {
-		return (container) => {
-			const pane = new Pane({
-				container,
-				title: "controls",
-			});
-
-			pane.addBinding(params, "shadowColor", {
-				label: "shadow color",
-			});
-
-			return () => {
-				pane.dispose();
-			};
-		};
-	};
-
-	const pane = createPaneAttachment({
+	const pane = createAttachment({
 		get shadowColor() {
 			return untrack(() => shadowColor);
 		},
