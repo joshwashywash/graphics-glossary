@@ -46,7 +46,6 @@
 
 	const outlineMaterial = new MeshBasicMaterial({
 		depthTest: false,
-		depthWrite: false,
 		stencilFunc: NotEqualStencilFunc,
 		stencilRef,
 		stencilWrite: true,
@@ -83,6 +82,11 @@
 	const camera = new PerspectiveCamera();
 	camera.translateOnAxis(kHat, 5 * translationAmount);
 	camera.lookAt(scene.position);
+
+	$effect(() => {
+		camera.aspect = canvasSize.aspect;
+		camera.updateProjectionMatrix();
+	});
 
 	$effect(() => {
 		return () => {

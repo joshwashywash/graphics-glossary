@@ -157,7 +157,7 @@
 		class="relative"
 	>
 		<div
-			class="absolute top-0 right-4 not-content"
+			class="absolute top-2 right-2 not-content"
 			{@attach pane}
 		></div>
 		<canvas
