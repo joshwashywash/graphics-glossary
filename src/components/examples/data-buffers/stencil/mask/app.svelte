@@ -3,6 +3,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
 	import { untrack } from "svelte";
 	import {
 		CircleGeometry,
@@ -46,13 +48,11 @@
 	const ringMesh = new Mesh(ringGeometry, ringMaterial);
 	const mesh = new Mesh(meshGeometry, meshMaterial);
 
-	$effect(() => {
-		return () => {
-			ringGeometry.dispose();
-			ringMaterial.dispose();
-			maskGeometry.dispose();
-			maskMaterial.dispose();
-		};
+	onCleanup(() => {
+		ringGeometry.dispose();
+		ringMaterial.dispose();
+		maskGeometry.dispose();
+		maskMaterial.dispose();
 	});
 
 	const group = new Group().add(ringMesh, maskMesh).translateZ(1);
@@ -70,6 +70,9 @@
 	});
 
 	let invert = $state(false);
+	const meshMaterialStencilFunc = $derived(
+		invert ? NotEqualStencilFunc : EqualStencilFunc,
+	);
 
 	const pane = createAttachment({
 		get invert() {
@@ -114,9 +117,7 @@
 			});
 
 			$effect(() => {
-				meshMaterial.stencilFunc = invert
-					? NotEqualStencilFunc
-					: EqualStencilFunc;
+				meshMaterial.stencilFunc = meshMaterialStencilFunc;
 				render();
 			});
 

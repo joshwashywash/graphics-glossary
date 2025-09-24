@@ -5,15 +5,22 @@ import type { BufferGeometry } from "three";
 
 export const createLOD = (distances: number[] = [], radius = 1) => {
 	const levels: LodLevel[] = [];
-	const material = new MeshNormalMaterial({ flatShading: true });
+
+	const material = new MeshNormalMaterial({
+		flatShading: true,
+	});
 
 	const geometries: BufferGeometry[] = [];
 
 	for (let i = 0, l = distances.length; i < l; i += 1) {
 		const geometry = new IcosahedronGeometry(radius, i);
+
 		geometries.push(geometry);
+
 		const object = new Mesh(geometry, material);
+
 		const distance = distances[i];
+
 		levels.push({
 			distance,
 			object,

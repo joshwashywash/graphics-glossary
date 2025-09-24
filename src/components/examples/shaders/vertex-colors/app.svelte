@@ -3,6 +3,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
 	import {
 		Mesh,
 		MeshBasicMaterial,
@@ -21,11 +23,9 @@
 
 	const scene = new Scene().add(mesh);
 
-	$effect(() => {
-		return () => {
-			geometry.dispose();
-			material.dispose();
-		};
+	onCleanup(() => {
+		geometry.dispose();
+		material.dispose();
 	});
 
 	const camera = new PerspectiveCamera();

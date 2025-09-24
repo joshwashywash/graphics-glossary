@@ -19,7 +19,7 @@
 	/** the width of the image minus the width of the first and last sprites */
 	const extensionWidth = booImageMetadata.width - 2 * spriteWidth;
 
-	const _yHat = new Vector3(0, 1, 0);
+	const yHat = new Vector3(0, 1, 0);
 </script>
 
 <script lang="ts">
@@ -28,6 +28,7 @@
 	import { Size } from "@classes/Size.svelte";
 
 	import { loadImage } from "@functions/loadImage";
+	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
 		BoxGeometry,
@@ -102,22 +103,20 @@
 	const material = new MeshNormalMaterial();
 	const geometry = new BoxGeometry();
 
+	onCleanup(() => {
+		canvasTexture.dispose();
+
+		spriteMaterial.dispose();
+
+		material.dispose();
+		geometry.dispose();
+	});
+
 	const mesh = new Mesh(geometry, material);
 	mesh.scale.setScalar(0.5);
 	mesh.translateZ(-1);
 
 	const scene = new Scene().add(sprite, mesh);
-
-	$effect(() => {
-		return () => {
-			canvasTexture.dispose();
-
-			spriteMaterial.dispose();
-
-			material.dispose();
-			geometry.dispose();
-		};
-	});
 
 	const camera = new PerspectiveCamera();
 	camera.translateZ(4);
@@ -146,7 +145,7 @@
 			});
 
 			renderer.setAnimationLoop(() => {
-				camera.position.applyAxisAngle(_yHat, cameraRotationSpeed);
+				camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
 				camera.lookAt(scene.position);
 
 				let angle = camera.position.angleTo(sprite.position);

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Size } from "@classes/Size.svelte";
 
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
 	import {
 		Mesh,
 		MeshNormalMaterial,
@@ -19,7 +21,11 @@
 	const flatShadingMaterial = material.clone();
 	flatShadingMaterial.flatShading = true;
 
-	const materials = [material, flatShadingMaterial];
+	onCleanup(() => {
+		material.dispose();
+		flatShadingMaterial.dispose();
+		geometry.dispose();
+	});
 
 	const mesh = new Mesh(geometry, material);
 	mesh.translateX(-1 * halfDistance);
@@ -30,13 +36,6 @@
 	const meshes = [mesh, flatShadingMesh];
 
 	const scene = new Scene().add(...meshes);
-
-	$effect(() => {
-		return () => {
-			for (const material of materials) material.dispose();
-			geometry.dispose();
-		};
-	});
 
 	const camera = new PerspectiveCamera();
 	camera.translateZ(10);

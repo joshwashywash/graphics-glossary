@@ -16,6 +16,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
 	import { untrack } from "svelte";
 	import {
 		BoxGeometry,
@@ -57,6 +59,14 @@
 		new TorusGeometry(),
 	];
 
+	onCleanup(() => {
+		material.dispose();
+		outlineMaterial.dispose();
+		for (const geometry of geometries) {
+			geometry.dispose();
+		}
+	});
+
 	const a = (2 * Math.PI) / geometries.length;
 
 	const groups: Group[] = [];
@@ -86,19 +96,12 @@
 		camera.updateProjectionMatrix();
 	});
 
-	$effect(() => {
-		return () => {
-			material.dispose();
-			outlineMaterial.dispose();
-			for (const geometry of geometries) {
-				geometry.dispose();
-			}
-		};
-	});
-
 	const createAnimationLoop = (renderer: WebGLRenderer) => {
 		return () => {
-			for (const group of groups) group.rotateY(rotationAmount);
+			for (const group of groups) {
+				group.rotateY(rotationAmount);
+			}
+
 			renderer.render(scene, camera);
 		};
 	};

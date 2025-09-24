@@ -13,6 +13,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
 	import { untrack } from "svelte";
 	import {
 		CanvasTexture,
@@ -97,17 +99,12 @@
 
 	const scene = new Scene().add(sphereMesh, group);
 
-	$effect(() => {
-		return () => {
-			for (const child of scene.children) child.removeFromParent();
-			for (const child of group.children) child.removeFromParent();
-
-			disposeSphere();
-			disposeFloor();
-			shadowGeometry.dispose();
-			shadowTexture.dispose();
-			shadowMaterial.dispose();
-		};
+	onCleanup(() => {
+		disposeSphere();
+		disposeFloor();
+		shadowGeometry.dispose();
+		shadowTexture.dispose();
+		shadowMaterial.dispose();
 	});
 
 	const camera = new PerspectiveCamera();

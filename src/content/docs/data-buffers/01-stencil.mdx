@@ -25,7 +25,7 @@ const renderer = new WebGLRenderer({
 });
 ```
 
-The stencil buffer is an opt-in feature because it requires extra space which may go unused if the application don't need to utilize the stencil buffer.
+The stencil buffer is an opt-in feature because it requires extra space which may go unused if the application doesn't need to use the stencil buffer.
 
 With the stencil buffer enabled, each material that makes use of the stencil buffer needs to define how it interacts with it. This is done through the various `stencil*` properties of the material, the most important being `stencilWrite`.
 

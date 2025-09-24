@@ -5,6 +5,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
 	import {
 		Mesh,
 		PerspectiveCamera,
@@ -18,16 +20,15 @@
 	const material = new FresnelMaterial(uniforms);
 
 	const geometry = new TorusKnotGeometry();
+
+	onCleanup(() => {
+		material.dispose();
+		geometry.dispose();
+	});
+
 	const mesh = new Mesh(geometry, material);
 
 	const scene = new Scene().add(mesh);
-
-	$effect(() => {
-		return () => {
-			material.dispose();
-			geometry.dispose();
-		};
-	});
 
 	const canvasSize = new Size();
 

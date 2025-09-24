@@ -2,12 +2,14 @@
 	lang="ts"
 	module
 >
-	const _yHat = new Vector3(0, 1, 0);
-	const _translationAxis = new Vector3();
+	const yHat = new Vector3(0, 1, 0);
+	const translationAxis = new Vector3().set(3, 3, 2).normalize();
 </script>
 
 <script lang="ts">
 	import { Size } from "@classes/Size.svelte";
+
+	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
 		DirectionalLight,
@@ -39,7 +41,7 @@
 	const planeOffset = 0.01;
 	const planeConstant = floorY + planeOffset;
 
-	const plane = new Plane(_yHat, planeConstant);
+	const plane = new Plane(yHat, planeConstant);
 
 	const floorSize = 15;
 	const floorGeometry = new PlaneGeometry(floorSize, floorSize);
@@ -53,7 +55,7 @@
 	floorMesh.lookAt(plane.normal);
 
 	const light = new DirectionalLight().translateOnAxis(
-		_translationAxis.set(1, 1, -1).normalize(),
+		translationAxis.set(1, 1, -1).normalize(),
 		7,
 	);
 
@@ -61,26 +63,22 @@
 
 	const lightHelper = new DirectionalLightHelper(light);
 
+	onCleanup(() => {
+		geometry.dispose();
+		material.dispose();
+		floorGeometry.dispose();
+		floorMaterial.dispose();
+		lightHelper.dispose();
+		light.dispose();
+	});
+
 	const lightPosition4D = new Vector4(...light.position, 0.01);
 
 	const objects: Object3D[] = [mesh, shadowMesh, floorMesh, lightHelper];
 
 	const scene = new Scene().add(...objects);
-	$effect(() => {
-		return () => {
-			geometry.dispose();
-			material.dispose();
-			floorGeometry.dispose();
-			floorMaterial.dispose();
-			lightHelper.dispose();
-			light.dispose();
-		};
-	});
 
-	const camera = new PerspectiveCamera().translateOnAxis(
-		_translationAxis.set(3, 3, 2).normalize(),
-		20,
-	);
+	const camera = new PerspectiveCamera().translateOnAxis(translationAxis, 20);
 	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();

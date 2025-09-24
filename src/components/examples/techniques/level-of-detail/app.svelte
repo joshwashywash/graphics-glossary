@@ -3,6 +3,8 @@
 
 	import { Size } from "@classes/Size.svelte";
 
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
 	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
 
@@ -16,11 +18,7 @@
 
 	const scene = new Scene().add(lod);
 
-	$effect(() => {
-		return () => {
-			disposeLOD();
-		};
-	});
+	onCleanup(disposeLOD);
 
 	const camera = new PerspectiveCamera();
 
