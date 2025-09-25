@@ -53,6 +53,8 @@
 		ringMaterial.dispose();
 		maskGeometry.dispose();
 		maskMaterial.dispose();
+		meshMaterial.dispose();
+		meshGeometry.dispose();
 	});
 
 	const group = new Group().add(ringMesh, maskMesh).translateZ(1);
@@ -108,8 +110,8 @@
 			controls.attach(group);
 			controls.addEventListener("change", render);
 
-			const gizmo = controls.getHelper();
-			scene.add(gizmo);
+			const helper = controls.getHelper();
+			scene.add(helper);
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height);
@@ -124,7 +126,7 @@
 			return () => {
 				renderer.setAnimationLoop(null);
 				renderer.dispose();
-				scene.remove(gizmo);
+				scene.remove(helper);
 				controls.removeEventListener("change", render);
 				controls.detach().dispose();
 			};
