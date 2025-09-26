@@ -41,17 +41,23 @@
 		antialias: true,
 	};
 
-	const loop = (renderer: WebGLRenderer, time: number) => {
-		const t = 0.5 * (1 + Math.sin(time * speed));
-		camera.position.z = lerp(maxDistance + 2, lod.position.z + radius + 2, t);
+	const onRendererReady = (renderer: WebGLRenderer) => {
+		renderer.setAnimationLoop((time) => {
+			const t = 0.5 * (1 + Math.sin(time * speed));
+			camera.position.z = lerp(maxDistance + 2, lod.position.z + radius + 2, t);
 
-		renderer.render(scene, camera);
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
 	};
 </script>
 
 <Canvas
 	class="w-full aspect-square"
-	{loop}
+	{onRendererReady}
 	{onRendererResize}
 	{rendererParams}
 />

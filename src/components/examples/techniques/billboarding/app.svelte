@@ -125,26 +125,36 @@
 
 	let lastOffset: number;
 
-	const loop = (renderer: WebGLRenderer) => {
-		camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
-		camera.lookAt(scene.position);
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
+	};
 
-		let angle = camera.position.angleTo(sprite.position);
+	const onRendererReady = (renderer: WebGLRenderer) => {
+		renderer.setAnimationLoop(() => {
+			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
+			camera.lookAt(scene.position);
 
-		// determine if the larger angle should be used
-		const o =
-			camera.position.x * sprite.position.z -
-			camera.position.z * sprite.position.x;
-		if (o < 0) angle = tau - angle;
+			let angle = camera.position.angleTo(sprite.position);
 
-		const offset = Math.floor(frameCount * (angle / tau));
+			// determine if the larger angle should be used
+			const o =
+				camera.position.x * sprite.position.z -
+				camera.position.z * sprite.position.x;
+			if (o < 0) angle = tau - angle;
 
-		if (lastOffset !== offset) {
-			canvasTexture.offset.x = offset / frameCount;
-			lastOffset = offset;
-		}
+			const offset = Math.floor(frameCount * (angle / tau));
 
-		renderer.render(scene, camera);
+			if (lastOffset !== offset) {
+				canvasTexture.offset.x = offset / frameCount;
+				lastOffset = offset;
+			}
+
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
 	};
 
 	const onRendererResize = (renderer: WebGLRenderer) => {
@@ -153,15 +163,11 @@
 		camera.updateProjectionMatrix();
 		renderer.render(scene, camera);
 	};
-
-	const rendererParams: WebGLRendererParameters = {
-		antialias: true,
-	};
 </script>
 
 <Canvas
 	class="w-full aspect-square"
-	{loop}
+	{onRendererReady}
 	{onRendererResize}
 	{rendererParams}
 />

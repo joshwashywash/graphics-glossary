@@ -91,16 +91,22 @@
 		stencil: true,
 	};
 
+	const onRendererReady = (renderer: WebGLRenderer) => {
+		renderer.setAnimationLoop(() => {
+			mesh.rotateY(rotationAmount);
+			shadowMesh.update(plane, lightPosition4D);
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
+
 	const onRendererResize = (renderer: WebGLRenderer) => {
 		const { clientWidth, clientHeight } = renderer.domElement;
 		camera.aspect = clientWidth / clientHeight;
 		camera.updateProjectionMatrix();
-		renderer.render(scene, camera);
-	};
-
-	const loop = (renderer: WebGLRenderer) => {
-		mesh.rotateY(rotationAmount);
-		shadowMesh.update(plane, lightPosition4D);
 		renderer.render(scene, camera);
 	};
 </script>
@@ -108,6 +114,6 @@
 <Canvas
 	class="w-full aspect-square"
 	{rendererParams}
+	{onRendererReady}
 	{onRendererResize}
-	{loop}
 />

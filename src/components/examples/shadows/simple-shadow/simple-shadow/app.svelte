@@ -121,8 +121,25 @@
 		},
 	});
 
-	const rendererParams: WebGLRendererParameters = {
-		antialias: true,
+	const onRendererReady = (renderer: WebGLRenderer) => {
+		renderer.setAnimationLoop((time) => {
+			// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+			const t = 0.5 * (1 + Math.sin(time * speed));
+
+			sphereMesh.position.y = lerp(
+				positionYInitial - 1,
+				positionYInitial + 1,
+				t,
+			);
+			shadowMesh.scale.setScalar(1 + t);
+
+			shadowMaterial.opacity = lerp(1, 0, t);
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
 	};
 
 	const onRendererResize = (renderer: WebGLRenderer) => {
@@ -132,15 +149,8 @@
 		renderer.render(scene, camera);
 	};
 
-	const loop = (renderer: WebGLRenderer, time: number) => {
-		// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-		const t = 0.5 * (1 + Math.sin(time * speed));
-
-		sphereMesh.position.y = lerp(positionYInitial - 1, positionYInitial + 1, t);
-		shadowMesh.scale.setScalar(1 + t);
-
-		shadowMaterial.opacity = lerp(1, 0, t);
-		renderer.render(scene, camera);
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
 	};
 </script>
 
@@ -152,7 +162,7 @@
 		></div>
 		<Canvas
 			class="w-full aspect-square"
-			{loop}
+			{onRendererReady}
 			{onRendererResize}
 			{rendererParams}
 		/>

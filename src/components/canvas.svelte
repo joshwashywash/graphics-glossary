@@ -4,7 +4,6 @@
 	import { WebGLRenderer } from "three";
 
 	type Props = {
-		loop: (renderer: WebGLRenderer, time: number) => void;
 		onRendererResize: (renderer: WebGLRenderer) => void;
 		onRendererReady: (renderer: WebGLRenderer) => (() => void) | void;
 		rendererParams: Omit<WebGLRendererParameters, "canvas">;
@@ -12,7 +11,6 @@
 
 	let {
 		children,
-		loop,
 		onRendererReady,
 		onRendererResize,
 		rendererParams = {},
@@ -34,24 +32,13 @@
 		});
 
 		$effect(() => {
-			return onRendererReady?.(renderer);
+			const cleanup = onRendererReady?.(renderer);
+			return cleanup;
 		});
 
 		$effect(() => {
 			renderer.setSize(clientWidth, clientHeight, false);
 			onRendererResize?.(renderer);
-		});
-
-		$effect(() => {
-			if (loop === undefined) return;
-
-			renderer.setAnimationLoop((time) => {
-				loop(renderer, time);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-			};
 		});
 
 		return () => {

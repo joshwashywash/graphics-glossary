@@ -41,9 +41,19 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(3);
 
-	const loop = (renderer: WebGLRenderer) => {
-		mesh.rotateOnAxis(axis, rotationAmount);
-		renderer.render(scene, camera);
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
+	};
+
+	const onRendererReady = (renderer: WebGLRenderer) => {
+		renderer.setAnimationLoop(() => {
+			mesh.rotateOnAxis(axis, rotationAmount);
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
 	};
 
 	const onRendererResize = (renderer: WebGLRenderer) => {
@@ -52,15 +62,11 @@
 		camera.updateProjectionMatrix();
 		renderer.render(scene, camera);
 	};
-
-	const rendererParams: WebGLRendererParameters = {
-		antialias: true,
-	};
 </script>
 
 <Canvas
 	class="w-full aspect-square"
-	{loop}
+	{onRendererReady}
 	{onRendererResize}
 	{rendererParams}
 />

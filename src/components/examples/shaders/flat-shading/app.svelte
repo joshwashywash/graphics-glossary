@@ -43,13 +43,6 @@
 
 	const rotationAmount = (1 / 180) * Math.PI;
 
-	const loop = (renderer: WebGLRenderer) => {
-		for (const mesh of meshes) {
-			mesh.rotateY(rotationAmount);
-		}
-		renderer.render(scene, camera);
-	};
-
 	const onRendererResize = (renderer: WebGLRenderer) => {
 		const { clientWidth, clientHeight } = renderer.domElement;
 		camera.aspect = clientWidth / clientHeight;
@@ -60,11 +53,25 @@
 	const rendererParams: WebGLRendererParameters = {
 		antialias: true,
 	};
+
+	const onRendererReady = (renderer: WebGLRenderer) => {
+		renderer.setAnimationLoop(() => {
+			for (const mesh of meshes) {
+				mesh.rotateY(rotationAmount);
+			}
+
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	};
 </script>
 
 <Canvas
 	class="w-full aspect-square"
-	{loop}
+	{onRendererReady}
 	{onRendererResize}
 	{rendererParams}
 />

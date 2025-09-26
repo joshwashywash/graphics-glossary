@@ -63,9 +63,15 @@
 
 	const pane = createAttachment(params);
 
-	const loop = (renderer: WebGLRenderer) => {
-		mesh.rotateY(rotationAmount);
-		renderer.render(scene, camera);
+	const onRendererReady = (renderer: WebGLRenderer) => {
+		renderer.setAnimationLoop(() => {
+			mesh.rotateY(rotationAmount);
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
 	};
 
 	const onRendererResize = (renderer: WebGLRenderer) => {
@@ -87,7 +93,7 @@
 	></div>
 	<Canvas
 		class="w-full aspect-square"
-		{loop}
+		{onRendererReady}
 		{onRendererResize}
 		{rendererParams}
 	/>
