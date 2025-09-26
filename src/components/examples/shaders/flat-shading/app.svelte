@@ -57,14 +57,11 @@
 		renderer.render(scene, camera);
 	};
 
-	let rendererParams = $state.raw<WebGLRendererParameters>({
+	const rendererParams: WebGLRendererParameters = {
 		antialias: true,
-	});
-
-	const other: WebGLRendererParameters = {};
+	};
 </script>
 
-<button onclick={() => (rendererParams = other)}> other </button>
 <Canvas
 	class="w-full aspect-square"
 	{loop}
