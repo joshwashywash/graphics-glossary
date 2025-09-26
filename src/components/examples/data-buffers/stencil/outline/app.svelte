@@ -14,7 +14,7 @@
 <script lang="ts">
 	import { createAttachment } from "./pane";
 
-	import { Size } from "@classes/Size.svelte";
+	import Canvas from "@components/canvas.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
@@ -33,10 +33,8 @@
 		TorusGeometry,
 		TorusKnotGeometry,
 		Vector3,
-		WebGLRenderer,
 	} from "three";
-
-	const canvasSize = new Size();
+	import type { WebGLRenderer, WebGLRendererParameters } from "three";
 
 	const stencilRef = 1;
 
@@ -91,21 +89,6 @@
 	camera.translateOnAxis(kHat, 5 * translationAmount);
 	camera.lookAt(scene.position);
 
-	$effect(() => {
-		camera.aspect = canvasSize.aspect;
-		camera.updateProjectionMatrix();
-	});
-
-	const createAnimationLoop = (renderer: WebGLRenderer) => {
-		return () => {
-			for (const group of groups) {
-				group.rotateY(rotationAmount);
-			}
-
-			renderer.render(scene, camera);
-		};
-	};
-
 	let outlinesVisible = $state(true);
 	$effect(() => {
 		for (const outlineMesh of outlineMeshes) {
@@ -145,36 +128,36 @@
 			outlineScale = value;
 		},
 	});
+
+	const rendererParams: WebGLRendererParameters = {
+		stencil: true,
+	};
+
+	const loop = (renderer: WebGLRenderer) => {
+		for (const group of groups) {
+			group.rotateY(rotationAmount);
+		}
+
+		renderer.render(scene, camera);
+	};
+
+	const onRendererResize = (renderer: WebGLRenderer) => {
+		const { clientWidth, clientHeight } = renderer.domElement;
+		camera.aspect = clientWidth / clientHeight;
+		camera.updateProjectionMatrix();
+		renderer.render(scene, camera);
+	};
 </script>
 
-<div
-	bind:clientWidth={canvasSize.width}
-	class="relative"
->
+<div class="relative">
 	<div
 		class="absolute top-2 right-2 not-content"
 		{@attach pane}
 	></div>
-	<canvas
-		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
-				canvas,
-				stencil: true,
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height);
-			});
-
-			const animationLoop = createAnimationLoop(renderer);
-
-			renderer.setAnimationLoop(animationLoop);
-
-			return () => {
-				renderer.setAnimationLoop(null);
-				renderer.dispose();
-			};
-		}}
-	>
-	</canvas>
+	<Canvas
+		class="w-full aspect-square"
+		{loop}
+		{onRendererResize}
+		{rendererParams}
+	/>
 </div>

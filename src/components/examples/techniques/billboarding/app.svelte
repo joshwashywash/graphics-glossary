@@ -20,12 +20,14 @@
 	const extensionWidth = booImageMetadata.width - 2 * spriteWidth;
 
 	const yHat = new Vector3(0, 1, 0);
+
+	const cameraRotationSpeed = (1 / 180) * Math.PI;
 </script>
 
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
-	import { Size } from "@classes/Size.svelte";
+	import Canvas from "@components/canvas.svelte";
 
 	import { loadImage } from "@functions/loadImage";
 	import { onCleanup } from "@functions/onCleanup.svelte";
@@ -42,8 +44,8 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
-		WebGLRenderer,
 	} from "three";
+	import type { WebGLRenderer, WebGLRendererParameters } from "three";
 
 	const booCanvas = new OffscreenCanvas(
 		booImageMetadata.width + extensionWidth,
@@ -121,56 +123,45 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(4);
 
-	const canvasSize = new Size();
-
-	$effect(() => {
-		camera.aspect = canvasSize.aspect;
-		camera.updateProjectionMatrix();
-	});
-
 	let lastOffset: number;
 
-	const cameraRotationSpeed = (1 / 180) * Math.PI;
+	const loop = (renderer: WebGLRenderer) => {
+		camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
+		camera.lookAt(scene.position);
+
+		let angle = camera.position.angleTo(sprite.position);
+
+		// determine if the larger angle should be used
+		const o =
+			camera.position.x * sprite.position.z -
+			camera.position.z * sprite.position.x;
+		if (o < 0) angle = tau - angle;
+
+		const offset = Math.floor(frameCount * (angle / tau));
+
+		if (lastOffset !== offset) {
+			canvasTexture.offset.x = offset / frameCount;
+			lastOffset = offset;
+		}
+
+		renderer.render(scene, camera);
+	};
+
+	const onRendererResize = (renderer: WebGLRenderer) => {
+		const { clientWidth, clientHeight } = renderer.domElement;
+		camera.aspect = clientWidth / clientHeight;
+		camera.updateProjectionMatrix();
+		renderer.render(scene, camera);
+	};
+
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
+	};
 </script>
 
-<div bind:clientWidth={canvasSize.width}>
-	<canvas
-		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
-				canvas,
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height);
-			});
-
-			renderer.setAnimationLoop(() => {
-				camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
-				camera.lookAt(scene.position);
-
-				let angle = camera.position.angleTo(sprite.position);
-
-				// determine if the larger angle should be used
-				const o =
-					camera.position.x * sprite.position.z -
-					camera.position.z * sprite.position.x;
-				if (o < 0) angle = tau - angle;
-
-				const offset = Math.floor(frameCount * (angle / tau));
-
-				if (lastOffset !== offset) {
-					canvasTexture.offset.x = offset / frameCount;
-					lastOffset = offset;
-				}
-
-				renderer.render(scene, camera);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-				renderer.dispose();
-			};
-		}}
-	>
-	</canvas>
-</div>
+<Canvas
+	class="w-full aspect-square"
+	{loop}
+	{onRendererResize}
+	{rendererParams}
+/>

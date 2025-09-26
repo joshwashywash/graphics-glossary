@@ -3,11 +3,13 @@
 	module
 >
 	const yHat = new Vector3(0, 1, 0);
-	const translationAxis = new Vector3().set(3, 3, 2).normalize();
+	const translationAxis = new Vector3();
+
+	const rotationAmount = (1 / 180) * Math.PI;
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/Size.svelte";
+	import Canvas from "@components/canvas.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
@@ -25,8 +27,8 @@
 		TorusKnotGeometry,
 		Vector3,
 		Vector4,
-		WebGLRenderer,
 	} from "three";
+	import type { WebGLRenderer, WebGLRendererParameters } from "three";
 	import { ShadowMesh } from "three/examples/jsm/objects/ShadowMesh.js";
 
 	const geometry = new TorusKnotGeometry();
@@ -78,42 +80,34 @@
 
 	const scene = new Scene().add(...objects);
 
-	const camera = new PerspectiveCamera().translateOnAxis(translationAxis, 20);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		translationAxis.set(1, 1, 1).normalize(),
+		20,
+	);
 	camera.lookAt(scene.position);
 
-	const canvasSize = new Size();
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
+		stencil: true,
+	};
 
-	$effect(() => {
-		camera.aspect = canvasSize.aspect;
+	const onRendererResize = (renderer: WebGLRenderer) => {
+		const { clientWidth, clientHeight } = renderer.domElement;
+		camera.aspect = clientWidth / clientHeight;
 		camera.updateProjectionMatrix();
-	});
+		renderer.render(scene, camera);
+	};
 
-	const rotationAmount = (1 / 180) * Math.PI;
+	const loop = (renderer: WebGLRenderer) => {
+		mesh.rotateY(rotationAmount);
+		shadowMesh.update(plane, lightPosition4D);
+		renderer.render(scene, camera);
+	};
 </script>
 
-<div bind:clientWidth={canvasSize.width}>
-	<canvas
-		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
-				canvas,
-				stencil: true,
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height);
-			});
-
-			renderer.setAnimationLoop(() => {
-				mesh.rotateY(rotationAmount);
-				shadowMesh.update(plane, lightPosition4D);
-				renderer.render(scene, camera);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-				renderer.dispose();
-			};
-		}}
-	>
-	</canvas>
-</div>
+<Canvas
+	class="w-full aspect-square"
+	{rendererParams}
+	{onRendererResize}
+	{loop}
+/>

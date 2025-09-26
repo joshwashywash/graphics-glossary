@@ -7,9 +7,8 @@
 
 	let props: SvelteHTMLElements["div"] = $props();
 
-	let aspect = $state(4 / 3);
-	let canvasWidth = $state(1);
-	const canvasHeight = $derived(canvasWidth / aspect);
+	let width = $state(1);
+	let height = $state(1);
 
 	let shadowColor = $state("#ffffff");
 
@@ -24,7 +23,6 @@
 </script>
 
 <div
-	bind:clientWidth={canvasWidth}
 	class="relative"
 	{...props}
 >
@@ -33,15 +31,18 @@
 		{@attach pane}
 	></div>
 	<canvas
-		width={canvasWidth}
-		height={canvasHeight}
+		bind:clientWidth={width}
+		bind:clientHeight={height}
+		class="w-full aspect-square"
+		{width}
+		{height}
 		{@attach (canvas) => {
 			const context = canvas.getContext("2d");
 			if (context === null) return;
 
 			$effect(() => {
-				canvasWidth;
-				canvasHeight;
+				width;
+				height;
 				const gradient = createShadowGradient(context, shadowColor);
 
 				context.fillStyle = gradient;

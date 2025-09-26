@@ -1,7 +1,16 @@
+<script
+	module
+	lang="ts"
+>
+	const rotationAmount = (1 / 120) * Math.PI;
+
+	const axis = new Vector3(1, 1, -1).normalize();
+</script>
+
 <script lang="ts">
 	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
 
-	import { Size } from "@classes/Size.svelte";
+	import Canvas from "@components/canvas.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
@@ -13,6 +22,7 @@
 		Vector3,
 		WebGLRenderer,
 	} from "three";
+	import type { WebGLRendererParameters } from "three";
 
 	const geometry = new VertexColorsBoxGeometry();
 	const material = new MeshBasicMaterial({
@@ -31,37 +41,26 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(3);
 
-	const canvasSize = new Size();
-	$effect(() => {
-		camera.aspect = canvasSize.aspect;
+	const loop = (renderer: WebGLRenderer) => {
+		mesh.rotateOnAxis(axis, rotationAmount);
+		renderer.render(scene, camera);
+	};
+
+	const onRendererResize = (renderer: WebGLRenderer) => {
+		const { clientWidth, clientHeight } = renderer.domElement;
+		camera.aspect = clientWidth / clientHeight;
 		camera.updateProjectionMatrix();
-	});
+		renderer.render(scene, camera);
+	};
 
-	const rotationAmount = (1 / 120) * Math.PI;
-
-	const axis = new Vector3(1, 1, -1).normalize();
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
+	};
 </script>
 
-<div bind:clientWidth={canvasSize.width}>
-	<canvas
-		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
-				canvas,
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height);
-			});
-
-			renderer.setAnimationLoop(() => {
-				mesh.rotateOnAxis(axis, rotationAmount);
-				renderer.render(scene, camera);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-				renderer.dispose();
-			};
-		}}
-	></canvas>
-</div>
+<Canvas
+	class="w-full aspect-square"
+	{loop}
+	{onRendererResize}
+	{rendererParams}
+/>

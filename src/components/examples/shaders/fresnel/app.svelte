@@ -3,10 +3,11 @@
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 	import { createAttachment } from "./pane";
 
-	import { Size } from "@classes/Size.svelte";
+	import Canvas from "@components/canvas.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
+	import type { WebGLRendererParameters } from "three";
 	import {
 		Mesh,
 		PerspectiveCamera,
@@ -30,15 +31,8 @@
 
 	const scene = new Scene().add(mesh);
 
-	const canvasSize = new Size();
-
 	const camera = new PerspectiveCamera();
 	camera.translateZ(5);
-
-	$effect(() => {
-		camera.aspect = canvasSize.aspect;
-		camera.updateProjectionMatrix();
-	});
 
 	const rotationAmount = (1 / 180) * Math.PI;
 
@@ -68,36 +62,33 @@
 	const params = createParams(uniforms);
 
 	const pane = createAttachment(params);
+
+	const loop = (renderer: WebGLRenderer) => {
+		mesh.rotateY(rotationAmount);
+		renderer.render(scene, camera);
+	};
+
+	const onRendererResize = (renderer: WebGLRenderer) => {
+		const { clientWidth, clientHeight } = renderer.domElement;
+		camera.aspect = clientWidth / clientHeight;
+		camera.updateProjectionMatrix();
+		renderer.render(scene, camera);
+	};
+
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
+	};
 </script>
 
-<div
-	bind:clientWidth={canvasSize.width}
-	class="relative"
->
+<div class="relative">
 	<div
 		class="absolute top-2 right-2 not-content"
 		{@attach pane}
 	></div>
-	<canvas
-		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
-				canvas,
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height);
-			});
-
-			renderer.setAnimationLoop(() => {
-				mesh.rotateY(rotationAmount);
-				renderer.render(scene, camera);
-			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-				renderer.dispose();
-			};
-		}}
-	>
-	</canvas>
+	<Canvas
+		class="w-full aspect-square"
+		{loop}
+		{onRendererResize}
+		{rendererParams}
+	/>
 </div>

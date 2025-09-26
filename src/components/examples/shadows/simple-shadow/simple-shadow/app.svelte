@@ -5,13 +5,15 @@
 	const cameraAxis = new Vector3(1, 1, 1).normalize();
 	const positionYInitial = 2.5;
 	const speed = 1 / 1000;
+
+	const textureCanvasSize = 128;
 </script>
 
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 	import { createAttachment } from "./pane";
 
-	import { Size } from "@classes/Size.svelte";
+	import Canvas from "@components/canvas.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
@@ -27,11 +29,10 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
-		WebGLRenderer,
 	} from "three";
+	import type { WebGLRenderer, WebGLRendererParameters } from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
 
-	const textureCanvasSize = 128;
 	const textureCanvas = new OffscreenCanvas(
 		textureCanvasSize,
 		textureCanvasSize,
@@ -108,15 +109,8 @@
 	});
 
 	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(cameraAxis, 12);
+	camera.translateOnAxis(cameraAxis, 9);
 	camera.lookAt(sphereMesh.position);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		camera.aspect = canvasSize.aspect;
-		camera.updateProjectionMatrix();
-	});
 
 	const pane = createAttachment({
 		get shadowColor() {
@@ -126,49 +120,42 @@
 			shadowColor = value;
 		},
 	});
+
+	const rendererParams: WebGLRendererParameters = {
+		antialias: true,
+	};
+
+	const onRendererResize = (renderer: WebGLRenderer) => {
+		const { clientWidth, clientHeight } = renderer.domElement;
+		camera.aspect = clientWidth / clientHeight;
+		camera.updateProjectionMatrix();
+		renderer.render(scene, camera);
+	};
+
+	const loop = (renderer: WebGLRenderer, time: number) => {
+		// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+		const t = 0.5 * (1 + Math.sin(time * speed));
+
+		sphereMesh.position.y = lerp(positionYInitial - 1, positionYInitial + 1, t);
+		shadowMesh.scale.setScalar(1 + t);
+
+		shadowMaterial.opacity = lerp(1, 0, t);
+		renderer.render(scene, camera);
+	};
 </script>
 
 <svelte:boundary>
-	<div
-		bind:clientWidth={canvasSize.width}
-		class="relative"
-	>
+	<div class="relative">
 		<div
 			class="absolute top-2 right-2 not-content"
 			{@attach pane}
 		></div>
-		<canvas
-			{@attach (canvas) => {
-				const renderer = new WebGLRenderer({
-					canvas,
-				});
-
-				$effect(() => {
-					renderer.setSize(canvasSize.width, canvasSize.height);
-				});
-
-				renderer.setAnimationLoop((time) => {
-					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-					const t = 0.5 * (1 + Math.sin(time * speed));
-
-					sphereMesh.position.y = lerp(
-						positionYInitial - 1,
-						positionYInitial + 1,
-						t,
-					);
-					shadowMesh.scale.setScalar(1 + t);
-
-					shadowMaterial.opacity = lerp(1, 0, t);
-					renderer.render(scene, camera);
-				});
-
-				return () => {
-					renderer.setAnimationLoop(null);
-					renderer.dispose();
-				};
-			}}
-		>
-		</canvas>
+		<Canvas
+			class="w-full aspect-square"
+			{loop}
+			{onRendererResize}
+			{rendererParams}
+		/>
 	</div>
 
 	{#snippet failed(error)}
