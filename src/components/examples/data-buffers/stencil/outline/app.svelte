@@ -14,8 +14,6 @@
 <script lang="ts">
 	import { createAttachment } from "./pane";
 
-	import Canvas from "@components/canvas.svelte";
-
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import { untrack } from "svelte";
@@ -33,8 +31,8 @@
 		TorusGeometry,
 		TorusKnotGeometry,
 		Vector3,
+		WebGLRenderer,
 	} from "three";
-	import type { WebGLRenderer, WebGLRendererParameters } from "three";
 
 	const stencilRef = 1;
 
@@ -129,30 +127,10 @@
 		},
 	});
 
-	const rendererParams: WebGLRendererParameters = {
-		stencil: true,
-	};
+	let clientWidth = $state(1);
+	let clientHeight = $state(1);
 
-	const onRendererResize = (renderer: WebGLRenderer) => {
-		const { clientWidth, clientHeight } = renderer.domElement;
-		camera.aspect = clientWidth / clientHeight;
-		camera.updateProjectionMatrix();
-		renderer.render(scene, camera);
-	};
-
-	const onRendererReady = (renderer: WebGLRenderer) => {
-		renderer.setAnimationLoop(() => {
-			for (const group of groups) {
-				group.rotateY(rotationAmount);
-			}
-
-			renderer.render(scene, camera);
-		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	};
+	const aspect = $derived(clientWidth / clientHeight);
 </script>
 
 <div class="relative">
@@ -160,10 +138,45 @@
 		class="absolute top-2 right-2 not-content"
 		{@attach pane}
 	></div>
-	<Canvas
+
+	<canvas
 		class="w-full aspect-square"
-		{onRendererReady}
-		{onRendererResize}
-		{rendererParams}
-	/>
+		bind:clientWidth
+		bind:clientHeight
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+				stencil: true,
+			});
+
+			const render = () => {
+				renderer.render(scene, camera);
+			};
+
+			$effect(() => {
+				renderer.setSize(clientWidth, clientHeight, false);
+				render();
+			});
+
+			$effect(() => {
+				camera.aspect = aspect;
+				camera.updateProjectionMatrix();
+				render();
+			});
+
+			renderer.setAnimationLoop(() => {
+				for (const group of groups) {
+					group.rotateY(rotationAmount);
+				}
+				render();
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
+		}}
+	>
+	</canvas>
 </div>

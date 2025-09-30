@@ -1,6 +1,11 @@
-<script lang="ts">
-	import Canvas from "@components/canvas.svelte";
+<script
+	lang="ts"
+	module
+>
+	const rotationAmount = (1 / 180) * Math.PI;
+</script>
 
+<script lang="ts">
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
@@ -11,7 +16,6 @@
 		TorusKnotGeometry,
 		WebGLRenderer,
 	} from "three";
-	import type { WebGLRendererParameters } from "three";
 
 	const distance = 5;
 	const halfDistance = 0.5 * distance;
@@ -41,37 +45,48 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(10);
 
-	const rotationAmount = (1 / 180) * Math.PI;
+	let clientWidth = $state(1);
+	let clientHeight = $state(1);
 
-	const onRendererResize = (renderer: WebGLRenderer) => {
-		const { clientWidth, clientHeight } = renderer.domElement;
-		camera.aspect = clientWidth / clientHeight;
-		camera.updateProjectionMatrix();
-		renderer.render(scene, camera);
-	};
+	const aspect = $derived(clientWidth / clientHeight);
+</script>
 
-	const rendererParams: WebGLRendererParameters = {
-		antialias: true,
-	};
+<canvas
+	class="w-full aspect-square"
+	bind:clientWidth
+	bind:clientHeight
+	{@attach (canvas) => {
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
 
-	const onRendererReady = (renderer: WebGLRenderer) => {
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		$effect(() => {
+			renderer.setSize(clientWidth, clientHeight, false);
+			render();
+		});
+
+		$effect(() => {
+			camera.aspect = aspect;
+			camera.updateProjectionMatrix();
+			render();
+		});
+
 		renderer.setAnimationLoop(() => {
 			for (const mesh of meshes) {
 				mesh.rotateY(rotationAmount);
 			}
-
-			renderer.render(scene, camera);
+			render();
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			renderer.dispose();
 		};
-	};
-</script>
-
-<Canvas
-	class="w-full aspect-square"
-	{onRendererReady}
-	{onRendererResize}
-	{rendererParams}
-/>
+	}}
+>
+</canvas>

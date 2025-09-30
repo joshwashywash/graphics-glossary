@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { createAttachment } from "./pane";
 
-	import Canvas from "@components/canvas.svelte";
-
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import { untrack } from "svelte";
@@ -19,8 +17,8 @@
 		RingGeometry,
 		Scene,
 		TorusKnotGeometry,
+		WebGLRenderer,
 	} from "three";
-	import type { WebGLRenderer, WebGLRendererParameters } from "three";
 	import { TransformControls } from "three/addons/controls/TransformControls.js";
 
 	const stencilRef = 1;
@@ -79,43 +77,10 @@
 		},
 	});
 
-	const rendererParams: WebGLRendererParameters = {
-		antialias: true,
-		stencil: true,
-	};
+	let clientWidth = $state(1);
+	let clientHeight = $state(1);
 
-	const onRendererResize = (renderer: WebGLRenderer) => {
-		const { clientWidth, clientHeight } = renderer.domElement;
-		camera.aspect = clientWidth / clientHeight;
-		camera.updateProjectionMatrix();
-		renderer.render(scene, camera);
-	};
-
-	const onRendererReady = (renderer: WebGLRenderer) => {
-		$effect(() => {
-			meshMaterial.stencilFunc = meshMaterialStencilFunc;
-			render();
-		});
-
-		const controls = new TransformControls(camera, renderer.domElement);
-		controls.showZ = false;
-		controls.attach(group);
-
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
-		controls.addEventListener("change", render);
-
-		const helper = controls.getHelper();
-		scene.add(helper);
-
-		return () => {
-			scene.remove(helper);
-			controls.removeEventListener("change", render);
-			controls.detach().dispose();
-		};
-	};
+	const aspect = $derived(clientWidth / clientHeight);
 </script>
 
 <div class="relative">
@@ -123,10 +88,54 @@
 		class="absolute top-2 right-2 not-content"
 		{@attach pane}
 	></div>
-	<Canvas
+
+	<canvas
 		class="w-full aspect-square"
-		{onRendererReady}
-		{onRendererResize}
-		{rendererParams}
-	/>
+		bind:clientWidth
+		bind:clientHeight
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+				stencil: true,
+			});
+
+			const render = () => {
+				renderer.render(scene, camera);
+			};
+
+			$effect(() => {
+				renderer.setSize(clientWidth, clientHeight, false);
+				render();
+			});
+
+			$effect(() => {
+				camera.aspect = aspect;
+				camera.updateProjectionMatrix();
+				render();
+			});
+
+			$effect(() => {
+				meshMaterial.stencilFunc = meshMaterialStencilFunc;
+				render();
+			});
+
+			const controls = new TransformControls(camera, renderer.domElement);
+			controls.showZ = false;
+			controls.attach(group);
+
+			controls.addEventListener("change", render);
+
+			const helper = controls.getHelper();
+			scene.add(helper);
+
+			return () => {
+				scene.remove(helper);
+				controls.removeEventListener("change", render);
+				controls.detach().dispose();
+				renderer.dispose();
+			};
+		}}
+	>
+	</canvas>
 </div>

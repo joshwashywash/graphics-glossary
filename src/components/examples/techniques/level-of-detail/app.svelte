@@ -8,12 +8,9 @@
 <script lang="ts">
 	import { createLOD } from "./createLOD";
 
-	import Canvas from "@components/canvas.svelte";
-
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
-	import { PerspectiveCamera, Scene } from "three";
-	import type { WebGLRenderer, WebGLRendererParameters } from "three";
+	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
 
 	const maxDistance = 15;
@@ -30,34 +27,51 @@
 
 	const camera = new PerspectiveCamera();
 
-	const onRendererResize = (renderer: WebGLRenderer) => {
-		const { clientWidth, clientHeight } = renderer.domElement;
-		camera.aspect = clientWidth / clientHeight;
-		camera.updateProjectionMatrix();
-		renderer.render(scene, camera);
-	};
+	let clientWidth = $state(1);
+	let clientHeight = $state(1);
 
-	const rendererParams: WebGLRendererParameters = {
-		antialias: true,
-	};
+	const aspect = $derived(clientWidth / clientHeight);
+</script>
 
-	const onRendererReady = (renderer: WebGLRenderer) => {
-		renderer.setAnimationLoop((time) => {
-			const t = 0.5 * (1 + Math.sin(time * speed));
-			camera.position.z = lerp(maxDistance + 2, lod.position.z + radius + 2, t);
+<canvas
+	class="w-full aspect-square"
+	bind:clientWidth
+	bind:clientHeight
+	{@attach (canvas) => {
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
 
+		const render = () => {
 			renderer.render(scene, camera);
+		};
+
+		$effect(() => {
+			renderer.setSize(clientWidth, clientHeight, false);
+			render();
+		});
+
+		$effect(() => {
+			camera.aspect = aspect;
+			camera.updateProjectionMatrix();
+			render();
+		});
+
+		renderer.setAnimationLoop((time) => {
+			time = 0.5 * (1 + Math.sin(time * speed));
+			camera.position.z = lerp(
+				maxDistance + 2,
+				lod.position.z + radius + 2,
+				time,
+			);
+			render();
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			renderer.dispose();
 		};
-	};
-</script>
-
-<Canvas
-	class="w-full aspect-square"
-	{onRendererReady}
-	{onRendererResize}
-	{rendererParams}
-/>
+	}}
+>
+</canvas>

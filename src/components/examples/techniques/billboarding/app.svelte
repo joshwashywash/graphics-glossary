@@ -27,8 +27,6 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
-	import Canvas from "@components/canvas.svelte";
-
 	import { loadImage } from "@functions/loadImage";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
@@ -44,8 +42,8 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
+		WebGLRenderer,
 	} from "three";
-	import type { WebGLRenderer, WebGLRendererParameters } from "three";
 
 	const booCanvas = new OffscreenCanvas(
 		booImageMetadata.width + extensionWidth,
@@ -125,11 +123,37 @@
 
 	let lastOffset: number;
 
-	const rendererParams: WebGLRendererParameters = {
-		antialias: true,
-	};
+	let clientWidth = $state(1);
+	let clientHeight = $state(1);
 
-	const onRendererReady = (renderer: WebGLRenderer) => {
+	const aspect = $derived(clientWidth / clientHeight);
+</script>
+
+<canvas
+	class="w-full aspect-square"
+	bind:clientWidth
+	bind:clientHeight
+	{@attach (canvas) => {
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
+
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		$effect(() => {
+			renderer.setSize(clientWidth, clientHeight, false);
+			render();
+		});
+
+		$effect(() => {
+			camera.aspect = aspect;
+			camera.updateProjectionMatrix();
+			render();
+		});
+
 		renderer.setAnimationLoop(() => {
 			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
 			camera.lookAt(scene.position);
@@ -149,25 +173,13 @@
 				lastOffset = offset;
 			}
 
-			renderer.render(scene, camera);
+			render();
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			renderer.dispose();
 		};
-	};
-
-	const onRendererResize = (renderer: WebGLRenderer) => {
-		const { clientWidth, clientHeight } = renderer.domElement;
-		camera.aspect = clientWidth / clientHeight;
-		camera.updateProjectionMatrix();
-		renderer.render(scene, camera);
-	};
-</script>
-
-<Canvas
-	class="w-full aspect-square"
-	{onRendererReady}
-	{onRendererResize}
-	{rendererParams}
-/>
+	}}
+>
+</canvas>
