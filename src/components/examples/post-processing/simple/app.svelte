@@ -42,6 +42,8 @@
 	mesh.frustumCulled = false;
 
 	const scene = new Scene().add(mesh);
+
+	const speed = 0.25 * 0.01;
 </script>
 
 <canvas
@@ -70,7 +72,7 @@
 
 		renderer.setAnimationLoop((time) => {
 			time = 0.5 * (1 + Math.sin(time));
-			uColor.value.offsetHSL(0.01 * time, 0, 0);
+			uColor.value.offsetHSL(speed * time, 0, 0);
 			render();
 		});
 
