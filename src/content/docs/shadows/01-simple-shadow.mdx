@@ -17,10 +17,10 @@ Probably the cheapest and easiest way to add a "shadow" to an object is by creat
 
 ![a screenshot of pokemon stadium showing poliwhirl using the move "bubble" with a shadow mesh beneath it](@assets/poliwhirl.png)
 
-One way to create a fake shadow is to draw one to a canvas texture then use that texture as the color for a plane mesh. The plane mesh is placed below the object but above the ground. Note that it's important to offset the shadow mesh from the ground slightly to avoid z-fighting.
+One way to create a fake shadow is to draw one to a canvas texture then use that texture as the color map for a plane mesh. The plane mesh is placed below the object but above the ground. Note that it's important to offset the shadow mesh from the ground slightly to avoid z-fighting.
 
 <Shadow client:load />
 
-Another upside to using this kind of shadow is that since it's a mesh it's very easy to translate, scale, or rotate it as needed.
+Another advantage to using this kind of shadow is that since it's a mesh it's very easy to translate, scale, or rotate it as needed.
 
 <SimpleShadow client:only />

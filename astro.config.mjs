@@ -45,6 +45,12 @@ export default defineConfig({
 						directory: "data-buffers",
 					},
 				},
+				{
+					label: "Post-Processing",
+					autogenerate: {
+						directory: "post-processing",
+					},
+				},
 			],
 			social: [
 				{
