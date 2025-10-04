@@ -37,7 +37,7 @@
 	const light = new AmbientLight();
 	const scene = new Scene().add(light);
 
-	loader.loadAsync("/src/assets/models/vehicle-truck.glb").then((gltf) => {
+	loader.load("/models/vehicle-truck.glb", (gltf) => {
 		scene.add(gltf.scene);
 	});
 
