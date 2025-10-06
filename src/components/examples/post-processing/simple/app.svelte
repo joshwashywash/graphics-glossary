@@ -56,7 +56,7 @@
 
 	const uAlpha = new Uniform(0.2);
 	const uScene = new Uniform(renderTarget.texture);
-	const uColor = new Uniform(new Color().setHSL(0.6, 1, 0.5));
+	const uColor = new Uniform(new Color());
 	const uniforms = {
 		uAlpha,
 		uColor,
@@ -102,7 +102,7 @@
 				<input
 					type="range"
 					bind:value={alpha}
-					min={0.1}
+					min={0}
 					max={1}
 					step={0.1}
 				/>
