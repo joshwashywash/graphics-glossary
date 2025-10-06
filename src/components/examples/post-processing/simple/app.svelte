@@ -5,6 +5,16 @@
 	const axis = new Vector3(-1, 1, -1).normalize();
 	const gltfLoader = new GLTFLoader();
 	const hdrLoader = new HDRLoader();
+
+	const gltf = gltfLoader.loadAsync("/models/vehicle-truck.glb");
+	const hdr = hdrLoader
+		.loadAsync("/hdrs/university_workshop_1k.hdr")
+		.then((hdr) => {
+			hdr.mapping = EquirectangularReflectionMapping;
+			return hdr;
+		});
+
+	const promises = Promise.all([gltf, hdr]);
 </script>
 
 <script lang="ts">
@@ -17,7 +27,6 @@
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
-		AmbientLight,
 		Color,
 		EquirectangularReflectionMapping,
 		Mesh,
@@ -34,17 +43,13 @@
 	import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 
+	let { alpha = 0.3, color = "#ffccaa" } = $props();
+
 	let clientWidth = $state(1);
 	let clientHeight = $state(1);
 	const aspect = $derived(clientWidth / clientHeight);
 
-	const light = new AmbientLight();
-	const scene = new Scene().add(light);
-
-	const gltf = gltfLoader.loadAsync("/models/vehicle-truck.glb");
-	const hdr = hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr");
-
-	const promises = Promise.all([gltf, hdr]);
+	const scene = new Scene();
 
 	const camera = new PerspectiveCamera();
 	camera.translateOnAxis(axis, 3);
@@ -54,9 +59,10 @@
 
 	const renderTarget = new WebGLRenderTarget();
 
-	const uAlpha = new Uniform(0.2);
-	const uScene = new Uniform(renderTarget.texture);
+	const uAlpha = new Uniform(0);
 	const uColor = new Uniform(new Color());
+	const uScene = new Uniform(renderTarget.texture);
+
 	const uniforms = {
 		uAlpha,
 		uColor,
@@ -81,9 +87,6 @@
 
 	const ppScene = new Scene().add(mesh);
 	const ppCamera = new OrthographicCamera();
-
-	let alpha = $state(0.3);
-	let color = $state("#ffccaa");
 </script>
 
 <div class="relative">
@@ -156,7 +159,6 @@
 			promises.then(([gltf, hdr]) => {
 				scene.add(gltf.scene);
 
-				hdr.mapping = EquirectangularReflectionMapping;
 				scene.background = hdr;
 				scene.environment = hdr;
 
