@@ -11,11 +11,11 @@
 
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
-	import { createAttachment } from "./pane";
+
+	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
-	import { untrack } from "svelte";
 	import {
 		CanvasTexture,
 		Group,
@@ -110,15 +110,6 @@
 	camera.translateOnAxis(cameraAxis, 9);
 	camera.lookAt(sphereMesh.position);
 
-	const pane = createAttachment({
-		get shadowColor() {
-			return untrack(() => shadowColor);
-		},
-		set shadowColor(value) {
-			shadowColor = value;
-		},
-	});
-
 	let clientWidth = $state(1);
 	let clientHeight = $state(1);
 
@@ -127,10 +118,18 @@
 
 <svelte:boundary>
 	<div class="relative">
-		<div
-			class="absolute top-2 right-2 not-content"
-			{@attach pane}
-		></div>
+		<Pane class="absolute top-2 right-2">
+			<details open>
+				<summary>controls</summary>
+				<Label>
+					shadow color
+					<input
+						type="color"
+						bind:value={shadowColor}
+					/>
+				</Label>
+			</details>
+		</Pane>
 
 		<canvas
 			class="w-full aspect-square"

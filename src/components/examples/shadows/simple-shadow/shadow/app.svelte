@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
-	import { createAttachment } from "./pane";
 
-	import { untrack } from "svelte";
+	import { Label, Pane } from "@components/controls";
+
 	import type { SvelteHTMLElements } from "svelte/elements";
 
 	let props: SvelteHTMLElements["div"] = $props();
@@ -11,25 +11,24 @@
 	let height = $state(1);
 
 	let shadowColor = $state("#ffffff");
-
-	const pane = createAttachment({
-		get shadowColor() {
-			return untrack(() => shadowColor);
-		},
-		set shadowColor(value) {
-			shadowColor = value;
-		},
-	});
 </script>
 
 <div
 	class="relative"
 	{...props}
 >
-	<div
-		class="absolute top-2 right-2 not-content"
-		{@attach pane}
-	></div>
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>controls</summary>
+			<Label>
+				shadow color
+				<input
+					type="color"
+					bind:value={shadowColor}
+				/>
+			</Label>
+		</details>
+	</Pane>
 	<canvas
 		bind:clientWidth={width}
 		bind:clientHeight={height}

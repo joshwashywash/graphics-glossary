@@ -12,11 +12,10 @@
 </script>
 
 <script lang="ts">
-	import { createAttachment } from "./pane";
+	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
-	import { untrack } from "svelte";
 	import {
 		BoxGeometry,
 		BufferGeometry,
@@ -106,27 +105,6 @@
 		}
 	});
 
-	const pane = createAttachment({
-		get outlineColor() {
-			return untrack(() => outlineColor);
-		},
-		set outlineColor(value) {
-			outlineColor = value;
-		},
-		get outlinesVisible() {
-			return untrack(() => outlinesVisible);
-		},
-		set outlinesVisible(value) {
-			outlinesVisible = value;
-		},
-		get outlineScale() {
-			return untrack(() => outlineScale);
-		},
-		set outlineScale(value) {
-			outlineScale = value;
-		},
-	});
-
 	let clientWidth = $state(1);
 	let clientHeight = $state(1);
 
@@ -134,10 +112,35 @@
 </script>
 
 <div class="relative">
-	<div
-		class="absolute top-2 right-2 not-content"
-		{@attach pane}
-	></div>
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>outlines</summary>
+			<Label>
+				visible
+				<input
+					type="checkbox"
+					bind:checked={outlinesVisible}
+				/>
+			</Label>
+			<Label>
+				color
+				<input
+					type="color"
+					bind:value={outlineColor}
+				/>
+			</Label>
+			<Label>
+				scale
+				<input
+					type="range"
+					bind:value={outlineScale}
+					min={1}
+					max={2}
+					step={0.1}
+				/>
+			</Label>
+		</details>
+	</Pane>
 
 	<canvas
 		class="w-full aspect-square"

@@ -10,12 +10,12 @@
 <script lang="ts">
 	import { ScreenQuadGeometry } from "./ScreenQuadGeometry";
 	import fragmentShader from "./fragment.glsl?raw";
-	import { createAttachment } from "./pane";
 	import vertexShader from "./vertex.glsl?raw";
+
+	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
-	import { untrack } from "svelte";
 	import {
 		AmbientLight,
 		Color,
@@ -54,9 +54,9 @@
 
 	const renderTarget = new WebGLRenderTarget();
 
+	const uAlpha = new Uniform(0.2);
 	const uScene = new Uniform(renderTarget.texture);
 	const uColor = new Uniform(new Color().setHSL(0.6, 1, 0.5));
-	const uAlpha = new Uniform(0.2);
 	const uniforms = {
 		uAlpha,
 		uColor,
@@ -84,30 +84,32 @@
 
 	let alpha = $state(0.3);
 	let color = $state("#ffccaa");
-
-	const params = {
-		get alpha() {
-			return untrack(() => alpha);
-		},
-		set alpha(value) {
-			alpha = value;
-		},
-		get color() {
-			return untrack(() => color);
-		},
-		set color(value) {
-			color = value;
-		},
-	};
-
-	const pane = createAttachment(params);
 </script>
 
 <div class="relative">
-	<div
-		class="absolute top-2 right-2 not-content"
-		{@attach pane}
-	></div>
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>uniforms</summary>
+			<Label>
+				color
+				<input
+					type="color"
+					bind:value={color}
+				/>
+			</Label>
+			<Label>
+				alpha
+				<input
+					type="range"
+					bind:value={alpha}
+					min={0.1}
+					max={1}
+					step={0.1}
+				/>
+			</Label>
+		</details>
+	</Pane>
+
 	<canvas
 		class="w-full aspect-square"
 		bind:clientWidth

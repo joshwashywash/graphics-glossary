@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { createAttachment } from "./pane";
+	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
-	import { untrack } from "svelte";
 	import {
 		CircleGeometry,
 		EqualStencilFunc,
@@ -68,15 +67,6 @@
 		invert ? NotEqualStencilFunc : EqualStencilFunc,
 	);
 
-	const pane = createAttachment({
-		get invert() {
-			return untrack(() => invert);
-		},
-		set invert(value) {
-			invert = value;
-		},
-	});
-
 	let clientWidth = $state(1);
 	let clientHeight = $state(1);
 
@@ -84,10 +74,18 @@
 </script>
 
 <div class="relative">
-	<div
-		class="absolute top-2 right-2 not-content"
-		{@attach pane}
-	></div>
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>mask</summary>
+			<Label>
+				invert
+				<input
+					type="checkbox"
+					bind:checked={invert}
+				/>
+			</Label>
+		</details>
+	</Pane>
 
 	<canvas
 		class="w-full aspect-square"

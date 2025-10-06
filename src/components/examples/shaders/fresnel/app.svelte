@@ -6,9 +6,9 @@
 </script>
 
 <script lang="ts">
-	import type { Uniforms } from "./FresnelMaterial";
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
-	import { createAttachment } from "./pane";
+
+	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
@@ -38,32 +38,9 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(5);
 
-	const createParams = (uniforms: Uniforms) => {
-		return {
-			get baseColor() {
-				return `#${uniforms.uBaseColor.value.getHexString()}`;
-			},
-			set baseColor(value) {
-				uniforms.uBaseColor.value.setStyle(value);
-			},
-			get fresnelColor() {
-				return `#${uniforms.uFresnelColor.value.getHexString()}`;
-			},
-			set fresnelColor(value) {
-				uniforms.uFresnelColor.value.setStyle(value);
-			},
-			get power() {
-				return uniforms.uPower.value;
-			},
-			set power(value: number) {
-				uniforms.uPower.value = value;
-			},
-		};
-	};
-
-	const params = createParams(uniforms);
-
-	const pane = createAttachment(params);
+	let baseColor = $state("#583583");
+	let fresnelColor = $state("#ccccaa");
+	let power = $state(1.5);
 
 	let clientWidth = $state(1);
 	let clientHeight = $state(1);
@@ -72,10 +49,35 @@
 </script>
 
 <div class="relative">
-	<div
-		class="absolute top-2 right-2 not-content"
-		{@attach pane}
-	></div>
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>uniforms</summary>
+			<Label>
+				base color
+				<input
+					type="color"
+					bind:value={baseColor}
+				/>
+			</Label>
+			<Label>
+				fresnel color
+				<input
+					type="color"
+					bind:value={fresnelColor}
+				/>
+			</Label>
+			<Label>
+				power
+				<input
+					type="range"
+					bind:value={power}
+					min={0}
+					max={3}
+					step={0.5}
+				/>
+			</Label>
+		</details>
+	</Pane>
 
 	<canvas
 		class="w-full aspect-square"
@@ -93,13 +95,23 @@
 
 			$effect(() => {
 				renderer.setSize(clientWidth, clientHeight, false);
-				render();
 			});
 
 			$effect(() => {
 				camera.aspect = aspect;
 				camera.updateProjectionMatrix();
-				render();
+			});
+
+			$effect(() => {
+				uniforms.uBaseColor.value.setStyle(baseColor);
+			});
+
+			$effect(() => {
+				uniforms.uFresnelColor.value.setStyle(fresnelColor);
+			});
+
+			$effect(() => {
+				uniforms.uPower.value = power;
 			});
 
 			renderer.setAnimationLoop(() => {
