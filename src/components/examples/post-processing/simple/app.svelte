@@ -5,16 +5,6 @@
 	const axis = new Vector3(-1, 1, -1).normalize();
 	const gltfLoader = new GLTFLoader();
 	const hdrLoader = new HDRLoader();
-
-	const gltf = gltfLoader.loadAsync("/models/vehicle-truck.glb");
-	const hdr = hdrLoader
-		.loadAsync("/hdrs/university_workshop_1k.hdr")
-		.then((hdr) => {
-			hdr.mapping = EquirectangularReflectionMapping;
-			return hdr;
-		});
-
-	const promises = Promise.all([gltf, hdr]);
 </script>
 
 <script lang="ts">
@@ -44,6 +34,16 @@
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 
 	let { alpha = 0.3, color = "#ffccaa" } = $props();
+
+	const gltf = gltfLoader.loadAsync("/models/vehicle-truck.glb");
+	const hdr = hdrLoader
+		.loadAsync("/hdrs/university_workshop_1k.hdr")
+		.then((hdr) => {
+			hdr.mapping = EquirectangularReflectionMapping;
+			return hdr;
+		});
+
+	const promises = Promise.all([gltf, hdr]);
 
 	let clientWidth = $state(1);
 	let clientHeight = $state(1);

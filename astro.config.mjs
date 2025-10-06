@@ -22,6 +22,12 @@ export default defineConfig({
 			},
 			sidebar: [
 				{
+					label: "Data Buffers",
+					autogenerate: {
+						directory: "data-buffers",
+					},
+				},
+				{
 					label: "Shaders",
 					autogenerate: {
 						directory: "shaders",
@@ -40,15 +46,9 @@ export default defineConfig({
 					},
 				},
 				{
-					label: "Data Buffers",
+					label: "Miscellaneous",
 					autogenerate: {
-						directory: "data-buffers",
-					},
-				},
-				{
-					label: "Post-Processing",
-					autogenerate: {
-						directory: "post-processing",
+						directory: "miscellaneous",
 					},
 				},
 			],
