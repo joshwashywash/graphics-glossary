@@ -5,12 +5,14 @@ import svelte from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 
-const site = "https://graphics-glossary.vercel.app";
+const site = "https://joshwashywash.github.io";
+const base = "/graphics-glossary";
 
-const repoURL = "https://github.com/joshwashywash/graphics-glossary";
+const repoURL = `https://github.com/joshwashywash${base}`;
 
 // https://astro.build/config
 export default defineConfig({
+	base,
 	integrations: [
 		starlight({
 			customCss: ["./src/styles/global.css"],
