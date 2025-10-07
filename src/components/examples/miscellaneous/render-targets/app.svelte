@@ -3,7 +3,7 @@
 	module
 >
 	const hdrLoader = new HDRLoader();
-	const axis = new Vector3(0, 0, 1).normalize();
+	const axis = new Vector3(1, 0, 1).normalize();
 </script>
 
 <script lang="ts">
@@ -72,12 +72,21 @@
 
 		const render = () => {
 			mesh.visible = false;
+
 			const last = renderer.getRenderTarget();
+
 			renderer.setRenderTarget(target);
 			renderer.render(scene, camera);
-			renderer.setRenderTarget(last);
+
 			mesh.visible = true;
+
+			const lastBlurriness = scene.backgroundBlurriness;
+			scene.backgroundBlurriness = 0.1;
+
+			renderer.setRenderTarget(last);
 			renderer.render(scene, camera);
+
+			scene.backgroundBlurriness = lastBlurriness;
 		};
 
 		hdr.then((hdr) => {

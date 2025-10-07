@@ -5,4 +5,96 @@ title: Render Targets
 
 import App from "@components/examples/miscellaneous/render-targets/app.svelte";
 
+A render target is a buffer that can be rendered to.
+
 <App client:only />
+
+By default the render target that a renderer uses is the canvas that is passed into its constructor.
+
+```ts
+const renderer = new WebGLRenderer({
+	canvas,
+});
+
+renderer.render(scene, camera); // render to the canvas
+```
+
+## Creating a Render Target
+
+You can create a render target to render the scene, or any other scene for that matter, to something other than the canvas.
+
+```ts
+const target = new WebGLRenderTarget(width, height);
+```
+
+:::note
+The target's width and height do not have to be the same as the canvas width and height. It really should depend on where and how you intend to use the target's texture.
+:::
+
+The target's size can be updated using the `setSize` method.
+
+```ts
+declare function getWidth(): number;
+declare function getHeight(): number;
+
+target.setSize(getWidth(), getHeight());
+```
+
+To draw the scene to the target, the renderer's target needs to be updated.
+
+```ts
+renderer.setRenderTarget(target);
+renderer.render(scene, camera); // render to the render target
+```
+
+When `setRenderTarget` is passed `null`, the target is set to the canvas.
+
+```ts
+renderer.setRenderTarget(null);
+```
+
+## Using the Target's Texture
+
+The render target's `texture` is just like any other texture and can be passed as input into three.js materials.
+
+```ts
+const material = new MeshBasicMaterial({
+	map: target.texture,
+});
+```
+
+If a mesh in the scene requires the target's texture for its material, you'll get a WebGL warning in the console. To mitigate this, you can temporarily hide the mesh, render the scene, then unhide the mesh and render again.
+
+```ts
+const render = () => {
+	mesh.visible = false;
+
+	const last = renderer.getRenderTarget();
+
+	renderer.setRenderTarget(target);
+	renderer.render(scene, camera);
+
+	mesh.visible = true;
+
+	renderer.setRenderTarget(last);
+	renderer.render(scene, camera);
+};
+```
+
+The texture can also be passed as a uniform into a custom shader. This makes it easy to do simple post-processing. See the [post-processing article](/techniques/03-post-processing) for more information.
+
+```ts
+const uSceneTexture = new Uniform(target.texture);
+
+const material = new RawShaderMaterial({
+	fragmentShader,
+	uniforms: {
+		uSceneTexture,
+	},
+	vertexShader,
+});
+```
+
+## Resources
+
+- [three.js render target docs](https://threejs.org/manual/#en/rendertargets)
