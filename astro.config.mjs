@@ -1,4 +1,5 @@
 // @ts-check
+import netlify from "@astrojs/netlify";
 import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
@@ -6,13 +7,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 
 const site = "https://joshwashywash.github.io";
-const base = "/graphics-glossary";
 
-const repoURL = `https://github.com/joshwashywash${base}`;
+const repoURL = `https://github.com/joshwashywash/graphics-glossary`;
 
 // https://astro.build/config
 export default defineConfig({
-	base,
 	integrations: [
 		starlight({
 			customCss: ["./src/styles/global.css"],
@@ -72,8 +71,13 @@ export default defineConfig({
 		}),
 		sitemap(),
 	],
+
 	site,
+
 	vite: {
 		plugins: [tailwindcss()],
 	},
+
+	adapter: netlify(),
 });
+
