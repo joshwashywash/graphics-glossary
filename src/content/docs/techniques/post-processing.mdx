@@ -8,12 +8,63 @@ title: Post-Processing
 this article is a work in progress
 :::
 
-Post-processing refers to effects that are applied to an image after rendering. Examples include tone-mapping, blurring, antialiasing, bloom effects, glitch effects, and many more. It typically involves rendering the scene to a render target and then using the target's texture as input to a separate fragment shader.
+Post-processing refers to effects that are applied to an image after rendering. Examples include tone-mapping, blurring, antialiasing, bloom effects, glitch effects, and many more. It typically involves rendering the scene to a [render target](/miscellaneous/render-targets) and then using the target's texture as input to a separate fragment shader.
 
 import App from "@components/examples/techniques/post-processing/simple/app.svelte";
+import Triangle from "@components/examples/techniques/post-processing/simple/triangle.svelte";
 
 <App client:only />
 
-Three.js provides many of these effects through its post-processing addon, however for simple effects that don't require multiple passes, using the addon might be excessive.
+Three.js provides many of these effects through its post-processing addon, however for simple effects that don't require multiple passes, using the addon might be excessive. This article will explain how to create a very simple post-processing flow tath utilizes a specific triangle that covers the entire canvas.
 
-Before explaining how to achieve a simple post-processing render pipeline, its worth explaining render targets and their usage.
+## Screen-Filling Triangle
+
+The main idea is to create a geometry that will cover the entire canvas. This could easily be achieved with two triangles but there's a clever trick that uses only single triangle to achieve the same result.
+
+<Triangle client:visible />
+
+Notice how the triangle's hypotenuse only touches the screen at the top left corner. Every fragment that is outside of the screen are discarded. Taking into consideration gl's clip space which ranges from -1 to 1 in all axes, one such triangle that covers the screen has vertices **-1,-1**, **3,-1**, and **3,-1**.
+
+We can create buffer attribute for such a triangle.
+
+```ts
+const vertices = new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]);
+const geometry = new BufferGeometry().setAttribute(
+	"position",
+	new BufferAttribute(vertices, 3),
+);
+```
+
+Notice that even though the triangle is a 2D object, we specify the vertices in 3D. This is because, three.js expects position attributes to be in sets of 3 and when it goes to compute the bounding sphere of the geometry, if the position attribute is not a multiple of 3, an error will be thrown.
+
+:::note
+The bounding sphere of a geometry is raycasting, frustrum culling, etc.
+:::
+
+Another way around this problem is to use a 2D set of vertices _and_ compute the bounding sphere ourselves. Doing it this way would skip over all the bounding sphere calculations.
+
+```ts
+const vertices = new Float32Array([-1, -1, 3, -1, -1, 3]);
+const geometry = new BufferGeometry().setAttribute(
+	"position",
+	new BufferAttribute(vertices, 2),
+);
+
+const center = new Vector3();
+geometry.boundingSphere = new Sphere().set(center, Infinity);
+```
+
+The 2D solution is probably preferred since the triangle mesh will always be visible and any ray that is cast into the scene will always hit it since it covers the entire canvas but I think there's also argument to be made that if three.js expects geometries a certain way, it's probably best to conform - that way there's no unintended side effects or errors further down the line.
+
+:::caution
+Whether you use the 3D or 2D version, make sure your shader attributes match, namely the **position** attribute.
+
+```glsl title="2D" mark="vec2"
+attribute vec2 position;
+```
+
+```glsl title="3D" mark="vec3"
+attribute vec3 position;
+```
+
+:::

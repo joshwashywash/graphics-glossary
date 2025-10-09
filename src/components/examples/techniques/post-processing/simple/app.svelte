@@ -8,7 +8,6 @@
 </script>
 
 <script lang="ts">
-	import { ScreenQuadGeometry } from "./ScreenQuadGeometry";
 	import fragmentShader from "./fragment.glsl?raw";
 	import vertexShader from "./vertex.glsl?raw";
 
@@ -17,8 +16,10 @@
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
+		BufferGeometry,
 		Color,
 		EquirectangularReflectionMapping,
+		Float32BufferAttribute,
 		Mesh,
 		OrthographicCamera,
 		PerspectiveCamera,
@@ -69,7 +70,14 @@
 		uScene,
 	};
 
-	const geometry = new ScreenQuadGeometry();
+	const geometry = new BufferGeometry().setAttribute(
+		"position",
+		new Float32BufferAttribute(
+			new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]),
+			3,
+		),
+	);
+
 	const material = new RawShaderMaterial({
 		fragmentShader,
 		uniforms,
