@@ -35,11 +35,9 @@
 
 	let { alpha = 0.3, color = "#ffccaa" } = $props();
 
-	const gltf = gltfLoader.loadAsync(
-		`${import.meta.env.BASE_URL}/models/vehicle-truck.glb`,
-	);
+	const gltf = gltfLoader.loadAsync(`/models/vehicle-truck.glb`);
 	const hdr = hdrLoader
-		.loadAsync(`${import.meta.env.BASE_URL}/hdrs/university_workshop_1k.hdr`)
+		.loadAsync("/hdrs/university_workshop_1k.hdr")
 		.then((hdr) => {
 			hdr.mapping = EquirectangularReflectionMapping;
 			return hdr;

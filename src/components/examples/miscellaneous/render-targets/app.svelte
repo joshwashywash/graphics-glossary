@@ -25,7 +25,7 @@
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 
 	const hdr = hdrLoader
-		.loadAsync(`${import.meta.env.BASE_URL}/hdrs/university_workshop_1k.hdr`)
+		.loadAsync("/hdrs/university_workshop_1k.hdr")
 		.then((hdr) => {
 			hdr.mapping = EquirectangularReflectionMapping;
 			return hdr;
