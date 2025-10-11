@@ -4,6 +4,7 @@
 >
 	const hdrLoader = new HDRLoader();
 	const axis = new Vector3(1, 0, 1).normalize();
+	const backgroundBlurriness = 0.1;
 </script>
 
 <script lang="ts">
@@ -81,7 +82,7 @@
 			mesh.visible = true;
 
 			const lastBlurriness = scene.backgroundBlurriness;
-			scene.backgroundBlurriness = 0.1;
+			scene.backgroundBlurriness = backgroundBlurriness;
 
 			renderer.setRenderTarget(last);
 			renderer.render(scene, camera);
