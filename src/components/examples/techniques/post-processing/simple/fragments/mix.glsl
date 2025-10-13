@@ -7,6 +7,6 @@ uniform sampler2D uScene;
 varying vec2 vUv;
 
 void main() {
-	vec3 color = mix(texture2D(uScene, vUv).xyz, uColor, uAlpha);
-	gl_FragColor = vec4(color, 1.0);
+	vec4 color = vec4(uColor, 1.0);
+	gl_FragColor = mix(texture2D(uScene, vUv), color, uAlpha);
 }

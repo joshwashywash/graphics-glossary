@@ -8,9 +8,13 @@ title: Post-Processing
 this article is a work in progress
 :::
 
-Post-processing refers to effects that are applied to an image after rendering. Examples include tone-mapping, blurring, antialiasing, bloom effects, glitch effects, and many more. It typically involves rendering the scene to a [render target](/miscellaneous/render-targets) and then using the target's texture as input to a separate fragment shader.
+Post-processing refers to effects that are applied to an image after rendering. Examples include tone-mapping, blurring, antialiasing, bloom effects, glitch effects, and many more. It typically involves rendering the scene to a [ender target](/miscellaneous/render-targets) and then using the target's texture as input to a separate fragment shader.
 
 import App from "@components/examples/techniques/post-processing/simple/app.svelte";
+import fragmentCodeSimple from "@components/examples/techniques/post-processing/simple/fragments/simple.glsl?raw";
+import vertexCode from "@components/examples/techniques/post-processing/simple/vertex.glsl?raw";
+
+import { Code } from "@astrojs/starlight/components";
 
 <App client:only />
 
@@ -66,6 +70,66 @@ attribute vec2 position;
 
 ```glsl title="3D" mark="vec3"
 attribute vec3 position;
+```
+
+:::
+
+## Shaders
+
+The scene is rendered into a render target whose texture is then sent into a custom fragment shader. The uv coordinates of the geometry are calculated in the vertex shader and sent over to the fragment shader to use as an index into the texture.
+
+The uvs needs to range from -1 to 1. Mapping the position attribute to this range is a fairly simple conversion.
+
+<Code
+	title="vertex.glsl"
+	lang="glsl"
+	code={vertexCode}
+/>
+
+In the fragment shader the uvs are used to index into the texture. Remember, the texture is a rendering of the scene.
+
+<Code
+	title="fragment.glsl"
+	lang="glsl"
+	code={fragmentCodeSimple}
+/>
+
+## Putting it All Together
+
+Over on the javascript/typescript side, all of these pieces come together like so:
+
+```ts
+const geometry = createScreenTriangleGeometry();
+
+const material = new RawShaderMaterial({
+	fragmentShader,
+	uniforms,
+	vertexShader,
+});
+
+const mesh = new Mesh(geometry, material);
+
+mesh.frustrumCulled = false;
+```
+
+The mesh doesn't need to be frustrum culled because it is always visible.
+
+## Rendering
+
+:::tip[todo]
+add content about rendering to the target then rendering the scene to the canvas
+
+```ts
+const ppScene = new Scene().add(mesh);
+const ppCamera = new OrthographicCamera();
+
+const render = () => {
+	const last = renderer.getRenderTarget();
+	renderer.setRenderTarget(renderTarget);
+	renderer.render(scene, camera);
+	renderer.setRenderTarget(last);
+	renderer.render(ppScene, ppCamera);
+};
 ```
 
 :::

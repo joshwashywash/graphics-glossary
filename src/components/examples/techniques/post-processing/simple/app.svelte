@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-	import fragmentShader from "./fragment.glsl?raw";
+	import fragmentShader from "./fragments/mix.glsl?raw";
 	import vertexShader from "./vertex.glsl?raw";
 
 	import { Label, Pane } from "@components/controls";
