@@ -1,5 +1,3 @@
-precision highp float;
-
 uniform sampler2D uScene;
 
 varying vec2 vUv;

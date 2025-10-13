@@ -1,5 +1,3 @@
-precision highp float;
-
 uniform float uAlpha;
 uniform vec3 uColor;
 uniform sampler2D uScene;

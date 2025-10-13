@@ -16,15 +16,11 @@
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
-		BufferGeometry,
 		Color,
 		EquirectangularReflectionMapping,
-		Float32BufferAttribute,
-		Mesh,
-		OrthographicCamera,
 		PerspectiveCamera,
-		RawShaderMaterial,
 		Scene,
+		ShaderMaterial,
 		Uniform,
 		Vector3,
 		WebGLRenderTarget,
@@ -33,6 +29,7 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
+	import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass.js";
 
 	let { alpha = 0.3, color = "#ffccaa" } = $props();
 
@@ -53,7 +50,7 @@
 	const scene = new Scene();
 
 	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(axis, 3);
+	camera.translateOnAxis(axis, 2);
 	camera.lookAt(scene.position);
 
 	const controls = new OrbitControls(camera);
@@ -70,31 +67,19 @@
 		uScene,
 	};
 
-	const geometry = new BufferGeometry().setAttribute(
-		"position",
-		new Float32BufferAttribute(
-			new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]),
-			3,
-		),
-	);
-
-	const material = new RawShaderMaterial({
+	const material = new ShaderMaterial({
 		fragmentShader,
 		uniforms,
 		vertexShader,
 	});
 
+	const quad = new FullScreenQuad(material);
+
 	onCleanup(() => {
-		geometry.dispose();
 		material.dispose();
+		quad.dispose();
 		renderTarget.dispose();
 	});
-
-	const mesh = new Mesh(geometry, material);
-	mesh.frustumCulled = false;
-
-	const ppScene = new Scene().add(mesh);
-	const ppCamera = new OrthographicCamera();
 </script>
 
 <div class="relative">
@@ -136,7 +121,7 @@
 				renderer.setRenderTarget(renderTarget);
 				renderer.render(scene, camera);
 				renderer.setRenderTarget(last);
-				renderer.render(ppScene, ppCamera);
+				quad.render(renderer);
 			};
 
 			$effect(() => {
