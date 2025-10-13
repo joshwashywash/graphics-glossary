@@ -41,35 +41,30 @@
 			return hdr;
 		});
 
-	const promises = Promise.all([gltf, hdr]);
-
 	let clientWidth = $state(1);
 	let clientHeight = $state(1);
 	const aspect = $derived(clientWidth / clientHeight);
 
 	const scene = new Scene();
 
-	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(axis, 2);
+	const camera = new PerspectiveCamera().translateOnAxis(axis, 2);
 	camera.lookAt(scene.position);
 
 	const controls = new OrbitControls(camera);
 
-	const renderTarget = new WebGLRenderTarget();
+	const renderTarget = new WebGLRenderTarget(1, 1);
 
 	const uAlpha = new Uniform(0);
 	const uColor = new Uniform(new Color());
 	const uScene = new Uniform(renderTarget.texture);
 
-	const uniforms = {
-		uAlpha,
-		uColor,
-		uScene,
-	};
-
 	const material = new ShaderMaterial({
 		fragmentShader,
-		uniforms,
+		uniforms: {
+			uAlpha,
+			uColor,
+			uScene,
+		},
 		vertexShader,
 	});
 
@@ -136,6 +131,7 @@
 
 			$effect(() => {
 				camera.aspect = aspect;
+				camera.updateProjectionMatrix();
 				render();
 			});
 
@@ -149,12 +145,14 @@
 				render();
 			});
 
-			promises.then(([gltf, hdr]) => {
+			gltf.then((gltf) => {
 				scene.add(gltf.scene);
+				render();
+			});
 
+			hdr.then((hdr) => {
 				scene.background = hdr;
 				scene.environment = hdr;
-
 				render();
 			});
 
