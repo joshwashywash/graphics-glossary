@@ -31,7 +31,7 @@
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass.js";
 
-	let { alpha = 0.3, color = "#ffccaa" } = $props();
+	let { alpha = 0.3, color1 = "#272838", color2 = "#f3de8a" } = $props();
 
 	const gltf = gltfLoader.loadAsync(`/models/vehicle-truck.glb`);
 	const hdr = hdrLoader
@@ -55,15 +55,19 @@
 	const renderTarget = new WebGLRenderTarget(1, 1);
 
 	const uAlpha = new Uniform(0);
-	const uColor = new Uniform(new Color());
+	const uColor1 = new Uniform(new Color());
+	const uColor2 = new Uniform(new Color().set(1.0, 1.0, 1.0));
 	const uScene = new Uniform(renderTarget.texture);
+	const uTimeMs = new Uniform(0);
 
 	const material = new ShaderMaterial({
 		fragmentShader,
 		uniforms: {
 			uAlpha,
-			uColor,
+			uColor1,
+			uColor2,
 			uScene,
+			uTimeMs,
 		},
 		vertexShader,
 	});
@@ -82,10 +86,17 @@
 		<details open>
 			<summary>uniforms</summary>
 			<Label>
-				color
+				color 1
 				<input
 					type="color"
-					bind:value={color}
+					bind:value={color1}
+				/>
+			</Label>
+			<Label>
+				color 2
+				<input
+					type="color"
+					bind:value={color2}
 				/>
 			</Label>
 			<Label>
@@ -141,7 +152,12 @@
 			});
 
 			$effect(() => {
-				uColor.value.setStyle(color);
+				uColor1.value.setStyle(color1);
+				render();
+			});
+
+			$effect(() => {
+				uColor2.value.setStyle(color2);
 				render();
 			});
 
@@ -159,9 +175,15 @@
 			controls.addEventListener("change", render);
 			controls.connect(renderer.domElement);
 
+			renderer.setAnimationLoop((time) => {
+				uTimeMs.value = time;
+				render();
+			});
+
 			return () => {
 				controls.removeEventListener("change", render);
 				controls.disconnect();
+				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
 		}}
