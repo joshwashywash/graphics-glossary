@@ -56,7 +56,7 @@
 
 	const uAlpha = new Uniform(0);
 	const uColor1 = new Uniform(new Color());
-	const uColor2 = new Uniform(new Color().set(1.0, 1.0, 1.0));
+	const uColor2 = new Uniform(new Color());
 	const uScene = new Uniform(renderTarget.texture);
 	const uTimeMs = new Uniform(0);
 
@@ -152,12 +152,12 @@
 			});
 
 			$effect(() => {
-				uColor1.value.setStyle(color1);
+				uColor1.value.set(color1);
 				render();
 			});
 
 			$effect(() => {
-				uColor2.value.setStyle(color2);
+				uColor2.value.set(color2);
 				render();
 			});
 
