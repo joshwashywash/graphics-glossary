@@ -7,7 +7,7 @@
 <div
 	{...props}
 	class={[
-		"py-1 bg-black/90 px-4 rounded-lg not-content w-3xs sm:w-2xs md:w-xs",
+		"py-1 bg-black/90 px-4 rounded-lg not-content min-w-3xs sm:mi-w-2xs md:min-w-xs",
 		props.class,
 	]}
 >

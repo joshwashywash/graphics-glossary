@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts">
+	import { Size } from "@classes/size.svelte";
+
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
@@ -84,16 +86,13 @@
 	);
 	camera.lookAt(scene.position);
 
-	let clientWidth = $state(1);
-	let clientHeight = $state(1);
-
-	const aspect = $derived(clientWidth / clientHeight);
+	const canvasSize = new Size();
 </script>
 
 <canvas
 	class="w-full aspect-square"
-	bind:clientWidth
-	bind:clientHeight
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
 		const renderer = new WebGLRenderer({
 			antialias: true,
@@ -106,12 +105,12 @@
 		};
 
 		$effect(() => {
-			renderer.setSize(clientWidth, clientHeight, false);
+			renderer.setSize(canvasSize.width, canvasSize.height, false);
 			render();
 		});
 
 		$effect(() => {
-			camera.aspect = aspect;
+			camera.aspect = canvasSize.aspect;
 			camera.updateProjectionMatrix();
 			render();
 		});

@@ -11,6 +11,8 @@
 	import fragmentShader from "./fragments/mix.glsl?raw";
 	import vertexShader from "./vertex.glsl?raw";
 
+	import { Size } from "@classes/size.svelte";
+
 	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
@@ -40,10 +42,6 @@
 			hdr.mapping = EquirectangularReflectionMapping;
 			return hdr;
 		});
-
-	let clientWidth = $state(1);
-	let clientHeight = $state(1);
-	const aspect = $derived(clientWidth / clientHeight);
 
 	const scene = new Scene();
 
@@ -79,6 +77,8 @@
 		quad.dispose();
 		renderTarget.dispose();
 	});
+
+	const canvasSize = new Size();
 </script>
 
 <div class="relative">
@@ -114,8 +114,8 @@
 
 	<canvas
 		class="w-full aspect-square"
-		bind:clientWidth
-		bind:clientHeight
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
 				antialias: true,
@@ -131,17 +131,17 @@
 			};
 
 			$effect(() => {
-				renderTarget.setSize(clientWidth, clientHeight);
+				renderTarget.setSize(canvasSize.width, canvasSize.height);
 				render();
 			});
 
 			$effect(() => {
-				renderer.setSize(clientWidth, clientHeight, false);
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
 				render();
 			});
 
 			$effect(() => {
-				camera.aspect = aspect;
+				camera.aspect = canvasSize.aspect;
 				camera.updateProjectionMatrix();
 				render();
 			});

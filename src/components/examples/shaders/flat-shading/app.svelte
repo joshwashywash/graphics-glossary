@@ -1,11 +1,8 @@
-<script
-	lang="ts"
-	module
->
-	const rotationAmount = (1 / 180) * Math.PI;
-</script>
-
 <script lang="ts">
+	import { Size } from "@classes/size.svelte";
+
+	import { Label, Pane } from "@components/controls";
+
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
@@ -16,6 +13,10 @@
 		TorusKnotGeometry,
 		WebGLRenderer,
 	} from "three";
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
+
+	let degrees = $state(1);
+	const radians = $derived(DEG2RAD * degrees);
 
 	const distance = 5;
 	const halfDistance = 0.5 * distance;
@@ -45,48 +46,70 @@
 	const camera = new PerspectiveCamera();
 	camera.translateZ(10);
 
-	let clientWidth = $state(1);
-	let clientHeight = $state(1);
-
-	const aspect = $derived(clientWidth / clientHeight);
+	const canvasSize = new Size();
 </script>
 
-<canvas
-	class="w-full aspect-square"
-	bind:clientWidth
-	bind:clientHeight
-	{@attach (canvas) => {
-		const renderer = new WebGLRenderer({
-			antialias: true,
-			canvas,
-		});
+<div class="relative">
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>scene</summary>
+			<Label>
+				<span>mesh rotation degrees</span>
+				<input
+					type="range"
+					bind:value={degrees}
+					min={0}
+					max={5}
+					step={1}
+				/>
+			</Label>
+		</details>
+	</Pane>
 
-		const render = () => {
-			renderer.render(scene, camera);
-		};
+	<canvas
+		class="w-full aspect-square"
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+			});
 
-		$effect(() => {
-			renderer.setSize(clientWidth, clientHeight, false);
-			render();
-		});
+			const render = () => {
+				renderer.render(scene, camera);
+			};
 
-		$effect(() => {
-			camera.aspect = aspect;
-			camera.updateProjectionMatrix();
-			render();
-		});
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				render();
+			});
 
-		renderer.setAnimationLoop(() => {
-			for (const mesh of meshes) {
-				mesh.rotateY(rotationAmount);
-			}
-			render();
-		});
+			$effect(() => {
+				camera.aspect = canvasSize.aspect;
+				camera.updateProjectionMatrix();
+				render();
+			});
 
-		return () => {
-			renderer.setAnimationLoop(null);
-			renderer.dispose();
-		};
-	}}
->
-</canvas>
+			$effect(() => {
+				if (radians <= 0) return;
+
+				renderer.setAnimationLoop(() => {
+					for (const mesh of meshes) {
+						mesh.rotateY(radians);
+					}
+					render();
+				});
+
+				return () => {
+					renderer.setAnimationLoop(null);
+				};
+			});
+
+			return () => {
+				renderer.dispose();
+			};
+		}}
+	>
+	</canvas>
+</div>
