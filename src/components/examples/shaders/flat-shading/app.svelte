@@ -17,6 +17,7 @@
 
 	let degrees = $state(1);
 	const radians = $derived(DEG2RAD * degrees);
+	const radiansIsPositive = $derived(radians > 0);
 
 	const distance = 5;
 	const halfDistance = 0.5 * distance;
@@ -54,7 +55,7 @@
 		<details open>
 			<summary>scene</summary>
 			<Label>
-				<span>mesh rotation degrees</span>
+				rotation speed
 				<input
 					type="range"
 					bind:value={degrees}
@@ -92,7 +93,7 @@
 			});
 
 			$effect(() => {
-				if (radians <= 0) return;
+				if (!radiansIsPositive) return;
 
 				renderer.setAnimationLoop(() => {
 					for (const mesh of meshes) {
