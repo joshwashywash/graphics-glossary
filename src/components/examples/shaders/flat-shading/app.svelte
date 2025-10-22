@@ -48,6 +48,8 @@
 	camera.translateZ(10);
 
 	const canvasSize = new Size();
+
+	let animationLoop: null | (() => void) = null;
 </script>
 
 <div class="relative">
@@ -81,29 +83,37 @@
 				renderer.render(scene, camera);
 			};
 
+			const renderIfNotAnimating = () => {
+				if (animationLoop === null) {
+					render();
+				}
+			};
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				render();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				camera.aspect = canvasSize.aspect;
 				camera.updateProjectionMatrix();
-				render();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				if (!radiansIsPositive) return;
 
-				renderer.setAnimationLoop(() => {
-					for (const mesh of meshes) {
-						mesh.rotateY(radians);
-					}
-					render();
-				});
+				renderer.setAnimationLoop(
+					(animationLoop = () => {
+						for (const mesh of meshes) {
+							mesh.rotateY(radians);
+						}
+						render();
+					}),
+				);
 
 				return () => {
-					renderer.setAnimationLoop(null);
+					renderer.setAnimationLoop((animationLoop = null));
 				};
 			});
 
