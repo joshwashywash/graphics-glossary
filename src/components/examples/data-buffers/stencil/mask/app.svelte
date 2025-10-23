@@ -70,6 +70,13 @@
 	);
 
 	const canvasSize = new Size();
+
+	const controls = new TransformControls(camera);
+	controls.showZ = false;
+	controls.attach(group);
+
+	const helper = controls.getHelper();
+	scene.add(helper);
 </script>
 
 <div class="relative">
@@ -117,17 +124,10 @@
 				render();
 			});
 
-			const controls = new TransformControls(camera, renderer.domElement);
-			controls.showZ = false;
-			controls.attach(group);
-
+			controls.connect(renderer.domElement);
 			controls.addEventListener("change", render);
 
-			const helper = controls.getHelper();
-			scene.add(helper);
-
 			return () => {
-				scene.remove(helper);
 				controls.removeEventListener("change", render);
 				controls.detach().dispose();
 				renderer.dispose();
