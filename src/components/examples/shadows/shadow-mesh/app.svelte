@@ -4,12 +4,12 @@
 >
 	const yHat = new Vector3(0, 1, 0);
 	const translationAxis = new Vector3();
-
-	const rotationAmount = (1 / 180) * Math.PI;
 </script>
 
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
+
+	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
@@ -30,6 +30,11 @@
 		WebGLRenderer,
 	} from "three";
 	import { ShadowMesh } from "three/examples/jsm/objects/ShadowMesh.js";
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
+
+	let degrees = $state(1);
+	const radians = $derived(DEG2RAD * degrees);
+	const radiansIsPositive = $derived(radians > 0);
 
 	const geometry = new TorusKnotGeometry();
 	const material = new MeshNormalMaterial();
@@ -87,46 +92,79 @@
 	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
+
+	let animationLoop: null | (() => void) = null;
 </script>
 
-<canvas
-	class="w-full aspect-square"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
-	{@attach (canvas) => {
-		const renderer = new WebGLRenderer({
-			antialias: true,
-			canvas,
-			stencil: true,
-		});
+<div class="relative">
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>shadow mesh scene controls</summary>
+			<Label>
+				mesh rotation speed
+				<input
+					type="range"
+					bind:value={degrees}
+					min={0}
+					max={5}
+					step={1}
+				/>
+			</Label>
+		</details>
+	</Pane>
 
-		const render = () => {
-			renderer.render(scene, camera);
-		};
+	<canvas
+		class="w-full aspect-square"
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+				stencil: true,
+			});
 
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			render();
-		});
+			const render = () => {
+				renderer.render(scene, camera);
+			};
 
-		$effect(() => {
-			camera.aspect = canvasSize.aspect;
-			camera.updateProjectionMatrix();
-			render();
-		});
+			const renderIfNotLooping = () => {
+				if (animationLoop === null) render();
+			};
 
-		renderer.setAnimationLoop(() => {
-			mesh.rotateY(rotationAmount);
-			shadowMesh.update(plane, lightPosition4D);
-			renderer.render(scene, camera);
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				renderIfNotLooping();
+			});
 
-			render();
-		});
+			$effect(() => {
+				camera.aspect = canvasSize.aspect;
+				camera.updateProjectionMatrix();
+				renderIfNotLooping();
+			});
 
-		return () => {
-			renderer.setAnimationLoop(null);
-			renderer.dispose();
-		};
-	}}
->
-</canvas>
+			$effect(() => {
+				if (!radiansIsPositive) return;
+
+				renderer.setAnimationLoop(
+					(animationLoop = () => {
+						mesh.rotateY(radians);
+						shadowMesh.update(plane, lightPosition4D);
+						renderer.render(scene, camera);
+
+						render();
+					}),
+				);
+
+				return () => {
+					renderer.setAnimationLoop((animationLoop = null));
+				};
+			});
+
+			return () => {
+				renderer.dispose();
+			};
+		}}
+	>
+	</canvas>
+</div>

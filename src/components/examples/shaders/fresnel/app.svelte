@@ -1,10 +1,3 @@
-<script
-	lang="ts"
-	module
->
-	const rotationAmount = (1 / 180) * Math.PI;
-</script>
-
 <script lang="ts">
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 
@@ -21,6 +14,11 @@
 		TorusKnotGeometry,
 		WebGLRenderer,
 	} from "three";
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
+
+	let degrees = $state(1);
+	const radians = $derived(DEG2RAD * degrees);
+	const radiansIsPositive = $derived(radians > 0);
 
 	const uniforms = createUniforms();
 
@@ -45,12 +43,14 @@
 	let power = $state(1.5);
 
 	const canvasSize = new Size();
+
+	let animationLoop: null | (() => void) = null;
 </script>
 
 <div class="relative">
 	<Pane class="absolute top-2 right-2">
 		<details open>
-			<summary>uniforms</summary>
+			<summary>fresnel scene controls</summary>
 			<Label>
 				base color
 				<input
@@ -75,6 +75,16 @@
 					step={0.5}
 				/>
 			</Label>
+			<Label>
+				mesh rotation speed
+				<input
+					type="range"
+					bind:value={degrees}
+					min={0}
+					max={5}
+					step={1}
+				/>
+			</Label>
 		</details>
 	</Pane>
 
@@ -92,6 +102,10 @@
 				renderer.render(scene, camera);
 			};
 
+			const renderIfNotLooping = () => {
+				if (animationLoop === null) render();
+			};
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
 			});
@@ -99,27 +113,40 @@
 			$effect(() => {
 				camera.aspect = canvasSize.aspect;
 				camera.updateProjectionMatrix();
+				renderIfNotLooping();
 			});
 
 			$effect(() => {
 				uniforms.uBaseColor.value.setStyle(baseColor);
+				renderIfNotLooping();
 			});
 
 			$effect(() => {
 				uniforms.uFresnelColor.value.setStyle(fresnelColor);
+				renderIfNotLooping();
 			});
 
 			$effect(() => {
 				uniforms.uPower.value = power;
+				renderIfNotLooping();
 			});
 
-			renderer.setAnimationLoop(() => {
-				mesh.rotateY(rotationAmount);
-				render();
+			$effect(() => {
+				if (!radiansIsPositive) return;
+
+				renderer.setAnimationLoop(
+					(animationLoop = () => {
+						mesh.rotateY(radians);
+						render();
+					}),
+				);
+
+				return () => {
+					renderer.setAnimationLoop((animationLoop = null));
+				};
 			});
 
 			return () => {
-				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
 		}}

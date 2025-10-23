@@ -7,7 +7,6 @@
 	const kHat = new Vector3(0, 0, 1);
 	const axis = new Vector3(1, 0, 0);
 
-	const rotationAmount = (1 / 180) * Math.PI;
 	const initialOutlineScale = 1.1;
 </script>
 
@@ -34,6 +33,7 @@
 		Vector3,
 		WebGLRenderer,
 	} from "three";
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
 
 	const stencilRef = 1;
 
@@ -89,25 +89,15 @@
 	camera.lookAt(scene.position);
 
 	let outlinesVisible = $state(true);
-	$effect(() => {
-		for (const outlineMesh of outlineMeshes) {
-			outlineMesh.visible = outlinesVisible;
-		}
-	});
-
-	let outlineColor = $state("#ffffff");
-	$effect(() => {
-		outlineMaterial.color.setStyle(outlineColor);
-	});
-
 	let outlineScale = $state(initialOutlineScale);
-	$effect(() => {
-		for (const mesh of outlineMeshes) {
-			mesh.scale.setScalar(outlineScale);
-		}
-	});
+	let outlineColor = $state("#ffffff");
+	let degrees = $state(1);
+	let radians = $derived(DEG2RAD * degrees);
+	const radiansIsPositive = $derived(radians > 0);
 
 	const canvasSize = new Size();
+
+	let animationLoop: null | (() => void) = null;
 </script>
 
 <div class="relative">
@@ -138,6 +128,16 @@
 					step={0.1}
 				/>
 			</Label>
+			<Label>
+				mesh rotation speed
+				<input
+					type="range"
+					bind:value={degrees}
+					min={0}
+					max={5}
+					step={1}
+				/>
+			</Label>
 		</details>
 	</Pane>
 
@@ -156,26 +156,58 @@
 				renderer.render(scene, camera);
 			};
 
+			const renderIfNotLooping = () => {
+				if (animationLoop === null) render();
+			};
+
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				render();
+				renderIfNotLooping();
 			});
 
 			$effect(() => {
 				camera.aspect = canvasSize.aspect;
 				camera.updateProjectionMatrix();
-				render();
+				renderIfNotLooping();
 			});
 
-			renderer.setAnimationLoop(() => {
-				for (const group of groups) {
-					group.rotateY(rotationAmount);
+			$effect(() => {
+				for (const outlineMesh of outlineMeshes) {
+					outlineMesh.visible = outlinesVisible;
 				}
-				render();
+				renderIfNotLooping();
+			});
+
+			$effect(() => {
+				outlineMaterial.color.setStyle(outlineColor);
+				renderIfNotLooping();
+			});
+
+			$effect(() => {
+				for (const mesh of outlineMeshes) {
+					mesh.scale.setScalar(outlineScale);
+				}
+				renderIfNotLooping();
+			});
+
+			$effect(() => {
+				if (!radiansIsPositive) return;
+
+				renderer.setAnimationLoop(
+					(animationLoop = () => {
+						for (const group of groups) {
+							group.rotateY(radians);
+						}
+						render();
+					}),
+				);
+
+				return () => {
+					renderer.setAnimationLoop((animationLoop = null));
+				};
 			});
 
 			return () => {
-				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
 		}}
