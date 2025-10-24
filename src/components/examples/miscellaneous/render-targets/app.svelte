@@ -11,6 +11,7 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
 		DoubleSide,
@@ -106,8 +107,7 @@
 		});
 
 		$effect(() => {
-			camera.aspect = canvasSize.aspect;
-			camera.updateProjectionMatrix();
+			updateCameraAspect(camera, canvasSize.aspect);
 			render();
 		});
 

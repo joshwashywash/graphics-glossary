@@ -13,6 +13,7 @@
 	import { Label, Pane } from "@components/controls";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
 		Mesh,
@@ -91,8 +92,7 @@
 			});
 
 			$effect(() => {
-				camera.aspect = canvasSize.aspect;
-				camera.updateProjectionMatrix();
+				updateCameraAspect(camera, canvasSize.aspect);
 				renderIfNotLooping();
 			});
 

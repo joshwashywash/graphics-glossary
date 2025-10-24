@@ -31,6 +31,7 @@
 
 	import { loadImage } from "@functions/loadImage";
 	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
 		BoxGeometry,
@@ -148,8 +149,7 @@
 		});
 
 		$effect(() => {
-			camera.aspect = canvasSize.aspect;
-			camera.updateProjectionMatrix();
+			updateCameraAspect(camera, canvasSize.aspect);
 			render();
 		});
 
