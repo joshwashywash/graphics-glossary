@@ -1,6 +1,7 @@
 import { BoxGeometry, Matrix4, Vector3 } from "three";
 
-const _matrix = new Matrix4().makeTranslation(new Vector3().setScalar(0.5));
+const _translation = new Vector3().setScalar(0.5);
+const _matrix = new Matrix4().makeTranslation(_translation);
 
 export class VertexColorsBoxGeometry extends BoxGeometry {
 	constructor(matrix = _matrix) {
