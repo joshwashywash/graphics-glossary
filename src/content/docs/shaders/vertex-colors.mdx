@@ -61,12 +61,10 @@ Before PBR graphics, vertex coloring was often used to add depth to a scene's co
 	</TabItem>
 </Tabs>
 
-Notice that the vertex color data is used mostly a gradient to add a bit of depth to the colors of the scene, for example around the surfboard, butterfree's wings, and the flowers. Interesting, the water's vertex color is not grayscale and is probably used differently in its material.
-
-A simple way to combine texture data and vertex color data in this way is to simply multiply the texture color by the vertex data color, essentially interpolating the texture color by the vertex color data where a vertex color value of **0** maps to black and a value of **1** maps to the texture color. In this case, the vertex color data is assumed be in the interval **[0, 1]**and consists of a single float per vertex. If your buffer attribute resembles three.js's color class which consists of 3 number, r, g, and b, you should make sure that each channel is the same.
+Notice that the vertex color data is used to add a bit of darkness to the corners of the scene, for example around the surfboard, butterfree's wings, and the flowers. The gradients form because buffer attributes are interpolated. Interestingly, the water's vertex color is used to give a sense of where the water isn't as deep such as along the shoreline.
 
 :::tip[todo]
-example with a grayscale color attribute and the fragment shader simply multiplies the texture data with the vertex color data
+example using a texture and vertex colors
 :::
 
 ## Resources
