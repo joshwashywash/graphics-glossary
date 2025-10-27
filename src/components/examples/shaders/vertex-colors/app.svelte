@@ -54,7 +54,7 @@
 <div class="relative">
 	<Pane class="absolute top-2 right-2">
 		<details open>
-			<summary>scene</summary>
+			<summary>vertex colors</summary>
 			<Label>
 				rotation speed
 				<input
