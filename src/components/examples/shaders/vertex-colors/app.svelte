@@ -3,11 +3,11 @@
 	lang="ts"
 >
 	const axis = new Vector3(1, 1, -1).normalize();
+
+	const matrix = new Matrix4().makeTranslation(new Vector3().setScalar(0.5));
 </script>
 
 <script lang="ts">
-	import { VertexColorsBoxGeometry } from "./VertexColorsBoxGeometry";
-
 	import { Size } from "@classes/size.svelte";
 
 	import { Label, Pane } from "@components/controls";
@@ -16,6 +16,8 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
+		BoxGeometry,
+		Matrix4,
 		Mesh,
 		MeshBasicMaterial,
 		PerspectiveCamera,
@@ -29,7 +31,12 @@
 	const radians = $derived(DEG2RAD * degrees);
 	const radiansIsPositive = $derived(radians > 0);
 
-	const geometry = new VertexColorsBoxGeometry();
+	const geometry = new BoxGeometry();
+	const positionAttribute = geometry.getAttribute("position");
+
+	const colorAttribute = positionAttribute.clone().applyMatrix4(matrix);
+	geometry.setAttribute("color", colorAttribute);
+
 	const material = new MeshBasicMaterial({
 		vertexColors: true,
 	});
