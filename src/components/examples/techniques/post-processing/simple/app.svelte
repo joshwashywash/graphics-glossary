@@ -3,7 +3,6 @@
 	module
 >
 	const axis = new Vector3(-1, 1, -1).normalize();
-	const gltfLoader = new GLTFLoader();
 	const hdrLoader = new HDRLoader();
 </script>
 
@@ -15,12 +14,15 @@
 
 	import { Label, Pane } from "@components/controls";
 
+	import { createSphubeFunc } from "@functions/createSphubeFunc";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
 		Color,
 		EquirectangularReflectionMapping,
+		Mesh,
+		MeshStandardMaterial,
 		PerspectiveCamera,
 		Scene,
 		ShaderMaterial,
@@ -29,24 +31,38 @@
 		WebGLRenderTarget,
 		WebGLRenderer,
 	} from "three";
+	import { ParametricGeometry } from "three/examples/jsm/Addons.js";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-	import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass.js";
 
-	let { alpha = 0.3, color1 = "#272838", color2 = "#f3de8a" } = $props();
+	type Props = {
+		alpha: number;
+		color1: string;
+		color2: string;
+	};
 
-	const gltf = gltfLoader.loadAsync(`/models/vehicle-truck.glb`);
+	let {
+		alpha = 0.3,
+		color1 = "#272838",
+		color2 = "#f3de8a",
+	}: Partial<Props> = $props();
+
 	const hdr = hdrLoader
 		.loadAsync("/hdrs/university_workshop_1k.hdr")
 		.then((hdr) => {
 			hdr.mapping = EquirectangularReflectionMapping;
 			return hdr;
 		});
+	const detail = 1 << 6;
+	const geometry = new ParametricGeometry(createSphubeFunc(), detail, detail);
 
-	const scene = new Scene();
+	const meshMaterial = new MeshStandardMaterial();
+	const mesh = new Mesh(geometry, meshMaterial);
 
-	const camera = new PerspectiveCamera().translateOnAxis(axis, 2);
+	const scene = new Scene().add(mesh);
+
+	const camera = new PerspectiveCamera().translateOnAxis(axis, 3);
 	camera.lookAt(scene.position);
 
 	const controls = new OrbitControls(camera);
@@ -77,6 +93,8 @@
 		material.dispose();
 		quad.dispose();
 		renderTarget.dispose();
+		geometry.dispose();
+		meshMaterial.dispose();
 	});
 
 	const canvasSize = new Size();
@@ -158,11 +176,6 @@
 
 			$effect(() => {
 				uColor2.value.set(color2);
-				render();
-			});
-
-			gltf.then((gltf) => {
-				scene.add(gltf.scene);
 				render();
 			});
 
