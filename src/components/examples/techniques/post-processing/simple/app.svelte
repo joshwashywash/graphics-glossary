@@ -54,6 +54,7 @@
 			hdr.mapping = EquirectangularReflectionMapping;
 			return hdr;
 		});
+
 	const detail = 1 << 6;
 	const geometry = new ParametricGeometry(createSphubeFunc(), detail, detail);
 
@@ -141,60 +142,49 @@
 				canvas,
 			});
 
-			const render = () => {
+			renderer.setAnimationLoop((time) => {
+				uTimeMs.value = time;
 				const last = renderer.getRenderTarget();
 				renderer.setRenderTarget(renderTarget);
 				renderer.render(scene, camera);
 				renderer.setRenderTarget(last);
 				quad.render(renderer);
-			};
+			});
+
+			// no need to render on these effects since the loop is always rendering
 
 			$effect(() => {
 				renderTarget.setSize(canvasSize.width, canvasSize.height);
-				render();
 			});
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				render();
 			});
 
 			$effect(() => {
 				updateCameraAspect(camera, canvasSize.aspect);
-				render();
 			});
 
 			$effect(() => {
 				uAlpha.value = alpha;
-				render();
 			});
 
 			$effect(() => {
 				uColor1.value.set(color1);
-				render();
 			});
 
 			$effect(() => {
 				uColor2.value.set(color2);
-				render();
 			});
 
 			hdr.then((hdr) => {
 				scene.background = hdr;
 				scene.environment = hdr;
-				render();
 			});
 
-			controls.addEventListener("change", render);
 			controls.connect(renderer.domElement);
 
-			renderer.setAnimationLoop((time) => {
-				uTimeMs.value = time;
-				render();
-			});
-
 			return () => {
-				controls.removeEventListener("change", render);
 				controls.disconnect();
 				renderer.setAnimationLoop(null);
 				renderer.dispose();
