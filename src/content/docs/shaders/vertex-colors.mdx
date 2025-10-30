@@ -5,7 +5,8 @@ sidebar:
 title: Vertex Colors
 ---
 
-import App from "@components/examples/shaders/vertex-colors/app.svelte";
+import ButterfreeApp from "@components/examples/shaders/vertex-colors/butterfree/app.svelte";
+import SimpleApp from "@components/examples/shaders/vertex-colors/simple/app.svelte";
 
 import { Steps } from "@astrojs/starlight/components";
 
@@ -15,7 +16,7 @@ this article is a work in progress
 
 Assigns a color to each vertex of a geometry. Colors are interpolated along just like any other buffer attribute.
 
-<App client:visible />
+<SimpleApp client:visible />
 
 ## Usage
 
@@ -68,9 +69,7 @@ Notice that the vertex color data is used to add a bit of darkness to the corner
 
 Interestingly, the water's vertex color is used to give a sense of where the water isn't as deep such as along the shoreline.
 
-:::tip[todo]
-example using a texture and vertex colors
-:::
+<ButterfreeApp client:only />
 
 ### Representing Data Through Coloring
 

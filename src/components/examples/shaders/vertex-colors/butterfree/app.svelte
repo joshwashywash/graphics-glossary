@@ -1,0 +1,117 @@
+<script
+	module
+	lang="ts"
+>
+	const loader = new TextureLoader();
+</script>
+
+<script lang="ts">
+	import { Size } from "@classes/size.svelte";
+
+	import { Label, Pane } from "@components/controls";
+
+	import { onCleanup } from "@functions/onCleanup.svelte";
+
+	import {
+		Mesh,
+		MeshBasicMaterial,
+		OrthographicCamera,
+		PlaneGeometry,
+		SRGBColorSpace,
+		Scene,
+		TextureLoader,
+		WebGLRenderer,
+	} from "three";
+
+	const canvasSize = new Size();
+
+	const texture = loader
+		.loadAsync("/textures/pokemon-snap-butterfree-wings.png")
+		.then((texture) => {
+			texture.generateMipmaps = false;
+			texture.colorSpace = SRGBColorSpace;
+			texture.repeat.set(0.5, 1);
+			return texture;
+		});
+
+	const geometry = new PlaneGeometry();
+
+	const colors = geometry.getAttribute("position").clone();
+
+	// top left
+	colors.setXYZ(0, 0, 0, 0);
+
+	for (let i = 1; i < colors.count; i += 1) {
+		colors.setXYZ(i, 1, 1, 1);
+	}
+
+	geometry.setAttribute("color", colors);
+
+	const material = new MeshBasicMaterial();
+
+	const mesh = new Mesh(geometry, material);
+
+	const scene = new Scene().add(mesh);
+
+	onCleanup(() => {
+		geometry.dispose();
+		material.dispose();
+	});
+
+	const camera = new OrthographicCamera();
+	camera.translateZ(1);
+
+	let useVertexColors = $state(true);
+</script>
+
+<div class="relative">
+	<Pane class="absolute top-2 right-2">
+		<details open>
+			<summary>butterfree wing</summary>
+			<Label>
+				use vertex colors
+				<input
+					type="checkbox"
+					bind:checked={useVertexColors}
+				/>
+			</Label>
+		</details>
+	</Pane>
+	<canvas
+		class="w-full aspect-square"
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
+		{@attach (canvas) => {
+			const renderer = new WebGLRenderer({
+				antialias: true,
+				canvas,
+			});
+
+			const render = () => {
+				renderer.render(scene, camera);
+			};
+
+			texture.then((texture) => {
+				material.map = texture;
+				material.needsUpdate = true;
+				render();
+			});
+
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				render();
+			});
+
+			$effect(() => {
+				material.vertexColors = useVertexColors;
+				material.needsUpdate = true;
+				render();
+			});
+
+			return () => {
+				renderer.dispose();
+			};
+		}}
+	>
+	</canvas>
+</div>
