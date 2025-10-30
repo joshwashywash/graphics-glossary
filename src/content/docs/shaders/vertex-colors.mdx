@@ -7,13 +7,13 @@ title: Vertex Colors
 
 import App from "@components/examples/shaders/vertex-colors/app.svelte";
 
-import { Steps, TabItem, Tabs } from "@astrojs/starlight/components";
+import { Steps } from "@astrojs/starlight/components";
 
 :::caution
 this article is a work in progress
 :::
 
-Assigns a color to each vertex of a geometry. Colors are interpolated along the face just like any other vertex attribute.
+Assigns a color to each vertex of a geometry. Colors are interpolated along just like any other buffer attribute.
 
 <App client:visible />
 
@@ -42,29 +42,40 @@ Assigns a color to each vertex of a geometry. Colors are interpolated along the 
 
 ## Purpose
 
-### Adding Color Depth
+### Mixing Colors and Textures
 
-Before PBR graphics, vertex coloring was often used to add depth to a scene's colors. By combining the vertex color data with texture data, you can, for example, darken areas of a geometry where there shouldn't be as much light.
+Before PBR graphics, vertex coloring was often used to add depth to a scene's colors. By combining the vertex color data with texture data, you can, for example, darken areas of a scene where there shouldn't be as much light or add color to a part of the scene that uses a grayscale texture. This can be especially useful for scenes that don't use [global illumination](https://en.wikipedia.org/wiki/Global_illumination).
 
-<Tabs>
-	<TabItem label="vertex colors disabled">
-		![a screenshot of the beach location from pokemon snap with vertex coloring
-		disabled](@assets/pokemon-snap-beach-textures.png)
-	</TabItem>
-	<TabItem label="textures disabled">
-		![a screenshot of the beach location from pokemon snap with vertex coloring
-		disabled](@assets/pokemon-snap-beach-vertex-colors.png)
-	</TabItem>
-	<TabItem label="both enabled">
-		![a screenshot of the beach location from pokemon snap with vertex coloring
-		disabled](@assets/pokemon-snap-beach.png)
-	</TabItem>
-</Tabs>
+<details open>
+	<summary>vertex coloring and textures enabled</summary>
+	![a screenshot of the beach location from pokemon snap with vertex coloring
+	disabled](@assets/pokemon-snap-beach.png)
+</details>
 
-Notice that the vertex color data is used to add a bit of darkness to the corners of the scene, for example around the surfboard, butterfree's wings, and the flowers. The gradients form because buffer attributes are interpolated. Interestingly, the water's vertex color is used to give a sense of where the water isn't as deep such as along the shoreline.
+<details>
+	<summary>vertex coloring disabled and textures enabled</summary>
+	![a screenshot of the beach location from pokemon snap with vertex coloring
+	disabled](@assets/pokemon-snap-beach-textures.png)
+</details>
+
+<details>
+	<summary>vertex coloring enabled and textures disabled</summary>
+	![a screenshot of the beach location from pokemon snap with vertex coloring
+	disabled](@assets/pokemon-snap-beach-vertex-colors.png)
+</details>
+
+Notice that the vertex color data is used to add a bit of darkness to the corners of the scene, for example around the surfboard, butterfree's wings, and the flowers. Because vertex colors are a buffer attributes they are interpolated. This is why they appear as gradients.
+
+Interestingly, the water's vertex color is used to give a sense of where the water isn't as deep such as along the shoreline.
 
 :::tip[todo]
 example using a texture and vertex colors
+:::
+
+### Representing Data Through Coloring
+
+:::tip[todo]
+example here
 :::
 
 ## Resources
