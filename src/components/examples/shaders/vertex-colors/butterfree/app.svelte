@@ -25,23 +25,19 @@
 
 	const canvasSize = new Size();
 
-	const texture = loader
-		.loadAsync("/textures/pokemon-snap-butterfree-wings.png")
-		.then((texture) => {
-			texture.generateMipmaps = false;
-			texture.colorSpace = SRGBColorSpace;
-			texture.repeat.set(0.5, 1);
-			return texture;
-		});
-
 	const geometry = new PlaneGeometry();
 
 	const colors = geometry.getAttribute("position").clone();
 
-	// top left
-	colors.setXYZ(0, 0, 0, 0);
+	const bottomRight = 2;
 
-	for (let i = 1; i < colors.count; i += 1) {
+	for (let i = 0; i < bottomRight; i += 1) {
+		colors.setXYZ(i, 1, 1, 1);
+	}
+
+	colors.setXYZ(bottomRight, 0, 0, 0);
+
+	for (let i = bottomRight + 1; i < colors.count; i += 1) {
 		colors.setXYZ(i, 1, 1, 1);
 	}
 
@@ -62,6 +58,19 @@
 	camera.translateZ(1);
 
 	let useVertexColors = $state(true);
+	let useTexture = $state(true);
+
+	const texture = loader
+		.loadAsync("/textures/pokemon-snap-butterfree-wings.png")
+		.then((texture) => {
+			texture.generateMipmaps = false;
+			texture.colorSpace = SRGBColorSpace;
+			texture.repeat.set(0.5, 1);
+			texture.offset.set(0.5, 0);
+			return texture;
+		});
+
+	const map = $derived(useTexture ? await texture : null);
 </script>
 
 <div class="relative">
@@ -73,6 +82,13 @@
 				<input
 					type="checkbox"
 					bind:checked={useVertexColors}
+				/>
+			</Label>
+			<Label>
+				use texture
+				<input
+					type="checkbox"
+					bind:checked={useTexture}
 				/>
 			</Label>
 		</details>
@@ -91,8 +107,8 @@
 				renderer.render(scene, camera);
 			};
 
-			texture.then((texture) => {
-				material.map = texture;
+			$effect(() => {
+				material.map = map;
 				material.needsUpdate = true;
 				render();
 			});
