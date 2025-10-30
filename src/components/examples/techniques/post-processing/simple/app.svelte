@@ -12,7 +12,8 @@
 
 	import { Size } from "@classes/size.svelte";
 
-	import { Label, Pane } from "@components/controls";
+	import { Label } from "@components/controls";
+	import Example from "@components/examples/example.svelte";
 
 	import { createSphubeFunc } from "@functions/createSphubeFunc";
 	import { onCleanup } from "@functions/onCleanup.svelte";
@@ -101,8 +102,8 @@
 	const canvasSize = new Size();
 </script>
 
-<div class="relative">
-	<Pane class="absolute top-2 right-2">
+<Example>
+	{#snippet pane()}
 		<details open>
 			<summary>uniforms</summary>
 			<Label>
@@ -130,7 +131,7 @@
 				/>
 			</Label>
 		</details>
-	</Pane>
+	{/snippet}
 
 	<canvas
 		class="w-full aspect-square"
@@ -192,4 +193,4 @@
 		}}
 	>
 	</canvas>
-</div>
+</Example>

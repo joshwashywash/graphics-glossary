@@ -14,7 +14,8 @@
 
 	import { Size } from "@classes/size.svelte";
 
-	import { Label, Pane } from "@components/controls";
+	import { Label } from "@components/controls";
+	import Example from "@components/examples/example.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -117,8 +118,8 @@
 </script>
 
 <svelte:boundary>
-	<div class="relative">
-		<Pane class="absolute top-2 right-2">
+	<Example>
+		{#snippet pane()}
 			<details open>
 				<summary>controls</summary>
 				<Label>
@@ -129,7 +130,7 @@
 					/>
 				</Label>
 			</details>
-		</Pane>
+		{/snippet}
 
 		<canvas
 			class="w-full aspect-square"
@@ -177,7 +178,7 @@
 			}}
 		>
 		</canvas>
-	</div>
+	</Example>
 
 	{#snippet failed(error)}
 		<p>{error}</p>

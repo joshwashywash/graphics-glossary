@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import { Label, Pane } from "@components/controls";
-
-	import type { SvelteHTMLElements } from "svelte/elements";
-
-	let props: SvelteHTMLElements["div"] = $props();
+	import { Label } from "@components/controls";
+	import Example from "@components/examples/example.svelte";
 
 	let width = $state(1);
 	let height = $state(1);
@@ -13,11 +10,8 @@
 	let shadowColor = $state("#ffffff");
 </script>
 
-<div
-	class="relative"
-	{...props}
->
-	<Pane class="absolute top-2 right-2">
+<Example>
+	{#snippet pane()}
 		<details open>
 			<summary>controls</summary>
 			<Label>
@@ -28,7 +22,8 @@
 				/>
 			</Label>
 		</details>
-	</Pane>
+	{/snippet}
+
 	<canvas
 		bind:clientWidth={width}
 		bind:clientHeight={height}
@@ -53,4 +48,4 @@
 		}}
 	>
 	</canvas>
-</div>
+</Example>
