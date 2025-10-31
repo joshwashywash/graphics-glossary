@@ -14,6 +14,7 @@
 	import { onCleanup } from "@functions/onCleanup.svelte";
 
 	import {
+		CanvasTexture,
 		Mesh,
 		MeshBasicMaterial,
 		OrthographicCamera,
@@ -36,6 +37,16 @@
 		colors.setXYZ(i, 1, 1, 1);
 	}
 
+	const oss = new OffscreenCanvas(1, 1);
+	const ossContext = oss.getContext("2d");
+	if (ossContext === null) {
+		throw new Error("texture context is null");
+	}
+
+	ossContext.fillStyle = "#ffffff";
+	ossContext.fillRect(0, 0, oss.width, oss.height);
+	const whiteTexture = new CanvasTexture(oss);
+
 	colors.setXYZ(bottomRight, 0, 0, 0);
 
 	for (let i = bottomRight + 1; i < colors.count; i += 1) {
@@ -53,6 +64,7 @@
 	onCleanup(() => {
 		geometry.dispose();
 		material.dispose();
+		whiteTexture.dispose();
 	});
 
 	const camera = new OrthographicCamera();
@@ -71,64 +83,68 @@
 			return texture;
 		});
 
-	const map = $derived(useTexture ? await texture : null);
+	const map = $derived(useTexture ? await texture : whiteTexture);
 </script>
 
-<Example>
-	{#snippet pane()}
-		<details open>
-			<summary>butterfree wing</summary>
-			<Label>
-				use vertex colors
-				<input
-					type="checkbox"
-					bind:checked={useVertexColors}
-				/>
-			</Label>
-			<Label>
-				use texture
-				<input
-					type="checkbox"
-					bind:checked={useTexture}
-				/>
-			</Label>
-		</details>
+<svelte:boundary>
+	{#snippet failed(error)}
+		<p>{error}</p>
 	{/snippet}
-	<canvas
-		class="w-full aspect-square"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
-		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
-				antialias: true,
-				canvas,
-			});
+	<Example>
+		{#snippet pane()}
+			<details open>
+				<summary>butterfree wing</summary>
+				<Label>
+					use vertex colors
+					<input
+						type="checkbox"
+						bind:checked={useVertexColors}
+					/>
+				</Label>
+				<Label>
+					use texture
+					<input
+						type="checkbox"
+						bind:checked={useTexture}
+					/>
+				</Label>
+			</details>
+		{/snippet}
+		<canvas
+			class="w-full aspect-square"
+			bind:clientWidth={canvasSize.width}
+			bind:clientHeight={canvasSize.height}
+			{@attach (canvas) => {
+				const renderer = new WebGLRenderer({
+					antialias: true,
+					canvas,
+				});
 
-			const render = () => {
-				renderer.render(scene, camera);
-			};
+				const render = () => {
+					renderer.render(scene, camera);
+				};
 
-			$effect(() => {
-				material.map = map;
-				material.needsUpdate = true;
-				render();
-			});
+				$effect(() => {
+					material.map = map;
+					render();
+				});
 
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				render();
-			});
+				$effect(() => {
+					renderer.setSize(canvasSize.width, canvasSize.height, false);
+					render();
+				});
 
-			$effect(() => {
-				material.vertexColors = useVertexColors;
-				material.needsUpdate = true;
-				render();
-			});
+				$effect(() => {
+					material.vertexColors = useVertexColors;
+					material.needsUpdate = true;
+					render();
+				});
 
-			return () => {
-				renderer.dispose();
-			};
-		}}
-	>
-	</canvas>
-</Example>
+				return () => {
+					renderer.dispose();
+				};
+			}}
+		>
+		</canvas>
+	</Example>
+</svelte:boundary>

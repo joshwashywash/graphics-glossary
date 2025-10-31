@@ -118,6 +118,10 @@
 </script>
 
 <svelte:boundary>
+	{#snippet failed(error)}
+		<p>{error}</p>
+	{/snippet}
+
 	<Example>
 		{#snippet pane()}
 			<details open>
@@ -179,8 +183,4 @@
 		>
 		</canvas>
 	</Example>
-
-	{#snippet failed(error)}
-		<p>{error}</p>
-	{/snippet}
 </svelte:boundary>
