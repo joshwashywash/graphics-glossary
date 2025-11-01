@@ -48,19 +48,11 @@
 
 	let shadowColor = $state("#000000");
 
-	const gradient = $derived(createShadowGradient(context, shadowColor));
+	const gradient = createShadowGradient(context, "#ffffff");
+	context.fillStyle = gradient;
+	context.fillRect(0, 0, context.canvas.width, context.canvas.height);
 
 	const shadowTexture = new CanvasTexture(textureCanvas);
-
-	$effect(() => {
-		context.fillStyle = gradient;
-		context.fillRect(0, 0, context.canvas.width, context.canvas.height);
-		shadowTexture.needsUpdate = true;
-		return () => {
-			context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-			shadowTexture.needsUpdate = true;
-		};
-	});
 
 	const shadowMaterial = new MeshBasicMaterial({
 		depthWrite: false,
@@ -158,6 +150,10 @@
 				$effect(() => {
 					updateCameraAspect(camera, canvasSize.aspect);
 					render();
+				});
+
+				$effect(() => {
+					shadowMaterial.color.set(shadowColor);
 				});
 
 				renderer.setAnimationLoop((time) => {
