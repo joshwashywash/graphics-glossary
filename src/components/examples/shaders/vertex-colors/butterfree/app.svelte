@@ -27,13 +27,16 @@
 
 	const canvasSize = new Size();
 
-	const geometry = new PlaneGeometry();
+	const size = 1;
+	const segments = 1;
+
+	const geometry = new PlaneGeometry(size, size, segments, segments);
 
 	const colors = geometry.getAttribute("position").clone();
 
-	const bottomRight = 2;
+	const bottomLeft = colors.count - segments - 1;
 
-	for (let i = 0; i < bottomRight; i += 1) {
+	for (let i = 0; i < bottomLeft; i += 1) {
 		colors.setXYZ(i, 1, 1, 1);
 	}
 
@@ -47,9 +50,9 @@
 	ossContext.fillRect(0, 0, oss.width, oss.height);
 	const whiteTexture = new CanvasTexture(oss);
 
-	colors.setXYZ(bottomRight, 0, 0, 0);
+	colors.setXYZ(bottomLeft, 0, 0, 0);
 
-	for (let i = bottomRight + 1; i < colors.count; i += 1) {
+	for (let i = bottomLeft + 1; i < colors.count; i += 1) {
 		colors.setXYZ(i, 1, 1, 1);
 	}
 
