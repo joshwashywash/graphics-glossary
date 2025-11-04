@@ -40,6 +40,14 @@
 		colors.setXYZ(i, 1, 1, 1);
 	}
 
+	colors.setXYZ(bottomLeft, 0, 0, 0);
+
+	for (let i = bottomLeft + 1; i < colors.count; i += 1) {
+		colors.setXYZ(i, 1, 1, 1);
+	}
+
+	geometry.setAttribute("color", colors);
+
 	const oss = new OffscreenCanvas(1, 1);
 	const ossContext = oss.getContext("2d");
 	if (ossContext === null) {
@@ -49,14 +57,6 @@
 	ossContext.fillStyle = "#ffffff";
 	ossContext.fillRect(0, 0, oss.width, oss.height);
 	const whiteTexture = new CanvasTexture(oss);
-
-	colors.setXYZ(bottomLeft, 0, 0, 0);
-
-	for (let i = bottomLeft + 1; i < colors.count; i += 1) {
-		colors.setXYZ(i, 1, 1, 1);
-	}
-
-	geometry.setAttribute("color", colors);
 
 	const material = new MeshBasicMaterial();
 
@@ -113,6 +113,7 @@
 				</Label>
 			</details>
 		{/snippet}
+
 		<canvas
 			class="w-full aspect-square"
 			bind:clientWidth={canvasSize.width}
