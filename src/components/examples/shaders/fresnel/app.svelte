@@ -110,12 +110,14 @@
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
-			});
 
-			$effect(() => {
-				updateCameraAspect(camera, canvasSize.aspect);
+				const aspect = canvasSize.width / canvasSize.height;
+				updateCameraAspect(camera, aspect);
+
 				renderIfNotLooping();
 			});
+
+			$effect(() => {});
 
 			$effect(() => {
 				uniforms.uBaseColor.value.setStyle(baseColor);

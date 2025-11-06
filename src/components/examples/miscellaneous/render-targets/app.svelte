@@ -80,11 +80,11 @@
 			renderer.render(scene, camera);
 
 			mesh.visible = true;
+			renderer.setRenderTarget(last);
 
 			const lastBlurriness = scene.backgroundBlurriness;
 			scene.backgroundBlurriness = backgroundBlurriness;
 
-			renderer.setRenderTarget(last);
 			renderer.render(scene, camera);
 
 			scene.backgroundBlurriness = lastBlurriness;
@@ -98,16 +98,11 @@
 
 		$effect(() => {
 			target.setSize(canvasSize.width, canvasSize.height);
-			render();
-		});
-
-		$effect(() => {
 			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			render();
-		});
 
-		$effect(() => {
-			updateCameraAspect(camera, canvasSize.aspect);
+			const aspect = canvasSize.width / canvasSize.height;
+			updateCameraAspect(camera, aspect);
+
 			render();
 		});
 
