@@ -12,11 +12,10 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import { Size } from "@classes/size.svelte";
-
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
+	import { needsResize } from "@functions/needsResize";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
@@ -106,7 +105,9 @@
 	camera.translateOnAxis(cameraAxis, 9);
 	camera.lookAt(sphereMesh.position);
 
-	const canvasSize = new Size();
+	$effect(() => {
+		shadowMaterial.color.set(shadowColor);
+	});
 </script>
 
 <svelte:boundary>
@@ -130,33 +131,19 @@
 
 		<canvas
 			class="w-full aspect-square"
-			bind:clientWidth={canvasSize.width}
-			bind:clientHeight={canvasSize.height}
 			{@attach (canvas) => {
 				const renderer = new WebGLRenderer({
 					antialias: true,
 					canvas,
 				});
 
-				const render = () => {
-					renderer.render(scene, camera);
-				};
-
-				$effect(() => {
-					renderer.setSize(canvasSize.width, canvasSize.height, false);
-					render();
-				});
-
-				$effect(() => {
-					updateCameraAspect(camera, canvasSize.aspect);
-					render();
-				});
-
-				$effect(() => {
-					shadowMaterial.color.set(shadowColor);
-				});
-
 				renderer.setAnimationLoop((time) => {
+					if (needsResize(renderer.domElement)) {
+						const { clientWidth, clientHeight } = renderer.domElement;
+
+						renderer.setSize(clientWidth, clientHeight, false);
+						updateCameraAspect(camera, clientWidth / clientHeight);
+					}
 					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
 					const t = 0.5 * (1 + Math.sin(time * speed));
 
@@ -168,7 +155,8 @@
 					shadowMesh.scale.setScalar(1 + t);
 
 					shadowMaterial.opacity = lerp(1, 0, t);
-					render();
+
+					renderer.render(scene, camera);
 				});
 
 				return () => {

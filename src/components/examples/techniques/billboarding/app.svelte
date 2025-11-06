@@ -27,9 +27,8 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
-	import { Size } from "@classes/size.svelte";
-
 	import { loadImage } from "@functions/loadImage";
+	import { needsResize } from "@functions/needsResize";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
@@ -125,35 +124,24 @@
 	camera.translateZ(4);
 
 	let lastOffset: number;
-
-	const canvasSize = new Size();
 </script>
 
 <canvas
 	class="w-full aspect-square"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
 		const renderer = new WebGLRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			render();
-		});
-
-		$effect(() => {
-			updateCameraAspect(camera, canvasSize.aspect);
-			render();
-		});
-
 		renderer.setAnimationLoop(() => {
+			if (needsResize(renderer.domElement)) {
+				const { clientWidth, clientHeight } = renderer.domElement;
+
+				renderer.setSize(clientWidth, clientHeight, false);
+				updateCameraAspect(camera, clientWidth / clientHeight);
+			}
+
 			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
 			camera.lookAt(scene.position);
 
@@ -172,7 +160,7 @@
 				lastOffset = offset;
 			}
 
-			render();
+			renderer.render(scene, camera);
 		});
 
 		return () => {

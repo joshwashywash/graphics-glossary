@@ -8,8 +8,7 @@
 <script lang="ts">
 	import { createLOD } from "./createLOD";
 
-	import { Size } from "@classes/size.svelte";
-
+	import { needsResize } from "@functions/needsResize";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
@@ -29,42 +28,32 @@
 	onCleanup(disposeLOD);
 
 	const camera = new PerspectiveCamera();
-
-	const canvasSize = new Size();
 </script>
 
 <canvas
 	class="w-full aspect-square"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
 		const renderer = new WebGLRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			render();
-		});
-
-		$effect(() => {
-			updateCameraAspect(camera, canvasSize.aspect);
-			render();
-		});
-
 		renderer.setAnimationLoop((time) => {
+			if (needsResize(renderer.domElement)) {
+				const { clientWidth, clientHeight } = renderer.domElement;
+
+				renderer.setSize(clientWidth, clientHeight, false);
+				updateCameraAspect(camera, clientWidth / clientHeight);
+			}
+
 			time = 0.5 * (1 + Math.sin(time * speed));
 			camera.position.z = lerp(
 				maxDistance + 2,
 				lod.position.z + radius + 2,
 				time,
 			);
-			render();
+
+			renderer.render(scene, camera);
 		});
 
 		return () => {

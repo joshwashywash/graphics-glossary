@@ -10,12 +10,11 @@
 	import fragmentShader from "./fragments/mix.glsl?raw";
 	import vertexShader from "./vertex.glsl?raw";
 
-	import { Size } from "@classes/size.svelte";
-
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
 	import { createSphubeFunc } from "@functions/createSphubeFunc";
+	import { needsResize } from "@functions/needsResize";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
@@ -49,12 +48,11 @@
 		color2 = "#f3de8a",
 	}: Partial<Props> = $props();
 
-	const hdr = hdrLoader
-		.loadAsync("/hdrs/university_workshop_1k.hdr")
-		.then((hdr) => {
-			hdr.mapping = EquirectangularReflectionMapping;
-			return hdr;
-		});
+	hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr").then((hdr) => {
+		hdr.mapping = EquirectangularReflectionMapping;
+		scene.background = hdr;
+		scene.environment = hdr;
+	});
 
 	const detail = 1 << 6;
 	const geometry = new ParametricGeometry(createSphubeFunc(), detail, detail);
@@ -99,7 +97,17 @@
 		meshMaterial.dispose();
 	});
 
-	const canvasSize = new Size();
+	$effect(() => {
+		uAlpha.value = alpha;
+	});
+
+	$effect(() => {
+		uColor1.value.set(color1);
+	});
+
+	$effect(() => {
+		uColor2.value.set(color2);
+	});
 </script>
 
 <Example>
@@ -135,8 +143,6 @@
 
 	<canvas
 		class="w-full aspect-square"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
 				antialias: true,
@@ -144,43 +150,21 @@
 			});
 
 			renderer.setAnimationLoop((time) => {
+				if (needsResize(renderer.domElement)) {
+					const { clientWidth, clientHeight } = renderer.domElement;
+					renderTarget.setSize(clientWidth, clientHeight);
+					renderer.setSize(clientWidth, clientHeight, false);
+
+					updateCameraAspect(camera, clientWidth / clientHeight);
+				}
+
 				uTimeMs.value = time;
+
 				const last = renderer.getRenderTarget();
 				renderer.setRenderTarget(renderTarget);
 				renderer.render(scene, camera);
 				renderer.setRenderTarget(last);
 				quad.render(renderer);
-			});
-
-			// no need to render on these effects since the loop is always rendering
-
-			$effect(() => {
-				renderTarget.setSize(canvasSize.width, canvasSize.height);
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-			});
-
-			$effect(() => {
-				updateCameraAspect(camera, canvasSize.aspect);
-			});
-
-			$effect(() => {
-				uAlpha.value = alpha;
-			});
-
-			$effect(() => {
-				uColor1.value.set(color1);
-			});
-
-			$effect(() => {
-				uColor2.value.set(color2);
-			});
-
-			hdr.then((hdr) => {
-				scene.background = hdr;
-				scene.environment = hdr;
 			});
 
 			controls.connect(renderer.domElement);
