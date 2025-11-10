@@ -49,15 +49,6 @@
 	const ringMesh = new Mesh(ringGeometry, ringMaterial);
 	const mesh = new Mesh(meshGeometry, meshMaterial);
 
-	onCleanup(() => {
-		ringGeometry.dispose();
-		ringMaterial.dispose();
-		maskGeometry.dispose();
-		maskMaterial.dispose();
-		meshMaterial.dispose();
-		meshGeometry.dispose();
-	});
-
 	const group = new Group().add(ringMesh, maskMesh).translateZ(1);
 
 	const scene = new Scene().add(mesh, group);
@@ -79,6 +70,16 @@
 
 	const helper = controls.getHelper();
 	scene.add(helper);
+
+	onCleanup(() => {
+		ringGeometry.dispose();
+		ringMaterial.dispose();
+		maskGeometry.dispose();
+		maskMaterial.dispose();
+		meshMaterial.dispose();
+		meshGeometry.dispose();
+		helper.dispose();
+	});
 </script>
 
 <Example>
