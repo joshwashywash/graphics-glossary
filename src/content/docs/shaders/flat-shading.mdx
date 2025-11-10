@@ -7,9 +7,11 @@ title: Flat Shading
 
 import App from "@components/examples/shaders/flat-shading/app.svelte";
 
-Shading that assigns a uniform color across the entire face. Useful for scenes that don't necessarily need detailed materials.
+Shading that assigns a uniform color across entire polygons. Useful for scenes that don't necessarily need so much detail or for cases where performance matters.
 
 <App client:only="svelte" />
+
+When using flat shading, lighting only needs to be evaluated per polygon, rather than per vertex or per fragment. This makes flat shading more performant at the cost of accuracy. Specular highlights are rendered poorly beacuse a vertex may not correctly represent the light at a particular point on the surface. Flat shading also causes sharp edges because polygons are accentuated.
 
 ## Usage
 

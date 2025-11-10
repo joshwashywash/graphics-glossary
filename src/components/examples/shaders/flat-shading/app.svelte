@@ -1,3 +1,13 @@
+<script
+	lang="ts"
+	module
+>
+	const directionalLightAxis = new Vector3(1, 0.75, 1).normalize();
+	const cameraAxis = new Vector3(0, 0, 1).normalize();
+	const degrees = 0.5;
+	const angle = DEG2RAD * degrees;
+</script>
+
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
@@ -8,32 +18,49 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
+		AmbientLight,
+		DirectionalLight,
+		DirectionalLightHelper,
 		Mesh,
-		MeshNormalMaterial,
+		MeshPhongMaterial,
 		PerspectiveCamera,
 		Scene,
-		TorusKnotGeometry,
+		SphereGeometry,
+		Vector3,
 		WebGLRenderer,
 	} from "three";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 
-	let degrees = $state(1);
-	const radians = $derived(DEG2RAD * degrees);
-	const radiansIsPositive = $derived(radians > 0);
+	let rotateMeshes = $state(true);
 
-	const distance = 5;
+	let directionalLightHelperVisible = $state(true);
+
+	const distance = 3;
 	const halfDistance = 0.5 * distance;
 
-	const geometry = new TorusKnotGeometry();
+	const geometry = new SphereGeometry();
 
-	const material = new MeshNormalMaterial();
+	const material = new MeshPhongMaterial({
+		shininess: 150,
+		color: "#770077",
+	});
 	const flatShadingMaterial = material.clone();
 	flatShadingMaterial.flatShading = true;
 
+	const ambientLight = new AmbientLight();
+	const directionalLight = new DirectionalLight();
+	const helper = new DirectionalLightHelper(directionalLight);
+
+	directionalLight.translateOnAxis(directionalLightAxis, 3);
+
 	onCleanup(() => {
+		ambientLight.dispose();
+		directionalLight.dispose();
 		material.dispose();
 		flatShadingMaterial.dispose();
 		geometry.dispose();
+		helper.dispose();
 	});
 
 	const mesh = new Mesh(geometry, material);
@@ -44,28 +71,42 @@
 
 	const meshes = [mesh, flatShadingMesh];
 
-	const scene = new Scene().add(...meshes);
+	const scene = new Scene().add(
+		...meshes,
+		ambientLight,
+		directionalLight,
+		helper,
+	);
+	directionalLight.lookAt(scene.position);
+	helper.update();
 
 	const camera = new PerspectiveCamera();
-	camera.translateZ(10);
+	camera.translateOnAxis(cameraAxis, 2 * distance);
+	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
 
 	let animationLoop: null | (() => void) = null;
+
+	const controls = new OrbitControls(camera);
 </script>
 
 <Example>
 	{#snippet pane()}
 		<details open>
-			<summary>flat shading scene controls</summary>
+			<summary>controls</summary>
 			<Label>
-				mesh rotation speed
+				rotate meshes
 				<input
-					type="range"
-					bind:value={degrees}
-					min={0}
-					max={5}
-					step={1}
+					type="checkbox"
+					bind:checked={rotateMeshes}
+				/>
+			</Label>
+			<Label>
+				directional light helper visible
+				<input
+					type="checkbox"
+					bind:checked={directionalLightHelperVisible}
 				/>
 			</Label>
 		</details>
@@ -99,27 +140,36 @@
 			});
 
 			$effect(() => {
+				helper.visible = directionalLightHelperVisible;
 				renderIfNotAnimating();
 			});
 
 			$effect(() => {
-				if (!radiansIsPositive) return;
+				if (rotateMeshes) {
+					renderer.setAnimationLoop(
+						(animationLoop = () => {
+							for (const mesh of meshes) {
+								mesh.rotateY(angle);
+							}
+							render();
+						}),
+					);
 
-				renderer.setAnimationLoop(
-					(animationLoop = () => {
-						for (const mesh of meshes) {
-							mesh.rotateY(radians);
-						}
-						render();
-					}),
-				);
+					return () => {
+						renderer.setAnimationLoop((animationLoop = null));
+					};
+				}
 
+				controls.addEventListener("change", render);
 				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
+					controls.removeEventListener("change", render);
 				};
 			});
 
+			controls.connect(renderer.domElement);
+
 			return () => {
+				controls.disconnect();
 				renderer.dispose();
 			};
 		}}
