@@ -49,10 +49,12 @@
 	flatShadingMaterial.flatShading = true;
 
 	const ambientLight = new AmbientLight();
-	const directionalLight = new DirectionalLight();
-	const helper = new DirectionalLightHelper(directionalLight);
+	const directionalLight = new DirectionalLight().translateOnAxis(
+		directionalLightAxis,
+		3,
+	);
 
-	directionalLight.translateOnAxis(directionalLightAxis, 3);
+	const helper = new DirectionalLightHelper(directionalLight);
 
 	onCleanup(() => {
 		ambientLight.dispose();
@@ -81,8 +83,7 @@
 	helper.update();
 
 	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(cameraAxis, 2 * distance);
-	camera.lookAt(scene.position);
+	camera.translateOnAxis(cameraAxis, 2 * distance).lookAt(scene.position);
 
 	const canvasSize = new Size();
 
@@ -151,6 +152,7 @@
 							for (const mesh of meshes) {
 								mesh.rotateY(angle);
 							}
+
 							render();
 						}),
 					);

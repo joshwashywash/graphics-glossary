@@ -4,6 +4,9 @@
 >
 	const yHat = new Vector3(0, 1, 0);
 	const translationAxis = new Vector3();
+
+	const degrees = 1;
+	const angle = DEG2RAD * degrees;
 </script>
 
 <script lang="ts">
@@ -34,9 +37,7 @@
 	import { ShadowMesh } from "three/examples/jsm/objects/ShadowMesh.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 
-	let degrees = $state(1);
-	const radians = $derived(DEG2RAD * degrees);
-	const radiansIsPositive = $derived(radians > 0);
+	let rotateMesh = $state(true);
 
 	const geometry = new TorusKnotGeometry();
 	const material = new MeshNormalMaterial();
@@ -101,15 +102,12 @@
 <Example>
 	{#snippet pane()}
 		<details open>
-			<summary>shadow mesh scene controls</summary>
+			<summary>controls</summary>
 			<Label>
-				mesh rotation speed
+				rotate mesh
 				<input
-					type="range"
-					bind:value={degrees}
-					min={0}
-					max={5}
-					step={1}
+					type="checkbox"
+					bind:checked={rotateMesh}
 				/>
 			</Label>
 		</details>
@@ -144,11 +142,11 @@
 			});
 
 			$effect(() => {
-				if (!radiansIsPositive) return;
+				if (!rotateMesh) return;
 
 				renderer.setAnimationLoop(
 					(animationLoop = () => {
-						mesh.rotateY(radians);
+						mesh.rotateY(angle);
 						shadowMesh.update(plane, lightPosition4D);
 						renderer.render(scene, camera);
 

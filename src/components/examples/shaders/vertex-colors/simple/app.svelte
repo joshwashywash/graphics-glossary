@@ -5,6 +5,9 @@
 	const axis = new Vector3(1, 1, -1).normalize();
 
 	const matrix = new Matrix4().makeTranslation(new Vector3().setScalar(0.5));
+	const degrees = 1;
+
+	const angle = DEG2RAD * degrees;
 </script>
 
 <script lang="ts">
@@ -28,9 +31,7 @@
 	} from "three";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 
-	let degrees = $state(1);
-	const radians = $derived(DEG2RAD * degrees);
-	const radiansIsPositive = $derived(radians > 0);
+	let rotateMesh = $state(true);
 
 	const geometry = new BoxGeometry();
 	const positionAttribute = geometry.getAttribute("position");
@@ -62,15 +63,12 @@
 <Example>
 	{#snippet pane()}
 		<details open>
-			<summary>vertex colors</summary>
+			<summary>controls</summary>
 			<Label>
-				rotation speed
+				rotate mesh
 				<input
-					type="range"
-					bind:value={degrees}
-					min={0}
-					max={5}
-					step={1}
+					type="checkbox"
+					bind:checked={rotateMesh}
 				/>
 			</Label>
 		</details>
@@ -104,11 +102,11 @@
 			});
 
 			$effect(() => {
-				if (!radiansIsPositive) return;
+				if (!rotateMesh) return;
 
 				renderer.setAnimationLoop(
 					(animationLoop = () => {
-						mesh.rotateOnAxis(axis, radians);
+						mesh.rotateOnAxis(axis, angle);
 						render();
 					}),
 				);

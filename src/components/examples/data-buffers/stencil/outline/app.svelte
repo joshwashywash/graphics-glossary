@@ -8,6 +8,9 @@
 	const axis = new Vector3(1, 0, 0);
 
 	const initialOutlineScale = 1.1;
+
+	const degrees = 1;
+	const angle = DEG2RAD * degrees;
 </script>
 
 <script lang="ts">
@@ -93,9 +96,8 @@
 	let outlinesVisible = $state(true);
 	let outlineScale = $state(initialOutlineScale);
 	let outlineColor = $state("#ffffff");
-	let degrees = $state(1);
-	let radians = $derived(DEG2RAD * degrees);
-	const radiansIsPositive = $derived(radians > 0);
+
+	let rotateMeshes = $state(true);
 
 	const canvasSize = new Size();
 
@@ -105,7 +107,7 @@
 <Example>
 	{#snippet pane()}
 		<details open>
-			<summary>outlines</summary>
+			<summary>controls</summary>
 			<Label>
 				visible
 				<input
@@ -131,13 +133,10 @@
 				/>
 			</Label>
 			<Label>
-				mesh rotation speed
+				rotate meshes
 				<input
-					type="range"
-					bind:value={degrees}
-					min={0}
-					max={5}
-					step={1}
+					type="checkbox"
+					bind:checked={rotateMeshes}
 				/>
 			</Label>
 		</details>
@@ -191,12 +190,12 @@
 			});
 
 			$effect(() => {
-				if (!radiansIsPositive) return;
+				if (!rotateMeshes) return;
 
 				renderer.setAnimationLoop(
 					(animationLoop = () => {
 						for (const group of groups) {
-							group.rotateY(radians);
+							group.rotateY(angle);
 						}
 						render();
 					}),

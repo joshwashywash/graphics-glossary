@@ -1,3 +1,11 @@
+<script
+	lang="ts"
+	module
+>
+	const degrees = 1;
+	const angle = DEG2RAD * degrees;
+</script>
+
 <script lang="ts">
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 
@@ -18,9 +26,7 @@
 	} from "three";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 
-	let degrees = $state(1);
-	const radians = $derived(DEG2RAD * degrees);
-	const radiansIsPositive = $derived(radians > 0);
+	let rotateMesh = $state(true);
 
 	const uniforms = createUniforms();
 
@@ -52,7 +58,7 @@
 <Example>
 	{#snippet pane()}
 		<details open>
-			<summary>fresnel scene controls</summary>
+			<summary>controls</summary>
 			<Label>
 				base color
 				<input
@@ -78,13 +84,10 @@
 				/>
 			</Label>
 			<Label>
-				mesh rotation speed
+				rotate mesh
 				<input
-					type="range"
-					bind:value={degrees}
-					min={0}
-					max={5}
-					step={1}
+					type="checkbox"
+					bind:checked={rotateMesh}
 				/>
 			</Label>
 		</details>
@@ -117,8 +120,6 @@
 				renderIfNotLooping();
 			});
 
-			$effect(() => {});
-
 			$effect(() => {
 				uniforms.uBaseColor.value.setStyle(baseColor);
 				renderIfNotLooping();
@@ -135,15 +136,14 @@
 			});
 
 			$effect(() => {
-				if (!radiansIsPositive) return;
+				if (!rotateMesh) return;
 
 				renderer.setAnimationLoop(
 					(animationLoop = () => {
-						mesh.rotateY(radians);
+						mesh.rotateY(angle);
 						render();
 					}),
 				);
-
 				return () => {
 					renderer.setAnimationLoop((animationLoop = null));
 				};
