@@ -27,7 +27,7 @@
 	<canvas
 		bind:clientWidth={width}
 		bind:clientHeight={height}
-		class="w-full aspect-square"
+		class="example-canvas"
 		{width}
 		{height}
 		{@attach (canvas) => {

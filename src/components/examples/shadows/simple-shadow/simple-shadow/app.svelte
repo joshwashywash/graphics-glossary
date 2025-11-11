@@ -130,7 +130,7 @@
 		{/snippet}
 
 		<canvas
-			class="w-full aspect-square"
+			class="example-canvas"
 			{@attach (canvas) => {
 				const renderer = new WebGLRenderer({
 					antialias: true,

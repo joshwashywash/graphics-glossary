@@ -97,7 +97,7 @@
 	{/snippet}
 
 	<canvas
-		class="w-full aspect-square"
+		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
