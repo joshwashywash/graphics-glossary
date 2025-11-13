@@ -3,7 +3,7 @@
 	module
 >
 	const directionalLightAxis = new Vector3(1, 0.75, 1).normalize();
-	const cameraAxis = new Vector3(0, 0, 1).normalize();
+	const cameraAxis = new Vector3(0, 0, 1);
 	const degrees = 0.5;
 	const angle = DEG2RAD * degrees;
 </script>
