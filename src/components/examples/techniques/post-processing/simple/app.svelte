@@ -7,19 +7,19 @@
 </script>
 
 <script lang="ts">
-	import fragmentShader from "./fragments/mix.glsl?raw";
+	import fragmentShader from "./fragments/dither.glsl?raw";
 	import vertexShader from "./vertex.glsl?raw";
+
+	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
 	import { createSphubeFunc } from "@functions/createSphubeFunc";
-	import { needsResize } from "@functions/needsResize";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
-		Color,
 		EquirectangularReflectionMapping,
 		Mesh,
 		MeshStandardMaterial,
@@ -27,6 +27,7 @@
 		Scene,
 		ShaderMaterial,
 		Uniform,
+		Vector2,
 		Vector3,
 		WebGLRenderTarget,
 		WebGLRenderer,
@@ -35,18 +36,6 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass.js";
-
-	type Props = {
-		alpha: number;
-		color1: string;
-		color2: string;
-	};
-
-	let {
-		alpha = 0.3,
-		color1 = "#272838",
-		color2 = "#f3de8a",
-	}: Partial<Props> = $props();
 
 	hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr").then((hdr) => {
 		hdr.mapping = EquirectangularReflectionMapping;
@@ -69,20 +58,14 @@
 
 	const renderTarget = new WebGLRenderTarget(1, 1);
 
-	const uAlpha = new Uniform(0);
-	const uColor1 = new Uniform(new Color());
-	const uColor2 = new Uniform(new Color());
 	const uScene = new Uniform(renderTarget.texture);
-	const uTimeMs = new Uniform(0);
+	const uResolution = new Uniform(new Vector2());
 
 	const material = new ShaderMaterial({
 		fragmentShader,
 		uniforms: {
-			uAlpha,
-			uColor1,
-			uColor2,
 			uScene,
-			uTimeMs,
+			uResolution,
 		},
 		vertexShader,
 	});
@@ -97,45 +80,22 @@
 		meshMaterial.dispose();
 	});
 
-	$effect(() => {
-		uAlpha.value = alpha;
-	});
+	const resolution = new Size();
 
-	$effect(() => {
-		uColor1.value.set(color1);
-	});
+	let animationLoop: null | (() => void) = null;
 
-	$effect(() => {
-		uColor2.value.set(color2);
-	});
+	let autoRotateCamera = $state(true);
 </script>
 
 <Example>
 	{#snippet pane()}
 		<details open>
-			<summary>uniforms</summary>
+			<summary>controls</summary>
 			<Label>
-				color 1
+				auto rotate camera
 				<input
-					type="color"
-					bind:value={color1}
-				/>
-			</Label>
-			<Label>
-				color 2
-				<input
-					type="color"
-					bind:value={color2}
-				/>
-			</Label>
-			<Label>
-				alpha
-				<input
-					type="range"
-					bind:value={alpha}
-					min={0}
-					max={1}
-					step={0.1}
+					bind:checked={autoRotateCamera}
+					type="checkbox"
 				/>
 			</Label>
 		</details>
@@ -143,35 +103,62 @@
 
 	<canvas
 		class="example-canvas"
+		bind:clientWidth={resolution.width}
+		bind:clientHeight={resolution.height}
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			renderer.setAnimationLoop((time) => {
-				if (needsResize(renderer.domElement)) {
-					const { clientWidth, clientHeight } = renderer.domElement;
-					renderTarget.setSize(clientWidth, clientHeight);
-					renderer.setSize(clientWidth, clientHeight, false);
-
-					updateCameraAspect(camera, clientWidth / clientHeight);
-				}
-
-				uTimeMs.value = time;
-
+			const render = () => {
 				const last = renderer.getRenderTarget();
 				renderer.setRenderTarget(renderTarget);
 				renderer.render(scene, camera);
 				renderer.setRenderTarget(last);
 				quad.render(renderer);
+			};
+
+			const renderIfNotAnimating = () => {
+				if (animationLoop === null) render();
+			};
+
+			$effect(() => {
+				renderTarget.setSize(resolution.width, resolution.height);
+
+				renderer.setSize(resolution.width, resolution.height, false);
+				renderer.getSize(uResolution.value);
+
+				updateCameraAspect(camera, resolution.width / resolution.height);
+
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
+				controls.autoRotate = autoRotateCamera;
+
+				if (controls.autoRotate) {
+					renderer.setAnimationLoop(
+						(animationLoop = () => {
+							controls.update();
+							render();
+						}),
+					);
+
+					return () => {
+						renderer.setAnimationLoop((animationLoop = null));
+					};
+				}
+
+				controls.addEventListener("change", render);
+				return () => {
+					controls.removeEventListener("change", render);
+				};
 			});
 
 			controls.connect(renderer.domElement);
-
 			return () => {
 				controls.disconnect();
-				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
 		}}
