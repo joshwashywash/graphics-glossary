@@ -157,7 +157,7 @@
 				renderer.render(scene, camera);
 			};
 
-			const renderIfNotLooping = () => {
+			const renderIfNotAnimating = () => {
 				if (animationLoop === null) render();
 			};
 
@@ -167,26 +167,26 @@
 				const aspect = canvasSize.width / canvasSize.height;
 				updateCameraAspect(camera, aspect);
 
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				for (const outlineMesh of outlineMeshes) {
 					outlineMesh.visible = outlinesVisible;
 				}
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				outlineMaterial.color.setStyle(outlineColor);
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				for (const mesh of outlineMeshes) {
 					mesh.scale.setScalar(outlineScale);
 				}
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {

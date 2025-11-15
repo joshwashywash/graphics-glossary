@@ -88,7 +88,7 @@
 				renderer.render(scene, camera);
 			};
 
-			const renderIfNotLooping = () => {
+			const renderIfNotAnimating = () => {
 				if (animationLoop === null) render();
 			};
 
@@ -98,7 +98,7 @@
 				const aspect = canvasSize.width / canvasSize.height;
 				updateCameraAspect(camera, aspect);
 
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {

@@ -107,7 +107,7 @@
 				renderer.render(scene, camera);
 			};
 
-			const renderIfNotLooping = () => {
+			const renderIfNotAnimating = () => {
 				if (animationLoop === null) render();
 			};
 
@@ -117,22 +117,22 @@
 				const aspect = canvasSize.width / canvasSize.height;
 				updateCameraAspect(camera, aspect);
 
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				uniforms.uBaseColor.value.setStyle(baseColor);
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				uniforms.uFresnelColor.value.setStyle(fresnelColor);
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
 				uniforms.uPower.value = power;
-				renderIfNotLooping();
+				renderIfNotAnimating();
 			});
 
 			$effect(() => {
