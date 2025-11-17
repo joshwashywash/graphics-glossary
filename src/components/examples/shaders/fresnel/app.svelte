@@ -9,8 +9,6 @@
 <script lang="ts">
 	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
 
-	import { Size } from "@classes/size.svelte";
-
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
@@ -50,7 +48,9 @@
 	let fresnelColor = $state("#ccccaa");
 	let power = $state(1.5);
 
-	const canvasSize = new Size();
+	let canvasWidth = $state(1);
+	let canvasHeight = $state(1);
+	const canvasAspect = $derived(canvasWidth / canvasHeight);
 
 	let animationLoop: null | (() => void) = null;
 </script>
@@ -95,8 +95,8 @@
 
 	<canvas
 		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
+		bind:clientWidth={canvasWidth}
+		bind:clientHeight={canvasHeight}
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
 				antialias: true,
@@ -112,10 +112,9 @@
 			};
 
 			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				renderer.setSize(canvasWidth, canvasHeight, false);
 
-				const aspect = canvasSize.width / canvasSize.height;
-				updateCameraAspect(camera, aspect);
+				updateCameraAspect(camera, canvasAspect);
 
 				renderIfNotAnimating();
 			});

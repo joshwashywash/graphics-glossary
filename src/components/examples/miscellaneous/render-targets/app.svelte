@@ -11,6 +11,7 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { onDispatcherChange } from "@functions/onDispatcherChange";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
@@ -106,11 +107,11 @@
 			render();
 		});
 
-		controls.addEventListener("change", render);
 		controls.connect(renderer.domElement);
+		const removeOnChangeListener = onDispatcherChange(controls, render);
 
 		return () => {
-			controls.removeEventListener("change", render);
+			removeOnChangeListener();
 			controls.disconnect();
 			renderer.dispose();
 		};

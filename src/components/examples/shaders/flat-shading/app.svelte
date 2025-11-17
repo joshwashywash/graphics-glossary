@@ -15,6 +15,7 @@
 	import Example from "@components/examples/example.svelte";
 
 	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { onDispatcherChange } from "@functions/onDispatcherChange";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
@@ -65,11 +66,11 @@
 		helper.dispose();
 	});
 
-	const mesh = new Mesh(geometry, material);
-	mesh.translateX(-1 * halfDistance);
+	const mesh = new Mesh(geometry, material).translateX(-1 * halfDistance);
 
-	const flatShadingMesh = new Mesh(geometry, flatShadingMaterial);
-	flatShadingMesh.translateX(halfDistance);
+	const flatShadingMesh = new Mesh(geometry, flatShadingMaterial).translateX(
+		halfDistance,
+	);
 
 	const meshes = [mesh, flatShadingMesh];
 
@@ -82,8 +83,11 @@
 	directionalLight.lookAt(scene.position);
 	helper.update();
 
-	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(cameraAxis, 2 * distance).lookAt(scene.position);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		cameraAxis,
+		2 * distance,
+	);
+	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
 
@@ -162,10 +166,7 @@
 					};
 				}
 
-				controls.addEventListener("change", render);
-				return () => {
-					controls.removeEventListener("change", render);
-				};
+				return onDispatcherChange(controls, render);
 			});
 
 			controls.connect(renderer.domElement);

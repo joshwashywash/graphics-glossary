@@ -17,6 +17,7 @@
 
 	import { createSphubeFunc } from "@functions/createSphubeFunc";
 	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { onDispatcherChange } from "@functions/onDispatcherChange";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 
 	import {
@@ -150,10 +151,7 @@
 					};
 				}
 
-				controls.addEventListener("change", render);
-				return () => {
-					controls.removeEventListener("change", render);
-				};
+				return onDispatcherChange(controls, render);
 			});
 
 			controls.connect(renderer.domElement);
