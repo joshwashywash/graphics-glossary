@@ -80,17 +80,21 @@
 		const outlineMesh = new Mesh(geometry, outlineMaterial);
 		outlineMeshes.push(outlineMesh);
 
-		const group = new Group().add(mesh, outlineMesh);
+		mesh.getObjectsByProperty;
 
-		axis.applyAxisAngle(kHat, a);
-		group.translateOnAxis(axis, translationAmount);
-		groups.push(group);
+		groups.push(
+			new Group()
+				.add(mesh, outlineMesh)
+				.translateOnAxis(axis.applyAxisAngle(kHat, a), translationAmount),
+		);
 	}
 
 	const scene = new Scene().add(...groups);
 
-	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(kHat, 5 * translationAmount);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		kHat,
+		5 * translationAmount,
+	);
 	camera.lookAt(scene.position);
 
 	let outlinesVisible = $state(true);

@@ -54,8 +54,7 @@
 
 	const scene = new Scene().add(mesh, group);
 
-	const camera = new PerspectiveCamera();
-	camera.translateZ(5);
+	const camera = new PerspectiveCamera().translateZ(5);
 	camera.lookAt(scene.position);
 
 	let invert = $state(false);
@@ -65,9 +64,8 @@
 
 	const canvasSize = new Size();
 
-	const controls = new TransformControls(camera);
+	const controls = new TransformControls(camera).attach(group);
 	controls.showZ = false;
-	controls.attach(group);
 
 	const helper = controls.getHelper();
 	scene.add(helper);

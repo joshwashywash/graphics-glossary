@@ -47,8 +47,7 @@
 
 	const scene = new Scene().add(mesh);
 
-	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(axis, 2);
+	const camera = new PerspectiveCamera().translateOnAxis(axis, 2);
 	camera.lookAt(scene.position);
 
 	const controls = new OrbitControls(camera);

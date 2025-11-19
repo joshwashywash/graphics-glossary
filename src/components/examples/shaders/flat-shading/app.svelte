@@ -2,10 +2,12 @@
 	lang="ts"
 	module
 >
-	const directionalLightAxis = new Vector3(1, 0.75, 1).normalize();
+	const directionalLightAxis = new Vector3(0.25, 0.25, 1).normalize();
 	const cameraAxis = new Vector3(0, 0, 1);
 	const degrees = 0.5;
 	const angle = DEG2RAD * degrees;
+
+	const SHININESS_MAX = 300;
 </script>
 
 <script lang="ts">
@@ -33,19 +35,18 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 
-	let rotateMeshes = $state(true);
+	let color = $state("#770077");
+	let shininess = $state(0.5 * SHININESS_MAX);
 
-	let directionalLightHelperVisible = $state(true);
+	let rotate = $state(true);
+	let flatShading = $state(true);
 
-	const distance = 3;
-	const halfDistance = 0.5 * distance;
+	let directionalLightHelperVisible = $state(false);
 
 	const geometry = new SphereGeometry();
 
-	const material = new MeshPhongMaterial({
-		shininess: 150,
-		color: "#770077",
-	});
+	const material = new MeshPhongMaterial();
+
 	const flatShadingMaterial = material.clone();
 	flatShadingMaterial.flatShading = true;
 
@@ -66,11 +67,9 @@
 		helper.dispose();
 	});
 
-	const mesh = new Mesh(geometry, material).translateX(-1 * halfDistance);
+	const mesh = new Mesh(geometry, material);
 
-	const flatShadingMesh = new Mesh(geometry, flatShadingMaterial).translateX(
-		halfDistance,
-	);
+	const flatShadingMesh = new Mesh(geometry, flatShadingMaterial);
 
 	const meshes = [mesh, flatShadingMesh];
 
@@ -83,10 +82,7 @@
 	directionalLight.lookAt(scene.position);
 	helper.update();
 
-	const camera = new PerspectiveCamera().translateOnAxis(
-		cameraAxis,
-		2 * distance,
-	);
+	const camera = new PerspectiveCamera().translateOnAxis(cameraAxis, 3);
 	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
@@ -98,22 +94,52 @@
 
 <Example>
 	{#snippet pane()}
-		<details open>
+		<details>
 			<summary>controls</summary>
-			<Label>
-				rotate meshes
-				<input
-					type="checkbox"
-					bind:checked={rotateMeshes}
-				/>
-			</Label>
-			<Label>
-				directional light helper visible
-				<input
-					type="checkbox"
-					bind:checked={directionalLightHelperVisible}
-				/>
-			</Label>
+			<fieldset>
+				<legend>material</legend>
+				<Label>
+					color
+					<input
+						type="color"
+						bind:value={color}
+					/>
+				</Label>
+				<Label>
+					shininess
+					<input
+						type="range"
+						bind:value={shininess}
+						min={0}
+						max={SHININESS_MAX}
+						step={1}
+					/>
+				</Label>
+			</fieldset>
+			<fieldset>
+				<summary>scene</summary>
+				<Label>
+					flat shading
+					<input
+						type="checkbox"
+						bind:checked={flatShading}
+					/>
+				</Label>
+				<Label>
+					rotate
+					<input
+						type="checkbox"
+						bind:checked={rotate}
+					/>
+				</Label>
+				<Label>
+					directional light helper visible
+					<input
+						type="checkbox"
+						bind:checked={directionalLightHelperVisible}
+					/>
+				</Label>
+			</fieldset>
 		</details>
 	{/snippet}
 
@@ -136,6 +162,24 @@
 			};
 
 			$effect(() => {
+				material.color.set(color);
+				flatShadingMaterial.color.set(color);
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
+				material.shininess = shininess;
+				flatShadingMaterial.shininess = shininess;
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
+				flatShadingMesh.visible = flatShading;
+				mesh.visible = !flatShadingMesh.visible;
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
 
 				const aspect = canvasSize.width / canvasSize.height;
@@ -149,17 +193,16 @@
 				renderIfNotAnimating();
 			});
 
-			$effect(() => {
-				if (rotateMeshes) {
-					renderer.setAnimationLoop(
-						(animationLoop = () => {
-							for (const mesh of meshes) {
-								mesh.rotateY(angle);
-							}
+			const loop = () => {
+				for (const mesh of meshes) {
+					mesh.rotateY(angle);
+				}
+				render();
+			};
 
-							render();
-						}),
-					);
+			$effect(() => {
+				if (rotate) {
+					renderer.setAnimationLoop((animationLoop = loop));
 
 					return () => {
 						renderer.setAnimationLoop((animationLoop = null));
