@@ -20,9 +20,10 @@ vec3 dither(vec2 uv, vec2 resolution, float lum) {
 }
 
 void main() {
-	gl_FragColor = texture2D(uScene, vUv);
+	float lum = dot(
+			vec4(0.2126, 0.7152, 0.0722, 0.0),
+			texture2D(uScene, vUv)
+	);
 
-	float lum = dot(vec4(0.2126, 0.7152, 0.0722, 0.0), gl_FragColor);
-
-	gl_FragColor.rgb = dither(vUv, uResolution, lum);
+	gl_FragColor = vec4(dither(vUv, uResolution, lum), 1.0);
 }

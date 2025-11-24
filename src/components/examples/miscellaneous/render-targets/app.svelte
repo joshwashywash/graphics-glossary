@@ -10,9 +10,9 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
-	import { onCleanup } from "@functions/onCleanup.svelte";
-	import { onDispatcherChange } from "@functions/onDispatcherChange";
+	import { onOrbitControls } from "@functions/onOrbitControls";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
 		DoubleSide,
@@ -52,7 +52,7 @@
 
 	const controls = new OrbitControls(camera);
 
-	onCleanup(() => {
+	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
 		target.dispose();
@@ -107,7 +107,7 @@
 		});
 
 		controls.connect(renderer.domElement);
-		const removeOnChangeListener = onDispatcherChange(controls, render);
+		const removeOnChangeListener = onOrbitControls(controls, "change", render);
 
 		return () => {
 			removeOnChangeListener();

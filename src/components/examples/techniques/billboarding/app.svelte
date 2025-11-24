@@ -28,9 +28,8 @@
 	import booImageMetadata from "@assets/boo.png";
 
 	import { loadImage } from "@functions/loadImage";
-	import { needsResize } from "@functions/needsResize";
-	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
 		BoxGeometry,
@@ -105,7 +104,7 @@
 	const material = new MeshNormalMaterial();
 	const geometry = new BoxGeometry();
 
-	onCleanup(() => {
+	useCleanup(() => {
 		canvasTexture.dispose();
 
 		spriteMaterial.dispose();
@@ -135,9 +134,8 @@
 		});
 
 		renderer.setAnimationLoop(() => {
-			if (needsResize(renderer.domElement)) {
-				const { clientWidth, clientHeight } = renderer.domElement;
-
+			const { clientHeight, clientWidth, height, width } = renderer.domElement;
+			if (clientHeight !== height || clientWidth !== width) {
 				renderer.setSize(clientWidth, clientHeight, false);
 				updateCameraAspect(camera, clientWidth / clientHeight);
 			}

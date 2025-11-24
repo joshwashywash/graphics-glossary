@@ -11,7 +11,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
 		CanvasTexture,
@@ -64,7 +64,7 @@
 
 	const scene = new Scene().add(mesh);
 
-	onCleanup(() => {
+	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
 		whiteTexture.dispose();

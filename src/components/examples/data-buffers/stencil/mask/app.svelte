@@ -4,9 +4,8 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { onCleanup } from "@functions/onCleanup.svelte";
-	import { onDispatcherChange } from "@functions/onDispatcherChange";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
 		CircleGeometry,
@@ -70,7 +69,7 @@
 	const helper = controls.getHelper();
 	scene.add(helper);
 
-	onCleanup(() => {
+	useCleanup(() => {
 		ringGeometry.dispose();
 		ringMaterial.dispose();
 		maskGeometry.dispose();
@@ -126,10 +125,10 @@
 
 			controls.connect(renderer.domElement);
 
-			const removeOnChangeListener = onDispatcherChange(controls, render);
+			controls.addEventListener("change", render);
 
 			return () => {
-				removeOnChangeListener();
+				controls.removeEventListener("change", render);
 				controls.detach().dispose();
 				renderer.dispose();
 			};

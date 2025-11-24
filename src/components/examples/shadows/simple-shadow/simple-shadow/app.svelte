@@ -15,9 +15,8 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { needsResize } from "@functions/needsResize";
-	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
 		CanvasTexture,
@@ -93,7 +92,7 @@
 
 	const scene = new Scene().add(sphereMesh, group);
 
-	onCleanup(() => {
+	useCleanup(() => {
 		disposeSphere();
 		disposeFloor();
 		shadowGeometry.dispose();
@@ -138,9 +137,9 @@
 				});
 
 				renderer.setAnimationLoop((time) => {
-					if (needsResize(renderer.domElement)) {
-						const { clientWidth, clientHeight } = renderer.domElement;
-
+					const { clientHeight, clientWidth, height, width } =
+						renderer.domElement;
+					if (clientHeight !== height || clientWidth !== width) {
 						renderer.setSize(clientWidth, clientHeight, false);
 						updateCameraAspect(camera, clientWidth / clientHeight);
 					}

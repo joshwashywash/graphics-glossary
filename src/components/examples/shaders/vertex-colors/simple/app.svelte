@@ -16,8 +16,8 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
 		BoxGeometry,
@@ -43,7 +43,7 @@
 		vertexColors: true,
 	});
 
-	onCleanup(() => {
+	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
 	});

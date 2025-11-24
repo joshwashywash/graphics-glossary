@@ -1,0 +1,96 @@
+<script lang="ts">
+	import { Size } from "@classes/size.svelte";
+
+	import { createSphubeFunc } from "@functions/createSphubeFunc";
+	import { onOrbitControls } from "@functions/onOrbitControls";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
+
+	import {
+		DoubleSide,
+		Mesh,
+		MeshNormalMaterial,
+		PerspectiveCamera,
+		Scene,
+		WebGLRenderer,
+	} from "three";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
+
+	const material = new MeshNormalMaterial({
+		side: DoubleSide,
+	});
+
+	const detail = 1 << 8;
+	const sphubeGeometry = new ParametricGeometry(
+		createSphubeFunc(),
+		detail,
+		detail,
+	);
+	const pringleGeometry = new ParametricGeometry(
+		(u, v, target) => {
+			v *= 2 * Math.PI;
+			const cosV = Math.cos(v);
+			const sinV = Math.sin(v);
+
+			const x = u * cosV;
+			const y = u * sinV;
+			const z = u * u * cosV * sinV;
+
+			target.set(x, y, z);
+		},
+		detail,
+		detail,
+	);
+
+	useCleanup(() => {
+		material.dispose();
+		pringleGeometry.dispose();
+		sphubeGeometry.dispose();
+	});
+
+	const sphubeMesh = new Mesh(sphubeGeometry, material).translateX(-1);
+	const pringleMesh = new Mesh(pringleGeometry, material)
+		.rotateX(0.5 * Math.PI)
+		.translateX(1);
+
+	const scene = new Scene().add(pringleMesh, sphubeMesh);
+
+	const camera = new PerspectiveCamera().translateZ(5);
+	const controls = new OrbitControls(camera);
+
+	const canvasSize = new Size();
+</script>
+
+<canvas
+	class="example-canvas"
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
+	{@attach (canvas) => {
+		const renderer = new WebGLRenderer({
+			antialias: true,
+			canvas,
+		});
+
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		$effect(() => {
+			renderer.setSize(canvasSize.width, canvasSize.height, false);
+			const aspect = canvasSize.width / canvasSize.height;
+			updateCameraAspect(camera, aspect);
+			render();
+		});
+
+		const removeControlsOnChange = onOrbitControls(controls, "change", render);
+		controls.connect(renderer.domElement);
+
+		return () => {
+			removeControlsOnChange();
+			controls.disconnect();
+			renderer.dispose();
+		};
+	}}
+>
+</canvas>

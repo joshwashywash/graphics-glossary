@@ -8,9 +8,8 @@
 <script lang="ts">
 	import { createLOD } from "./createLOD";
 
-	import { needsResize } from "@functions/needsResize";
-	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
@@ -25,7 +24,7 @@
 
 	const scene = new Scene().add(lod);
 
-	onCleanup(disposeLOD);
+	useCleanup(disposeLOD);
 
 	const camera = new PerspectiveCamera();
 </script>
@@ -39,9 +38,8 @@
 		});
 
 		renderer.setAnimationLoop((time) => {
-			if (needsResize(renderer.domElement)) {
-				const { clientWidth, clientHeight } = renderer.domElement;
-
+			const { clientHeight, clientWidth, height, width } = renderer.domElement;
+			if (clientHeight !== height || clientWidth !== width) {
 				renderer.setSize(clientWidth, clientHeight, false);
 				updateCameraAspect(camera, clientWidth / clientHeight);
 			}

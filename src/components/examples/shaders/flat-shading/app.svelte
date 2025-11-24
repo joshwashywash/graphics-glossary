@@ -16,9 +16,9 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { onCleanup } from "@functions/onCleanup.svelte";
-	import { onDispatcherChange } from "@functions/onDispatcherChange";
+	import { onOrbitControls } from "@functions/onOrbitControls";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
 		AmbientLight,
@@ -58,7 +58,7 @@
 
 	const helper = new DirectionalLightHelper(directionalLight);
 
-	onCleanup(() => {
+	useCleanup(() => {
 		ambientLight.dispose();
 		directionalLight.dispose();
 		material.dispose();
@@ -209,7 +209,7 @@
 					};
 				}
 
-				return onDispatcherChange(controls, render);
+				return onOrbitControls(controls, "change", render);
 			});
 
 			controls.connect(renderer.domElement);
