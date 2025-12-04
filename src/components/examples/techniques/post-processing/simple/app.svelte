@@ -12,10 +12,6 @@
 
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
-
-	import { onOrbitControls } from "@functions/onOrbitControls";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
@@ -82,9 +78,11 @@
 
 	const resolution = new Size();
 
-	let animationLoop: null | (() => void) = null;
+	type State = "indicating" | "idle";
+	let state = $state<State>("indicating");
 
-	let autoRotateCamera = $state(true);
+	type AnimationLoop = Parameters<WebGLRenderer["setAnimationLoop"]>[0];
+	let animationLoop: AnimationLoop = null;
 
 	const attachment: Attachment<HTMLCanvasElement> = (canvas) => {
 		const renderer = new WebGLRenderer({
@@ -92,16 +90,14 @@
 			canvas,
 		});
 
+		controls.connect(renderer.domElement);
+
 		const render = () => {
 			const last = renderer.getRenderTarget();
 			renderer.setRenderTarget(renderTarget);
 			renderer.render(scene, camera);
 			renderer.setRenderTarget(last);
 			quad.render(renderer);
-		};
-
-		const renderIfNotAnimating = () => {
-			if (animationLoop === null) render();
 		};
 
 		$effect(() => {
@@ -112,27 +108,42 @@
 
 			updateCameraAspect(camera, resolution.width / resolution.height);
 
-			renderIfNotAnimating();
+			if (animationLoop === null) render();
 		});
+
+		const indicatingLoop: AnimationLoop = (time) => {
+			time *= 0.001;
+			const s = (Math.PI / 16) * Math.sin(time);
+
+			camera.position.set(Math.cos(s), 0, Math.sin(s)).multiplyScalar(5);
+			camera.lookAt(mesh.position);
+			render();
+		};
 
 		$effect(() => {
-			if ((controls.autoRotate = autoRotateCamera)) {
-				renderer.setAnimationLoop(
-					(animationLoop = () => {
-						controls.update();
-						render();
-					}),
-				);
+			switch (state) {
+				case "indicating":
+					renderer.setAnimationLoop((animationLoop = indicatingLoop));
+					const cb = () => {
+						state = "idle";
+					};
 
-				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
-				};
+					controls.addEventListener("start", cb);
+					return () => {
+						controls.removeEventListener("start", cb);
+						renderer.setAnimationLoop((animationLoop = null));
+					};
+				case "idle":
+					controls.addEventListener("change", render);
+					return () => {
+						controls.removeEventListener("change", render);
+					};
+				default:
+					const exhaustive: never = state;
+					console.error(exhaustive);
 			}
-
-			return onOrbitControls(controls, "change", render);
 		});
 
-		controls.connect(renderer.domElement);
 		return () => {
 			controls.disconnect();
 			renderer.dispose();
@@ -140,25 +151,10 @@
 	};
 </script>
 
-<Example>
-	{#snippet pane()}
-		<details open>
-			<summary>controls</summary>
-			<Label>
-				auto rotate camera
-				<input
-					bind:checked={autoRotateCamera}
-					type="checkbox"
-				/>
-			</Label>
-		</details>
-	{/snippet}
-
-	<canvas
-		class="example-canvas"
-		bind:clientWidth={resolution.width}
-		bind:clientHeight={resolution.height}
-		{@attach attachment}
-	>
-	</canvas>
-</Example>
+<canvas
+	class="example-canvas"
+	bind:clientWidth={resolution.width}
+	bind:clientHeight={resolution.height}
+	{@attach attachment}
+>
+</canvas>

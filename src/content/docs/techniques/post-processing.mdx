@@ -25,9 +25,7 @@ Three.js provides many of these effects through its post-processing addon, howev
 
 The main idea is to create a geometry that will cover the entire canvas. This could easily be achieved with two triangles but there's a clever trick that uses only single triangle to achieve the same result.
 
-:::tip[todo]
-put a hand-drawn image of the triangle and the screen here
-:::
+![an image showing a triangle that covers the screen along with the triangle's uv coordinates](@assets/full-screen-quad.png)
 
 Notice how the triangle's hypotenuse only touches the screen at the top left corner. Every fragment that is outside of the screen won't be visible.
 
