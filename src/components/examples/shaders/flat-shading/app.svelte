@@ -16,10 +16,11 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { onOrbitControls } from "@functions/onOrbitControls";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import {
 		AmbientLight,
 		DirectionalLight,
@@ -30,10 +31,8 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
-		WebGLRenderer,
-	} from "three";
-	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-	import { DEG2RAD } from "three/src/math/MathUtils.js";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	let color = $state("#770077");
 	let shininess = $state(0.5 * SHININESS_MAX);
@@ -79,17 +78,18 @@
 		directionalLight,
 		helper,
 	);
+
 	directionalLight.lookAt(scene.position);
 	helper.update();
 
 	const camera = new PerspectiveCamera().translateOnAxis(cameraAxis, 3);
 	camera.lookAt(scene.position);
 
-	const canvasSize = new Size();
-
 	let animationLoop: null | (() => void) = null;
 
 	const controls = new OrbitControls(camera);
+
+	const size = new Size();
 </script>
 
 <Example>
@@ -145,10 +145,10 @@
 
 	<canvas
 		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
+		bind:clientWidth={size.width}
+		bind:clientHeight={size.height}
 		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
+			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
 			});
@@ -161,38 +161,6 @@
 				if (animationLoop === null) render();
 			};
 
-			$effect(() => {
-				material.color.set(color);
-				flatShadingMaterial.color.set(color);
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				material.shininess = shininess;
-				flatShadingMaterial.shininess = shininess;
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				flatShadingMesh.visible = flatShading;
-				mesh.visible = !flatShadingMesh.visible;
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-				const aspect = canvasSize.width / canvasSize.height;
-				updateCameraAspect(camera, aspect);
-
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				helper.visible = directionalLightHelperVisible;
-				renderIfNotAnimating();
-			});
-
 			const loop = () => {
 				for (const mesh of meshes) {
 					mesh.rotateY(angle);
@@ -200,23 +168,65 @@
 				render();
 			};
 
-			$effect(() => {
-				if (rotate) {
-					renderer.setAnimationLoop((animationLoop = loop));
-
-					return () => {
-						renderer.setAnimationLoop((animationLoop = null));
-					};
-				}
-
-				return onOrbitControls(controls, "change", render);
-			});
-
 			controls.connect(renderer.domElement);
+
+			const promise = renderer.init().then((renderer) => {
+				return $effect.root(() => {
+					$effect(() => {
+						material.color.set(color);
+						flatShadingMaterial.color.set(color);
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						material.shininess = shininess;
+						flatShadingMaterial.shininess = shininess;
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						flatShadingMesh.visible = flatShading;
+						mesh.visible = !flatShadingMesh.visible;
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						helper.visible = directionalLightHelperVisible;
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						renderer.setSize(size.width, size.height, false);
+
+						const aspect = size.width / size.height;
+
+						updateCameraAspect(camera, aspect);
+
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						if (rotate) {
+							renderer.setAnimationLoop((animationLoop = loop));
+
+							return () => {
+								renderer.setAnimationLoop((animationLoop = null));
+							};
+						}
+
+						controls.addEventListener("change", render);
+
+						return () => {
+							controls.removeEventListener("change", render);
+						};
+					});
+				});
+			});
 
 			return () => {
 				controls.disconnect();
 				renderer.dispose();
+				promise.then((cleanup) => cleanup());
 			};
 		}}
 	>

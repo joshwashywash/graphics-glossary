@@ -4,10 +4,14 @@
 >
 	const degrees = 1;
 	const angle = DEG2RAD * degrees;
+
+	const POWER_MIN = 0;
+	const POWER_MAX = 3;
+	const POWER_STEP = 0.5;
 </script>
 
 <script lang="ts">
-	import { FresnelMaterial, createUniforms } from "./FresnelMaterial";
+	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
@@ -15,20 +19,39 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import {
+		Fn,
+		normalWorld,
+		positionViewDirection,
+		sub,
+		uniform,
+	} from "three/tsl";
+	import {
+		Color,
 		Mesh,
+		MeshBasicNodeMaterial,
 		PerspectiveCamera,
 		Scene,
 		TorusKnotGeometry,
-		WebGLRenderer,
-	} from "three";
-	import { DEG2RAD } from "three/src/math/MathUtils.js";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	let rotateMesh = $state(true);
 
-	const uniforms = createUniforms();
+	const baseColorUniform = uniform(new Color());
+	const fresnelColorUniform = uniform(new Color());
+	const powerUniform = uniform(0);
 
-	const material = new FresnelMaterial(uniforms);
+	const material = new MeshBasicNodeMaterial();
+	material.colorNode = Fn(() => {
+		const f = normalWorld.dot(positionViewDirection).add(1.0).mul(0.5);
+		const fresnel = f.pow(powerUniform).mul(baseColorUniform);
+		const inverseFresnel = sub(1.0, f)
+			.pow(powerUniform)
+			.mul(fresnelColorUniform);
+		return fresnel.add(inverseFresnel);
+	})();
 
 	const geometry = new TorusKnotGeometry();
 
@@ -41,16 +64,13 @@
 
 	const scene = new Scene().add(mesh);
 
-	const camera = new PerspectiveCamera();
-	camera.translateZ(5);
+	const camera = new PerspectiveCamera().translateZ(5);
 
 	let baseColor = $state("#583583");
 	let fresnelColor = $state("#ccccaa");
-	let power = $state(1.5);
+	let power = $state(0.5 * (POWER_MAX - POWER_MIN));
 
-	let canvasWidth = $state(1);
-	let canvasHeight = $state(1);
-	const canvasAspect = $derived(canvasWidth / canvasHeight);
+	const canvasSize = new Size();
 
 	let animationLoop: null | (() => void) = null;
 </script>
@@ -78,9 +98,9 @@
 				<input
 					type="range"
 					bind:value={power}
-					min={0}
-					max={3}
-					step={0.5}
+					min={POWER_MIN}
+					max={POWER_MAX}
+					step={POWER_STEP}
 				/>
 			</Label>
 			<Label>
@@ -95,10 +115,10 @@
 
 	<canvas
 		class="example-canvas"
-		bind:clientWidth={canvasWidth}
-		bind:clientHeight={canvasHeight}
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
+			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
 			});
@@ -111,45 +131,52 @@
 				if (animationLoop === null) render();
 			};
 
-			$effect(() => {
-				renderer.setSize(canvasWidth, canvasHeight, false);
+			const loop = () => {
+				mesh.rotateY(angle);
+				render();
+			};
 
-				updateCameraAspect(camera, canvasAspect);
+			const promise = renderer.init().then((renderer) => {
+				return $effect.root(() => {
+					$effect(() => {
+						renderer.setSize(canvasSize.width, canvasSize.height, false);
 
-				renderIfNotAnimating();
-			});
+						const aspect = canvasSize.width / canvasSize.height;
 
-			$effect(() => {
-				uniforms.uBaseColor.value.setStyle(baseColor);
-				renderIfNotAnimating();
-			});
+						updateCameraAspect(camera, aspect);
 
-			$effect(() => {
-				uniforms.uFresnelColor.value.setStyle(fresnelColor);
-				renderIfNotAnimating();
-			});
+						renderIfNotAnimating();
+					});
 
-			$effect(() => {
-				uniforms.uPower.value = power;
-				renderIfNotAnimating();
-			});
+					$effect(() => {
+						baseColorUniform.value.setStyle(baseColor);
+						renderIfNotAnimating();
+					});
 
-			$effect(() => {
-				if (!rotateMesh) return;
+					$effect(() => {
+						fresnelColorUniform.value.setStyle(fresnelColor);
+						renderIfNotAnimating();
+					});
 
-				renderer.setAnimationLoop(
-					(animationLoop = () => {
-						mesh.rotateY(angle);
-						render();
-					}),
-				);
-				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
-				};
+					$effect(() => {
+						powerUniform.value = power;
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						if (rotateMesh) {
+							renderer.setAnimationLoop((animationLoop = loop));
+							return () => {
+								renderer.setAnimationLoop((animationLoop = null));
+							};
+						}
+					});
+				});
 			});
 
 			return () => {
 				renderer.dispose();
+				promise.then((cleanup) => cleanup());
 			};
 		}}
 	>
