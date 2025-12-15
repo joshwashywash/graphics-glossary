@@ -8,6 +8,8 @@
 	const POWER_MIN = 0;
 	const POWER_MAX = 3;
 	const POWER_STEP = 0.5;
+
+	const f = normalWorld.dot(positionViewDirection).add(1.0).mul(0.5);
 </script>
 
 <script lang="ts">
@@ -20,13 +22,7 @@
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
-	import {
-		Fn,
-		normalWorld,
-		positionViewDirection,
-		sub,
-		uniform,
-	} from "three/tsl";
+	import { normalWorld, positionViewDirection, sub, uniform } from "three/tsl";
 	import {
 		Color,
 		Mesh,
@@ -43,15 +39,12 @@
 	const fresnelColorUniform = uniform(new Color());
 	const powerUniform = uniform(0);
 
+	const fresnel = f.pow(powerUniform).mul(baseColorUniform);
+	const inverseFresnel = sub(1.0, f).pow(powerUniform).mul(fresnelColorUniform);
+	const colorNode = fresnel.add(inverseFresnel);
+
 	const material = new MeshBasicNodeMaterial();
-	material.colorNode = Fn(() => {
-		const f = normalWorld.dot(positionViewDirection).add(1.0).mul(0.5);
-		const fresnel = f.pow(powerUniform).mul(baseColorUniform);
-		const inverseFresnel = sub(1.0, f)
-			.pow(powerUniform)
-			.mul(fresnelColorUniform);
-		return fresnel.add(inverseFresnel);
-	})();
+	material.colorNode = colorNode;
 
 	const geometry = new TorusKnotGeometry();
 
