@@ -70,7 +70,7 @@
 
 <Example>
 	{#snippet pane()}
-		<details open>
+		<details>
 			<summary>controls</summary>
 			<Label>
 				base color

@@ -11,8 +11,8 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 	import { lerp } from "three/src/math/MathUtils.js";
+	import { PerspectiveCamera, Scene, WebGPURenderer } from "three/webgpu";
 
 	const maxDistance = 15;
 	const minDistance = 3;
@@ -32,31 +32,38 @@
 <canvas
 	class="example-canvas"
 	{@attach (canvas) => {
-		const renderer = new WebGLRenderer({
+		const promise = new WebGPURenderer({
 			antialias: true,
 			canvas,
-		});
+		})
+			.init()
+			.then((renderer) => {
+				renderer.setAnimationLoop((time) => {
+					const { clientHeight, clientWidth, height, width } =
+						renderer.domElement;
+					if (clientHeight !== height || clientWidth !== width) {
+						renderer.setSize(clientWidth, clientHeight, false);
+						updateCameraAspect(camera, clientWidth / clientHeight);
+					}
 
-		renderer.setAnimationLoop((time) => {
-			const { clientHeight, clientWidth, height, width } = renderer.domElement;
-			if (clientHeight !== height || clientWidth !== width) {
-				renderer.setSize(clientWidth, clientHeight, false);
-				updateCameraAspect(camera, clientWidth / clientHeight);
-			}
+					time = 0.5 * (1 + Math.sin(time * speed));
+					camera.position.z = lerp(
+						maxDistance + 2,
+						lod.position.z + radius + 2,
+						time,
+					);
 
-			time = 0.5 * (1 + Math.sin(time * speed));
-			camera.position.z = lerp(
-				maxDistance + 2,
-				lod.position.z + radius + 2,
-				time,
-			);
+					renderer.render(scene, camera);
+				});
 
-			renderer.render(scene, camera);
-		});
+				return renderer;
+			});
 
 		return () => {
-			renderer.setAnimationLoop(null);
-			renderer.dispose();
+			promise.then((renderer) => {
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			});
 		};
 	}}
 >

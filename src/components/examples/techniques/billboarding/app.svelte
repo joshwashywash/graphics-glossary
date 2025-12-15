@@ -43,8 +43,8 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
-		WebGLRenderer,
-	} from "three";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	const booCanvas = new OffscreenCanvas(
 		booImageMetadata.width + extensionWidth,
@@ -128,42 +128,49 @@
 <canvas
 	class="example-canvas"
 	{@attach (canvas) => {
-		const renderer = new WebGLRenderer({
+		const promise = new WebGPURenderer({
 			antialias: true,
 			canvas,
-		});
+		})
+			.init()
+			.then((renderer) => {
+				renderer.setAnimationLoop(() => {
+					const { clientHeight, clientWidth, height, width } =
+						renderer.domElement;
+					if (clientHeight !== height || clientWidth !== width) {
+						renderer.setSize(clientWidth, clientHeight, false);
+						updateCameraAspect(camera, clientWidth / clientHeight);
+					}
 
-		renderer.setAnimationLoop(() => {
-			const { clientHeight, clientWidth, height, width } = renderer.domElement;
-			if (clientHeight !== height || clientWidth !== width) {
-				renderer.setSize(clientWidth, clientHeight, false);
-				updateCameraAspect(camera, clientWidth / clientHeight);
-			}
+					camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
+					camera.lookAt(scene.position);
 
-			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
-			camera.lookAt(scene.position);
+					let angle = camera.position.angleTo(sprite.position);
 
-			let angle = camera.position.angleTo(sprite.position);
+					// determine if the larger angle should be used
+					const o =
+						camera.position.x * sprite.position.z -
+						camera.position.z * sprite.position.x;
+					if (o < 0) angle = tau - angle;
 
-			// determine if the larger angle should be used
-			const o =
-				camera.position.x * sprite.position.z -
-				camera.position.z * sprite.position.x;
-			if (o < 0) angle = tau - angle;
+					const offset = Math.floor(frameCount * (angle / tau));
 
-			const offset = Math.floor(frameCount * (angle / tau));
+					if (lastOffset !== offset) {
+						canvasTexture.offset.x = offset / frameCount;
+						lastOffset = offset;
+					}
 
-			if (lastOffset !== offset) {
-				canvasTexture.offset.x = offset / frameCount;
-				lastOffset = offset;
-			}
+					renderer.render(scene, camera);
+				});
 
-			renderer.render(scene, camera);
-		});
+				return renderer;
+			});
 
 		return () => {
-			renderer.setAnimationLoop(null);
-			renderer.dispose();
+			promise.then((renderer) => {
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			});
 		};
 	}}
 >
