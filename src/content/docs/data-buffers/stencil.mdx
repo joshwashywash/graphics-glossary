@@ -20,9 +20,12 @@ In 3D graphics there are various data buffers, for example, the z-buffer or dept
 To use the stencil buffer in three.js, it needs to be enabled via the renderer's constructor.
 
 ```ts
-const renderer = new WebGLRenderer({
-	stencil: true,
-});
+const parameters: RendererParameters = {
+	stenci: true,
+};
+
+const glRenderer = new WebGLRenderer(parameters);
+const wgpuRenderer = new WebGPURenderer(parameters);
 ```
 
 The stencil buffer is an opt-in feature because it requires extra space which may go unused if the application doesn't need to use the stencil buffer.

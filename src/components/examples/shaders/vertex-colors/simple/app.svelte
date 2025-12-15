@@ -19,6 +19,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import {
 		BoxGeometry,
 		Matrix4,
@@ -27,9 +28,8 @@
 		PerspectiveCamera,
 		Scene,
 		Vector3,
-		WebGLRenderer,
-	} from "three";
-	import { DEG2RAD } from "three/src/math/MathUtils.js";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	let rotateMesh = $state(true);
 
@@ -62,7 +62,7 @@
 
 <Example>
 	{#snippet pane()}
-		<details open>
+		<details>
 			<summary>controls</summary>
 			<Label>
 				rotate mesh
@@ -79,7 +79,7 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
+			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
 			});
@@ -92,32 +92,37 @@
 				if (animationLoop === null) render();
 			};
 
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
+			const promise = renderer.init().then((renderer) => {
+				return $effect.root(() => {
+					$effect(() => {
+						renderer.setSize(canvasSize.width, canvasSize.height, false);
 
-				const aspect = canvasSize.width / canvasSize.height;
-				updateCameraAspect(camera, aspect);
+						const aspect = canvasSize.width / canvasSize.height;
+						updateCameraAspect(camera, aspect);
 
-				renderIfNotAnimating();
-			});
+						renderIfNotAnimating();
+					});
 
-			$effect(() => {
-				if (!rotateMesh) return;
+					$effect(() => {
+						if (!rotateMesh) return;
 
-				renderer.setAnimationLoop(
-					(animationLoop = () => {
-						mesh.rotateOnAxis(axis, angle);
-						render();
-					}),
-				);
+						renderer.setAnimationLoop(
+							(animationLoop = () => {
+								mesh.rotateOnAxis(axis, angle);
+								render();
+							}),
+						);
 
-				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
-				};
+						return () => {
+							renderer.setAnimationLoop((animationLoop = null));
+						};
+					});
+				});
 			});
 
 			return () => {
 				renderer.dispose();
+				promise.then((cleanup) => cleanup());
 			};
 		}}
 	>

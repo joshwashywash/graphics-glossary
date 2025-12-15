@@ -10,7 +10,6 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
-	import { onOrbitControls } from "@functions/onOrbitControls";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
@@ -106,11 +105,11 @@
 			render();
 		});
 
+		controls.addEventListener("change", render);
 		controls.connect(renderer.domElement);
-		const removeOnChangeListener = onOrbitControls(controls, "change", render);
 
 		return () => {
-			removeOnChangeListener();
+			controls.removeEventListener("change", render);
 			controls.disconnect();
 			renderer.dispose();
 		};

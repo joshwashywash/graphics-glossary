@@ -22,6 +22,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import {
 		BoxGeometry,
 		BufferGeometry,
@@ -36,9 +37,8 @@
 		TorusGeometry,
 		TorusKnotGeometry,
 		Vector3,
-		WebGLRenderer,
-	} from "three";
-	import { DEG2RAD } from "three/src/math/MathUtils.js";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	const stencilRef = 1;
 
@@ -78,6 +78,7 @@
 		const mesh = new Mesh(geometry, material);
 
 		const outlineMesh = new Mesh(geometry, outlineMaterial);
+		outlineMesh.renderOrder = 1;
 		outlineMeshes.push(outlineMesh);
 
 		mesh.getObjectsByProperty;
@@ -110,7 +111,7 @@
 
 <Example>
 	{#snippet pane()}
-		<details open>
+		<details>
 			<summary>controls</summary>
 			<Label>
 				visible
@@ -151,7 +152,7 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
+			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
 				stencil: true,
@@ -165,53 +166,58 @@
 				if (animationLoop === null) render();
 			};
 
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-				const aspect = canvasSize.width / canvasSize.height;
-				updateCameraAspect(camera, aspect);
-
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				for (const outlineMesh of outlineMeshes) {
-					outlineMesh.visible = outlinesVisible;
+			const loop = () => {
+				for (const group of groups) {
+					group.rotateY(angle);
 				}
-				renderIfNotAnimating();
-			});
+				render();
+			};
 
-			$effect(() => {
-				outlineMaterial.color.setStyle(outlineColor);
-				renderIfNotAnimating();
-			});
+			const promise = renderer.init().then((renderer) => {
+				return $effect.root(() => {
+					$effect(() => {
+						renderer.setSize(canvasSize.width, canvasSize.height, false);
 
-			$effect(() => {
-				for (const mesh of outlineMeshes) {
-					mesh.scale.setScalar(outlineScale);
-				}
-				renderIfNotAnimating();
-			});
+						const aspect = canvasSize.width / canvasSize.height;
+						updateCameraAspect(camera, aspect);
 
-			$effect(() => {
-				if (!rotateMeshes) return;
+						renderIfNotAnimating();
+					});
 
-				renderer.setAnimationLoop(
-					(animationLoop = () => {
-						for (const group of groups) {
-							group.rotateY(angle);
+					$effect(() => {
+						for (const outlineMesh of outlineMeshes) {
+							outlineMesh.visible = outlinesVisible;
 						}
-						render();
-					}),
-				);
+						renderIfNotAnimating();
+					});
 
-				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
-				};
+					$effect(() => {
+						outlineMaterial.color.setStyle(outlineColor);
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						for (const mesh of outlineMeshes) {
+							mesh.scale.setScalar(outlineScale);
+						}
+						renderIfNotAnimating();
+					});
+
+					$effect(() => {
+						if (!rotateMeshes) return;
+
+						renderer.setAnimationLoop((animationLoop = loop));
+
+						return () => {
+							renderer.setAnimationLoop((animationLoop = null));
+						};
+					});
+				});
 			});
 
 			return () => {
 				renderer.dispose();
+				promise.then((cleanup) => cleanup());
 			};
 		}}
 	>

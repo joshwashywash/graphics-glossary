@@ -18,6 +18,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { lerp } from "three/src/math/MathUtils.js";
 	import {
 		CanvasTexture,
 		Group,
@@ -29,9 +30,8 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
-		WebGLRenderer,
-	} from "three";
-	import { lerp } from "three/src/math/MathUtils.js";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	const textureCanvas = new OffscreenCanvas(
 		textureCanvasSize,
@@ -116,7 +116,7 @@
 
 	<Example>
 		{#snippet pane()}
-			<details open>
+			<details>
 				<summary>controls</summary>
 				<Label>
 					shadow color
@@ -131,36 +131,42 @@
 		<canvas
 			class="example-canvas"
 			{@attach (canvas) => {
-				const renderer = new WebGLRenderer({
+				const promise = new WebGPURenderer({
 					antialias: true,
 					canvas,
-				});
+				})
+					.init()
+					.then((renderer) => {
+						renderer.setAnimationLoop((time) => {
+							const { clientHeight, clientWidth, height, width } =
+								renderer.domElement;
+							if (clientHeight !== height || clientWidth !== width) {
+								renderer.setSize(clientWidth, clientHeight, false);
+								updateCameraAspect(camera, clientWidth / clientHeight);
+							}
+							// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+							const t = 0.5 * (1 + Math.sin(time * speed));
 
-				renderer.setAnimationLoop((time) => {
-					const { clientHeight, clientWidth, height, width } =
-						renderer.domElement;
-					if (clientHeight !== height || clientWidth !== width) {
-						renderer.setSize(clientWidth, clientHeight, false);
-						updateCameraAspect(camera, clientWidth / clientHeight);
-					}
-					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-					const t = 0.5 * (1 + Math.sin(time * speed));
+							sphereMesh.position.y = lerp(
+								positionYInitial - 1,
+								positionYInitial + 1,
+								t,
+							);
+							shadowMesh.scale.setScalar(1 + t);
 
-					sphereMesh.position.y = lerp(
-						positionYInitial - 1,
-						positionYInitial + 1,
-						t,
-					);
-					shadowMesh.scale.setScalar(1 + t);
+							shadowMaterial.opacity = lerp(1, 0, t);
 
-					shadowMaterial.opacity = lerp(1, 0, t);
+							renderer.render(scene, camera);
+						});
 
-					renderer.render(scene, camera);
-				});
+						return renderer;
+					});
 
 				return () => {
-					renderer.setAnimationLoop(null);
-					renderer.dispose();
+					promise.then((renderer) => {
+						renderer.setAnimationLoop(null);
+						renderer.dispose();
+					});
 				};
 			}}
 		>

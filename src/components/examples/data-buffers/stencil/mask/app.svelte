@@ -7,6 +7,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { TransformControls } from "three/addons/controls/TransformControls.js";
 	import {
 		CircleGeometry,
 		EqualStencilFunc,
@@ -20,22 +21,10 @@
 		RingGeometry,
 		Scene,
 		TorusKnotGeometry,
-		WebGLRenderer,
-	} from "three";
-	import { TransformControls } from "three/addons/controls/TransformControls.js";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	const stencilRef = 1;
-
-	const maskMaterial = new MeshBasicMaterial({
-		colorWrite: false,
-		depthTest: false,
-		stencilRef,
-		stencilWrite: true,
-		stencilZPass: ReplaceStencilOp,
-	});
-
-	const maskGeometry = new CircleGeometry();
-	const maskMesh = new Mesh(maskGeometry, maskMaterial);
 
 	const meshGeometry = new TorusKnotGeometry();
 	const meshMaterial = new MeshNormalMaterial({
@@ -43,15 +32,30 @@
 		stencilWrite: true,
 	});
 
-	const ringGeometry = new RingGeometry(1, 1.05);
-	const ringMaterial = new MeshBasicMaterial();
+	const maskGeometry = new CircleGeometry();
 
-	const ringMesh = new Mesh(ringGeometry, ringMaterial);
+	const maskMaterial = new MeshBasicMaterial({
+		depthWrite: false,
+		colorWrite: false,
+		stencilRef,
+		stencilWrite: true,
+		stencilZPass: ReplaceStencilOp,
+	});
+
+	const maskMesh = new Mesh(maskGeometry, maskMaterial);
+
+	const maskRingGeometry = new RingGeometry(1, 1.05);
+	const maskRingMaterial = new MeshBasicMaterial({
+		color: "white",
+	});
+
+	const maskRingMesh = new Mesh(maskRingGeometry, maskRingMaterial);
+
+	const maskGroup = new Group().add(maskMesh, maskRingMesh).translateZ(1);
+
 	const mesh = new Mesh(meshGeometry, meshMaterial);
 
-	const group = new Group().add(ringMesh, maskMesh).translateZ(1);
-
-	const scene = new Scene().add(mesh, group);
+	const scene = new Scene().add(mesh, maskGroup);
 
 	const camera = new PerspectiveCamera().translateZ(5);
 	camera.lookAt(scene.position);
@@ -63,26 +67,25 @@
 
 	const canvasSize = new Size();
 
-	const controls = new TransformControls(camera).attach(group);
+	const controls = new TransformControls(camera).attach(maskGroup);
 	controls.showZ = false;
 
 	const helper = controls.getHelper();
 	scene.add(helper);
 
 	useCleanup(() => {
-		ringGeometry.dispose();
-		ringMaterial.dispose();
 		maskGeometry.dispose();
 		maskMaterial.dispose();
 		meshMaterial.dispose();
 		meshGeometry.dispose();
 		helper.dispose();
+		controls.detach().dispose();
 	});
 </script>
 
 <Example>
 	{#snippet pane()}
-		<details open>
+		<details>
 			<summary>mask</summary>
 			<Label>
 				invert
@@ -99,7 +102,7 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = new WebGLRenderer({
+			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
 				stencil: true,
@@ -109,28 +112,31 @@
 				renderer.render(scene, camera);
 			};
 
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-				const aspect = canvasSize.width / canvasSize.height;
-
-				updateCameraAspect(camera, aspect);
-				render();
-			});
-
-			$effect(() => {
-				meshMaterial.stencilFunc = meshMaterialStencilFunc;
-				render();
-			});
-
 			controls.connect(renderer.domElement);
-
 			controls.addEventListener("change", render);
 
+			const promise = renderer.init().then((renderer) => {
+				return $effect.root(() => {
+					$effect(() => {
+						renderer.setSize(canvasSize.width, canvasSize.height, false);
+
+						const aspect = canvasSize.width / canvasSize.height;
+
+						updateCameraAspect(camera, aspect);
+						render();
+					});
+
+					$effect(() => {
+						meshMaterial.stencilFunc = meshMaterialStencilFunc;
+						render();
+					});
+				});
+			});
+
 			return () => {
-				controls.removeEventListener("change", render);
-				controls.detach().dispose();
 				renderer.dispose();
+				promise.then((cleanup) => cleanup());
+				controls.removeEventListener("change", render);
 			};
 		}}
 	>
