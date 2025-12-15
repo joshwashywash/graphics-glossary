@@ -13,6 +13,8 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import {
 		DoubleSide,
 		EquirectangularReflectionMapping,
@@ -20,13 +22,11 @@
 		MeshBasicMaterial,
 		PerspectiveCamera,
 		PlaneGeometry,
+		RenderTarget,
 		Scene,
 		Vector3,
-		WebGLRenderTarget,
-		WebGLRenderer,
-	} from "three";
-	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	const hdr = hdrLoader
 		.loadAsync("/hdrs/university_workshop_1k.hdr")
@@ -36,7 +36,7 @@
 		});
 
 	const geometry = new PlaneGeometry();
-	const target = new WebGLRenderTarget(1, 1);
+	const target = new RenderTarget(1, 1);
 	const material = new MeshBasicMaterial({
 		map: target.texture,
 		side: DoubleSide,
@@ -65,7 +65,7 @@
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = new WebGLRenderer({
+		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
@@ -89,28 +89,32 @@
 			scene.backgroundBlurriness = lastBlurriness;
 		};
 
-		hdr.then((hdr) => {
-			scene.background = hdr;
-			scene.environment = hdr;
-			render();
-		});
-
-		$effect(() => {
-			target.setSize(canvasSize.width, canvasSize.height);
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-			const aspect = canvasSize.width / canvasSize.height;
-			updateCameraAspect(camera, aspect);
-
-			render();
-		});
-
 		controls.addEventListener("change", render);
 		controls.connect(renderer.domElement);
+
+		const promise = Promise.all([hdr, renderer.init()]).then(
+			([hdr, renderer]) => {
+				scene.background = hdr;
+				scene.environment = hdr;
+				render();
+				return $effect.root(() => {
+					$effect(() => {
+						target.setSize(canvasSize.width, canvasSize.height);
+						renderer.setSize(canvasSize.width, canvasSize.height, false);
+
+						const aspect = canvasSize.width / canvasSize.height;
+						updateCameraAspect(camera, aspect);
+
+						render();
+					});
+				});
+			},
+		);
 
 		return () => {
 			controls.removeEventListener("change", render);
 			controls.disconnect();
+			promise.then((cleanup) => cleanup());
 			renderer.dispose();
 		};
 	}}
