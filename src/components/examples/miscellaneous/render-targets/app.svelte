@@ -36,7 +36,7 @@
 		});
 
 	const geometry = new PlaneGeometry();
-	const target = new RenderTarget(1, 1);
+	const target = new RenderTarget();
 	const material = new MeshBasicMaterial({
 		map: target.texture,
 		side: DoubleSide,
@@ -89,7 +89,6 @@
 			scene.backgroundBlurriness = lastBlurriness;
 		};
 
-		controls.addEventListener("change", render);
 		controls.connect(renderer.domElement);
 
 		const promise = Promise.all([hdr, renderer.init()]).then(
@@ -97,6 +96,7 @@
 				scene.background = hdr;
 				scene.environment = hdr;
 				render();
+
 				return $effect.root(() => {
 					$effect(() => {
 						target.setSize(canvasSize.width, canvasSize.height);
@@ -107,12 +107,16 @@
 
 						render();
 					});
+
+					controls.addEventListener("change", render);
+					return () => {
+						controls.removeEventListener("change", render);
+					};
 				});
 			},
 		);
 
 		return () => {
-			controls.removeEventListener("change", render);
 			controls.disconnect();
 			promise.then((cleanup) => cleanup());
 			renderer.dispose();
