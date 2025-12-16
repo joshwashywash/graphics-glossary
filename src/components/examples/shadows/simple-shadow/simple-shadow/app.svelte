@@ -159,14 +159,14 @@
 							renderer.render(scene, camera);
 						});
 
-						return renderer;
+						return () => {
+							renderer.setAnimationLoop(null);
+							renderer.dispose();
+						};
 					});
 
 				return () => {
-					promise.then((renderer) => {
-						renderer.setAnimationLoop(null);
-						renderer.dispose();
-					});
+					promise.then((cleanup) => cleanup());
 				};
 			}}
 		>

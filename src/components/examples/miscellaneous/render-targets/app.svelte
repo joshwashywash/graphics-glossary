@@ -10,7 +10,7 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import resize from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -89,8 +89,6 @@
 			scene.backgroundBlurriness = lastBlurriness;
 		};
 
-		controls.connect(renderer.domElement);
-
 		const promise = Promise.all([hdr, renderer.init()]).then(
 			([hdr, renderer]) => {
 				scene.background = hdr;
@@ -100,26 +98,25 @@
 				return $effect.root(() => {
 					$effect(() => {
 						target.setSize(canvasSize.width, canvasSize.height);
-						renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-						const aspect = canvasSize.width / canvasSize.height;
-						updateCameraAspect(camera, aspect);
+						resize(renderer, camera, canvasSize);
 
 						render();
 					});
 
-					controls.addEventListener("change", render);
 					return () => {
-						controls.removeEventListener("change", render);
+						renderer.dispose();
 					};
 				});
 			},
 		);
 
+		controls.addEventListener("change", render);
+		controls.connect(renderer.domElement);
+
 		return () => {
 			controls.disconnect();
+			controls.removeEventListener("change", render);
 			promise.then((cleanup) => cleanup());
-			renderer.dispose();
 		};
 	}}
 >

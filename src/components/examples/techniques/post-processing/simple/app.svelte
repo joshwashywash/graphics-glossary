@@ -90,8 +90,6 @@
 			canvas,
 		});
 
-		controls.connect(renderer.domElement);
-
 		const render = () => {
 			const last = renderer.getRenderTarget();
 			renderer.setRenderTarget(renderTarget);
@@ -143,6 +141,8 @@
 					console.error(exhaustive);
 			}
 		});
+
+		controls.connect(renderer.domElement);
 
 		return () => {
 			controls.disconnect();

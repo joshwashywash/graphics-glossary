@@ -160,10 +160,13 @@
 							render();
 						});
 					});
+
+					return () => {
+						renderer.dispose();
+					};
 				});
 
 				return () => {
-					renderer.dispose();
 					promise.then((cleanup) => cleanup());
 				};
 			}}

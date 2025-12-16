@@ -4,7 +4,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import resize from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { TransformControls } from "three/addons/controls/TransformControls.js";
@@ -112,17 +112,10 @@
 				renderer.render(scene, camera);
 			};
 
-			controls.connect(renderer.domElement);
-			controls.addEventListener("change", render);
-
 			const promise = renderer.init().then((renderer) => {
 				return $effect.root(() => {
 					$effect(() => {
-						renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-						const aspect = canvasSize.width / canvasSize.height;
-
-						updateCameraAspect(camera, aspect);
+						resize(renderer, camera, canvasSize);
 						render();
 					});
 
@@ -130,11 +123,17 @@
 						meshMaterial.stencilFunc = meshMaterialStencilFunc;
 						render();
 					});
+
+					return () => {
+						renderer.dispose();
+					};
 				});
 			});
 
+			controls.connect(renderer.domElement);
+			controls.addEventListener("change", render);
+
 			return () => {
-				renderer.dispose();
 				promise.then((cleanup) => cleanup());
 				controls.removeEventListener("change", render);
 			};

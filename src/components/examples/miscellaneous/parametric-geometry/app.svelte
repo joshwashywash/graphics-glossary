@@ -2,7 +2,7 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createSphubeFunc } from "@functions/createSphubeFunc";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import resize from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -78,13 +78,14 @@
 		const promise = renderer.init().then((renderer) => {
 			return $effect.root(() => {
 				$effect(() => {
-					renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-					const aspect = canvasSize.width / canvasSize.height;
-					updateCameraAspect(camera, aspect);
+					resize(renderer, camera, canvasSize);
 
 					render();
 				});
+
+				return () => {
+					renderer.dispose();
+				};
 			});
 		});
 
@@ -95,7 +96,6 @@
 			controls.removeEventListener("change", render);
 			controls.disconnect();
 			promise.then((cleanup) => cleanup());
-			renderer.dispose();
 		};
 	}}
 >

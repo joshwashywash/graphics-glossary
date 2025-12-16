@@ -16,7 +16,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import resize from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -95,11 +95,7 @@
 			const promise = renderer.init().then((renderer) => {
 				return $effect.root(() => {
 					$effect(() => {
-						renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-						const aspect = canvasSize.width / canvasSize.height;
-						updateCameraAspect(camera, aspect);
-
+						resize(renderer, camera, canvasSize);
 						renderIfNotAnimating();
 					});
 
@@ -117,11 +113,14 @@
 							renderer.setAnimationLoop((animationLoop = null));
 						};
 					});
+
+					return () => {
+						renderer.dispose();
+					};
 				});
 			});
 
 			return () => {
-				renderer.dispose();
 				promise.then((cleanup) => cleanup());
 			};
 		}}

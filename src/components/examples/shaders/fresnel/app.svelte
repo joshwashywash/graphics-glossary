@@ -12,7 +12,7 @@
 	const POWER_DIFF = POWER_MAX - POWER_MIN;
 	const POWER_DEFAULT = 0.5 * POWER_DIFF;
 
-	const f = normalWorld.dot(positionViewDirection).add(1.0).mul(0.5);
+	const f = normalWorld.dot(positionViewDirection).abs().setName("factor");
 </script>
 
 <script lang="ts">
@@ -21,7 +21,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import resize from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -38,15 +38,16 @@
 
 	let rotateMesh = $state(true);
 
-	const baseColorUniform = uniform(new Color());
-	const fresnelColorUniform = uniform(new Color());
-	const powerUniform = uniform(0);
+	const baseColorUniform = uniform(new Color()).setName("baseColor");
+	const fresnelColorUniform = uniform(new Color()).setName("fresnelColor");
+	const powerUniform = uniform(0).setName("power");
 
-	const fresnel = f.pow(powerUniform).mul(baseColorUniform);
+	const fresnel = f.pow(powerUniform).mul(baseColorUniform).setName("fresnel");
 	const inverseFresnel = f
 		.oneMinus()
 		.pow(powerUniform)
-		.mul(fresnelColorUniform);
+		.mul(fresnelColorUniform)
+		.setName("inverseFresnel");
 
 	const material = new MeshBasicNodeMaterial();
 	material.colorNode = fresnel.add(inverseFresnel);
@@ -138,12 +139,7 @@
 			const promise = renderer.init().then((renderer) => {
 				return $effect.root(() => {
 					$effect(() => {
-						renderer.setSize(canvasSize.width, canvasSize.height, false);
-
-						const aspect = canvasSize.width / canvasSize.height;
-
-						updateCameraAspect(camera, aspect);
-
+						resize(renderer, camera, canvasSize);
 						renderIfNotAnimating();
 					});
 

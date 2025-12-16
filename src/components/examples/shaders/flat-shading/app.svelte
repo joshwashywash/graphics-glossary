@@ -16,7 +16,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import resize from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -168,8 +168,6 @@
 				render();
 			};
 
-			controls.connect(renderer.domElement);
-
 			const promise = renderer.init().then((renderer) => {
 				return $effect.root(() => {
 					$effect(() => {
@@ -196,11 +194,7 @@
 					});
 
 					$effect(() => {
-						renderer.setSize(size.width, size.height, false);
-
-						const aspect = size.width / size.height;
-
-						updateCameraAspect(camera, aspect);
+						resize(renderer, camera, size);
 
 						renderIfNotAnimating();
 					});
@@ -220,12 +214,17 @@
 							controls.removeEventListener("change", render);
 						};
 					});
+
+					return () => {
+						renderer.dispose();
+					};
 				});
 			});
 
+			controls.connect(renderer.domElement);
+
 			return () => {
 				controls.disconnect();
-				renderer.dispose();
 				promise.then((cleanup) => cleanup());
 			};
 		}}
