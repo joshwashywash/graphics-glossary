@@ -9,6 +9,9 @@
 	const POWER_MAX = 3;
 	const POWER_STEP = 0.5;
 
+	const POWER_DIFF = POWER_MAX - POWER_MIN;
+	const POWER_DEFAULT = 0.5 * POWER_DIFF;
+
 	const f = normalWorld.dot(positionViewDirection).add(1.0).mul(0.5);
 </script>
 
@@ -22,7 +25,7 @@
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
-	import { normalWorld, positionViewDirection, sub, uniform } from "three/tsl";
+	import { normalWorld, positionViewDirection, uniform } from "three/tsl";
 	import {
 		Color,
 		Mesh,
@@ -40,11 +43,13 @@
 	const powerUniform = uniform(0);
 
 	const fresnel = f.pow(powerUniform).mul(baseColorUniform);
-	const inverseFresnel = sub(1.0, f).pow(powerUniform).mul(fresnelColorUniform);
-	const colorNode = fresnel.add(inverseFresnel);
+	const inverseFresnel = f
+		.oneMinus()
+		.pow(powerUniform)
+		.mul(fresnelColorUniform);
 
 	const material = new MeshBasicNodeMaterial();
-	material.colorNode = colorNode;
+	material.colorNode = fresnel.add(inverseFresnel);
 
 	const geometry = new TorusKnotGeometry();
 
@@ -60,8 +65,9 @@
 	const camera = new PerspectiveCamera().translateZ(5);
 
 	let baseColor = $state("#583583");
+
 	let fresnelColor = $state("#ccccaa");
-	let power = $state(0.5 * (POWER_MAX - POWER_MIN));
+	let power = $state(POWER_DEFAULT);
 
 	const canvasSize = new Size();
 
@@ -164,11 +170,14 @@
 							};
 						}
 					});
+
+					return () => {
+						renderer.dispose();
+					};
 				});
 			});
 
 			return () => {
-				renderer.dispose();
 				promise.then((cleanup) => cleanup());
 			};
 		}}
