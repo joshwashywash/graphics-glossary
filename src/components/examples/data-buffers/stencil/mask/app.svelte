@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -21,7 +23,6 @@
 		RingGeometry,
 		Scene,
 		TorusKnotGeometry,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const stencilRef = 1;
@@ -81,6 +82,33 @@
 		helper.dispose();
 		controls.detach().dispose();
 	});
+
+	const attachment = createRendererAttachment(
+		(renderer) => {
+			const render = () => {
+				renderer.render(scene, camera);
+			};
+
+			$effect(() => {
+				resize(renderer, camera, canvasSize);
+				render();
+			});
+
+			$effect(() => {
+				meshMaterial.stencilFunc = meshMaterialStencilFunc;
+				render();
+			});
+
+			controls.connect(renderer.domElement);
+			controls.addEventListener("change", render);
+
+			return () => {
+				controls.disconnect();
+				controls.removeEventListener("change", render);
+			};
+		},
+		{ stencil: true },
+	);
 </script>
 
 <Example>
@@ -101,43 +129,7 @@
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
-		{@attach (canvas) => {
-			const renderer = new WebGPURenderer({
-				antialias: true,
-				canvas,
-				stencil: true,
-			});
-
-			const render = () => {
-				renderer.render(scene, camera);
-			};
-
-			const promise = renderer.init().then((renderer) => {
-				return $effect.root(() => {
-					$effect(() => {
-						resize(renderer, camera, canvasSize);
-						render();
-					});
-
-					$effect(() => {
-						meshMaterial.stencilFunc = meshMaterialStencilFunc;
-						render();
-					});
-
-					return () => {
-						renderer.dispose();
-					};
-				});
-			});
-
-			controls.connect(renderer.domElement);
-			controls.addEventListener("change", render);
-
-			return () => {
-				promise.then((cleanup) => cleanup());
-				controls.removeEventListener("change", render);
-			};
-		}}
+		{@attach attachment}
 	>
 	</canvas>
 </Example>

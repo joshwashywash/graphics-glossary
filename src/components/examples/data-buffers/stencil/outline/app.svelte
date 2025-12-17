@@ -14,6 +14,8 @@
 </script>
 
 <script lang="ts">
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -37,7 +39,6 @@
 		TorusGeometry,
 		TorusKnotGeometry,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const stencilRef = 1;
@@ -49,7 +50,7 @@
 	});
 
 	const outlineMaterial = new MeshBasicMaterial({
-		depthTest: false,
+		depthWrite: false,
 		stencilFunc: NotEqualStencilFunc,
 		stencilRef,
 		stencilWrite: true,
@@ -71,26 +72,29 @@
 
 	const a = (2 * Math.PI) / geometries.length;
 
-	const groups: Group[] = [];
+	const meshGroup = new Group();
 	const outlineMeshes: Mesh[] = [];
+	const outlineGroup = new Group();
+
+	const allGroup = new Group().add(meshGroup, outlineGroup);
+
+	const scene = new Scene().add(allGroup);
 
 	for (const geometry of geometries) {
-		const mesh = new Mesh(geometry, material);
-
-		const outlineMesh = new Mesh(geometry, outlineMaterial);
-		outlineMesh.renderOrder = 1;
-		outlineMeshes.push(outlineMesh);
-
-		mesh.getObjectsByProperty;
-
-		groups.push(
-			new Group()
-				.add(mesh, outlineMesh)
-				.translateOnAxis(axis.applyAxisAngle(kHat, a), translationAmount),
+		const mesh = new Mesh(geometry, material).translateOnAxis(
+			axis.applyAxisAngle(kHat, a),
+			translationAmount,
 		);
-	}
+		meshGroup.add(mesh);
 
-	const scene = new Scene().add(...groups);
+		const outlineMesh = new Mesh(geometry, outlineMaterial).translateOnAxis(
+			axis,
+			translationAmount,
+		);
+
+		outlineMeshes.push(outlineMesh);
+		outlineGroup.add(outlineMesh);
+	}
 
 	const camera = new PerspectiveCamera().translateOnAxis(
 		kHat,
@@ -107,6 +111,56 @@
 	const canvasSize = new Size();
 
 	let animationLoop: null | (() => void) = null;
+
+	const attachment = createRendererAttachment(
+		(renderer) => {
+			const render = () => {
+				renderer.render(scene, camera);
+			};
+
+			const renderIfNotAnimating = () => {
+				if (animationLoop === null) render();
+			};
+
+			const loop = () => {
+				allGroup.rotateY(angle);
+				render();
+			};
+
+			$effect(() => {
+				resize(renderer, camera, canvasSize);
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
+				outlineGroup.visible = outlinesVisible;
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
+				outlineMaterial.color.setStyle(outlineColor);
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
+				for (const mesh of outlineMeshes) {
+					mesh.scale.setScalar(outlineScale);
+				}
+				renderIfNotAnimating();
+			});
+
+			$effect(() => {
+				if (!rotateMeshes) return;
+
+				renderer.setAnimationLoop((animationLoop = loop));
+
+				return () => {
+					renderer.setAnimationLoop((animationLoop = null));
+				};
+			});
+		},
+		{ stencil: true },
+	);
 </script>
 
 <Example>
@@ -114,7 +168,7 @@
 		<details>
 			<summary>controls</summary>
 			<Label>
-				visible
+				outlines visible
 				<input
 					type="checkbox"
 					bind:checked={outlinesVisible}
@@ -151,74 +205,7 @@
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
-		{@attach (canvas) => {
-			const renderer = new WebGPURenderer({
-				antialias: true,
-				canvas,
-				stencil: true,
-			});
-
-			const render = () => {
-				renderer.render(scene, camera);
-			};
-
-			const renderIfNotAnimating = () => {
-				if (animationLoop === null) render();
-			};
-
-			const loop = () => {
-				for (const group of groups) {
-					group.rotateY(angle);
-				}
-				render();
-			};
-
-			const promise = renderer.init().then((renderer) => {
-				return $effect.root(() => {
-					$effect(() => {
-						resize(renderer, camera, canvasSize);
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						for (const outlineMesh of outlineMeshes) {
-							outlineMesh.visible = outlinesVisible;
-						}
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						outlineMaterial.color.setStyle(outlineColor);
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						for (const mesh of outlineMeshes) {
-							mesh.scale.setScalar(outlineScale);
-						}
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						if (!rotateMeshes) return;
-
-						renderer.setAnimationLoop((animationLoop = loop));
-
-						return () => {
-							renderer.setAnimationLoop((animationLoop = null));
-						};
-					});
-
-					return () => {
-						renderer.dispose();
-					};
-				});
-			});
-
-			return () => {
-				promise.then((cleanup) => cleanup());
-			};
-		}}
+		{@attach attachment}
 	>
 	</canvas>
 </Example>

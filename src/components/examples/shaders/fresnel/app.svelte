@@ -16,6 +16,8 @@
 </script>
 
 <script lang="ts">
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -33,7 +35,6 @@
 		PerspectiveCamera,
 		Scene,
 		TorusKnotGeometry,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	let rotateMesh = $state(true);
@@ -73,6 +74,50 @@
 	const canvasSize = new Size();
 
 	let animationLoop: null | (() => void) = null;
+
+	const attachment = createRendererAttachment((renderer) => {
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		const renderIfNotAnimating = () => {
+			if (animationLoop === null) render();
+		};
+
+		const loop = () => {
+			mesh.rotateY(angle);
+			render();
+		};
+
+		$effect(() => {
+			resize(renderer, camera, canvasSize);
+			renderIfNotAnimating();
+		});
+
+		$effect(() => {
+			baseColorUniform.value.setStyle(baseColor);
+			renderIfNotAnimating();
+		});
+
+		$effect(() => {
+			fresnelColorUniform.value.setStyle(fresnelColor);
+			renderIfNotAnimating();
+		});
+
+		$effect(() => {
+			powerUniform.value = power;
+			renderIfNotAnimating();
+		});
+
+		$effect(() => {
+			if (rotateMesh) {
+				renderer.setAnimationLoop((animationLoop = loop));
+				return () => {
+					renderer.setAnimationLoop((animationLoop = null));
+				};
+			}
+		});
+	});
 </script>
 
 <Example>
@@ -117,66 +162,7 @@
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
-		{@attach (canvas) => {
-			const renderer = new WebGPURenderer({
-				antialias: true,
-				canvas,
-			});
-
-			const render = () => {
-				renderer.render(scene, camera);
-			};
-
-			const renderIfNotAnimating = () => {
-				if (animationLoop === null) render();
-			};
-
-			const loop = () => {
-				mesh.rotateY(angle);
-				render();
-			};
-
-			const promise = renderer.init().then((renderer) => {
-				return $effect.root(() => {
-					$effect(() => {
-						resize(renderer, camera, canvasSize);
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						baseColorUniform.value.setStyle(baseColor);
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						fresnelColorUniform.value.setStyle(fresnelColor);
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						powerUniform.value = power;
-						renderIfNotAnimating();
-					});
-
-					$effect(() => {
-						if (rotateMesh) {
-							renderer.setAnimationLoop((animationLoop = loop));
-							return () => {
-								renderer.setAnimationLoop((animationLoop = null));
-							};
-						}
-					});
-
-					return () => {
-						renderer.dispose();
-					};
-				});
-			});
-
-			return () => {
-				promise.then((cleanup) => cleanup());
-			};
-		}}
+		{@attach attachment}
 	>
 	</canvas>
 </Example>

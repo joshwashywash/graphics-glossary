@@ -8,6 +8,8 @@
 </script>
 
 <script lang="ts">
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+
 	import { Size } from "@classes/size.svelte";
 
 	import resize from "@functions/resize";
@@ -25,7 +27,6 @@
 		RenderTarget,
 		Scene,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const hdr = hdrLoader
@@ -58,18 +59,8 @@
 	});
 
 	const canvasSize = new Size();
-</script>
 
-<canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
-	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
-			antialias: true,
-			canvas,
-		});
-
+	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {
 			mesh.visible = false;
 
@@ -89,35 +80,33 @@
 			scene.backgroundBlurriness = lastBlurriness;
 		};
 
-		const promise = Promise.all([hdr, renderer.init()]).then(
-			([hdr, renderer]) => {
-				scene.background = hdr;
-				scene.environment = hdr;
-				render();
+		hdr.then((hdr) => {
+			scene.background = hdr;
+			scene.environment = hdr;
+			render();
+		});
 
-				return $effect.root(() => {
-					$effect(() => {
-						target.setSize(canvasSize.width, canvasSize.height);
-						resize(renderer, camera, canvasSize);
+		$effect(() => {
+			target.setSize(canvasSize.width, canvasSize.height);
+			resize(renderer, camera, canvasSize);
 
-						render();
-					});
-
-					return () => {
-						renderer.dispose();
-					};
-				});
-			},
-		);
+			render();
+		});
 
 		controls.addEventListener("change", render);
 		controls.connect(renderer.domElement);
 
 		return () => {
-			controls.disconnect();
 			controls.removeEventListener("change", render);
-			promise.then((cleanup) => cleanup());
+			controls.disconnect();
 		};
-	}}
+	});
+</script>
+
+<canvas
+	class="example-canvas"
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
+	{@attach attachment}
 >
 </canvas>

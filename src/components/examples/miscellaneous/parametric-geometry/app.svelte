@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+
 	import { Size } from "@classes/size.svelte";
 
 	import { createSphubeFunc } from "@functions/createSphubeFunc";
@@ -13,7 +15,6 @@
 		MeshNormalMaterial,
 		PerspectiveCamera,
 		Scene,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const material = new MeshNormalMaterial({
@@ -59,44 +60,32 @@
 	const controls = new OrbitControls(camera);
 
 	const canvasSize = new Size();
+
+	const attachment = createRendererAttachment((renderer) => {
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		$effect(() => {
+			resize(renderer, camera, canvasSize);
+
+			render();
+		});
+
+		controls.addEventListener("change", render);
+		controls.connect(renderer.domElement);
+
+		return () => {
+			controls.removeEventListener("change", render);
+			controls.disconnect();
+		};
+	});
 </script>
 
 <canvas
 	class="example-canvas"
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
-	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
-			antialias: true,
-			canvas,
-		});
-
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
-		const promise = renderer.init().then((renderer) => {
-			return $effect.root(() => {
-				$effect(() => {
-					resize(renderer, camera, canvasSize);
-
-					render();
-				});
-
-				return () => {
-					renderer.dispose();
-				};
-			});
-		});
-
-		controls.connect(renderer.domElement);
-		controls.addEventListener("change", render);
-
-		return () => {
-			controls.removeEventListener("change", render);
-			controls.disconnect();
-			promise.then((cleanup) => cleanup());
-		};
-	}}
+	{@attach attachment}
 >
 </canvas>

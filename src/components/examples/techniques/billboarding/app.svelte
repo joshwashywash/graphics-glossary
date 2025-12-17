@@ -27,6 +27,8 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+
 	import { loadImage } from "@functions/loadImage";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -43,7 +45,6 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const booCanvas = new OffscreenCanvas(
@@ -123,55 +124,44 @@
 	camera.translateZ(4);
 
 	let lastOffset: number;
+
+	const attachment = createRendererAttachment((renderer) => {
+		renderer.setAnimationLoop(() => {
+			const { clientHeight, clientWidth, height, width } = renderer.domElement;
+			if (clientHeight !== height || clientWidth !== width) {
+				renderer.setSize(clientWidth, clientHeight, false);
+				updateCameraAspect(camera, clientWidth / clientHeight);
+			}
+
+			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
+			camera.lookAt(scene.position);
+
+			let angle = camera.position.angleTo(sprite.position);
+
+			// determine if the larger angle should be used
+			const o =
+				camera.position.x * sprite.position.z -
+				camera.position.z * sprite.position.x;
+			if (o < 0) angle = tau - angle;
+
+			const offset = Math.floor(frameCount * (angle / tau));
+
+			if (lastOffset !== offset) {
+				canvasTexture.offset.x = offset / frameCount;
+				lastOffset = offset;
+			}
+
+			renderer.render(scene, camera);
+		});
+
+		return () => {
+			renderer.setAnimationLoop(null);
+		};
+	});
 </script>
 
 <canvas
 	class="example-canvas"
-	{@attach (canvas) => {
-		const promise = new WebGPURenderer({
-			antialias: true,
-			canvas,
-		})
-			.init()
-			.then((renderer) => {
-				renderer.setAnimationLoop(() => {
-					const { clientHeight, clientWidth, height, width } =
-						renderer.domElement;
-					if (clientHeight !== height || clientWidth !== width) {
-						renderer.setSize(clientWidth, clientHeight, false);
-						updateCameraAspect(camera, clientWidth / clientHeight);
-					}
-
-					camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
-					camera.lookAt(scene.position);
-
-					let angle = camera.position.angleTo(sprite.position);
-
-					// determine if the larger angle should be used
-					const o =
-						camera.position.x * sprite.position.z -
-						camera.position.z * sprite.position.x;
-					if (o < 0) angle = tau - angle;
-
-					const offset = Math.floor(frameCount * (angle / tau));
-
-					if (lastOffset !== offset) {
-						canvasTexture.offset.x = offset / frameCount;
-						lastOffset = offset;
-					}
-
-					renderer.render(scene, camera);
-				});
-
-				return () => {
-					renderer.setAnimationLoop(null);
-					renderer.dispose();
-				};
-			});
-
-		return () => {
-			promise.then((cleanup) => cleanup());
-		};
-	}}
+	{@attach attachment}
 >
 </canvas>

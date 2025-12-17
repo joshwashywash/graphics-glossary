@@ -20,6 +20,8 @@
 </script>
 
 <script lang="ts">
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -37,7 +39,6 @@
 		SRGBColorSpace,
 		Scene,
 		TextureLoader,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const canvasSize = new Size();
@@ -101,6 +102,28 @@
 	});
 
 	const map = $derived(useTexture ? texture : whiteTexture);
+
+	const attachment = createRendererAttachment((renderer) => {
+		const render = () => {
+			renderer.render(scene, camera);
+		};
+
+		$effect(() => {
+			material.map = map;
+			render();
+		});
+
+		$effect(() => {
+			renderer.setSize(canvasSize.width, canvasSize.height, false);
+			render();
+		});
+
+		$effect(() => {
+			material.vertexColors = useVertexColors;
+			material.needsUpdate = true;
+			render();
+		});
+	});
 </script>
 
 <svelte:boundary>
@@ -132,44 +155,7 @@
 			class="example-canvas"
 			bind:clientWidth={canvasSize.width}
 			bind:clientHeight={canvasSize.height}
-			{@attach (canvas) => {
-				const renderer = new WebGPURenderer({
-					antialias: true,
-					canvas,
-				});
-
-				const render = () => {
-					renderer.render(scene, camera);
-				};
-
-				const promise = renderer.init().then(() => {
-					return $effect.root(() => {
-						$effect(() => {
-							material.map = map;
-							render();
-						});
-
-						$effect(() => {
-							renderer.setSize(canvasSize.width, canvasSize.height, false);
-							render();
-						});
-
-						$effect(() => {
-							material.vertexColors = useVertexColors;
-							material.needsUpdate = true;
-							render();
-						});
-					});
-
-					return () => {
-						renderer.dispose();
-					};
-				});
-
-				return () => {
-					promise.then((cleanup) => cleanup());
-				};
-			}}
+			{@attach attachment}
 		>
 		</canvas>
 	</Example>
