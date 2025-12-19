@@ -4,157 +4,122 @@
 >
 	const axis = new Vector3(0, 0, 1);
 	const hdrLoader = new HDRLoader();
+
+	const bayer4x4Matrix = mat4(
+		0.0,
+		8.0,
+		2.0,
+		10.0,
+		12.0,
+		4.0,
+		14.0,
+		6.0,
+		3.0,
+		11.0,
+		1.0,
+		9.0,
+		15.0,
+		7.0,
+		13.0,
+		5.0,
+	)
+		.mul(1 / 16.0)
+		.setName("bayer4x4");
+
+	const bayerIndex = uv().mul(screenSize).floor().mod(4).setName("bayerIndex");
+
+	const bayerValue = bayer4x4Matrix
+		.element(bayerIndex.y)
+		.element(bayerIndex.x)
+		.setName("bayerValue");
 </script>
 
 <script lang="ts">
-	import fragmentShader from "./fragments/dither.glsl?raw";
-	import vertexShader from "./vertex.glsl?raw";
+	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
 	import { Size } from "@classes/size.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { resize } from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import type { Attachment } from "svelte/attachments";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
+	import { Fn, dot, mat4, pass, screenSize, uv, vec3, vec4 } from "three/tsl";
 	import {
 		EquirectangularReflectionMapping,
 		Mesh,
 		MeshStandardMaterial,
 		PerspectiveCamera,
+		PostProcessing,
 		Scene,
-		ShaderMaterial,
 		TorusKnotGeometry,
-		Uniform,
-		Vector2,
 		Vector3,
-		WebGLRenderTarget,
-		WebGLRenderer,
-	} from "three";
-	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
-	import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass.js";
-
-	hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr").then((hdr) => {
-		hdr.mapping = EquirectangularReflectionMapping;
-		scene.background = hdr;
-		scene.environment = hdr;
-	});
+	} from "three/webgpu";
 
 	const geometry = new TorusKnotGeometry();
-
-	const meshMaterial = new MeshStandardMaterial();
-	const mesh = new Mesh(geometry, meshMaterial);
-
+	const material = new MeshStandardMaterial();
+	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
-	const camera = new PerspectiveCamera().translateOnAxis(axis, 7);
-	camera.lookAt(scene.position);
+	const hdr = hdrLoader
+		.loadAsync("/hdrs/university_workshop_1k.hdr")
+		.then((hdr) => {
+			hdr.mapping = EquirectangularReflectionMapping;
+			scene.background = hdr;
+			scene.environment = hdr;
+		});
+
+	const camera = new PerspectiveCamera().translateOnAxis(axis, 5);
+	camera.lookAt(mesh.position);
 
 	const controls = new OrbitControls(camera);
 
-	const renderTarget = new WebGLRenderTarget(1, 1);
-
-	const uScene = new Uniform(renderTarget.texture);
-	const uResolution = new Uniform(new Vector2());
-
-	const material = new ShaderMaterial({
-		fragmentShader,
-		uniforms: {
-			uScene,
-			uResolution,
-		},
-		vertexShader,
-	});
-
-	const quad = new FullScreenQuad(material);
-
 	useCleanup(() => {
-		material.dispose();
-		quad.dispose();
-		renderTarget.dispose();
 		geometry.dispose();
-		meshMaterial.dispose();
+		material.dispose();
 	});
 
-	const resolution = new Size();
+	const canvasSize = new Size();
 
-	type State = "indicating" | "idle";
-	let state = $state<State>("indicating");
+	const outputNode = Fn(() => {
+		const v = dot(vec3(0.2126, 0.7152, 0.0722), pass(scene, camera).rgb)
+			.lessThan(bayerValue)
+			.toFloat();
+		return vec4(v, v, v, 1.0);
+	});
 
-	type AnimationLoop = Parameters<WebGLRenderer["setAnimationLoop"]>[0];
-	let animationLoop: AnimationLoop = null;
-
-	const attachment: Attachment<HTMLCanvasElement> = (canvas) => {
-		const renderer = new WebGLRenderer({
-			antialias: true,
-			canvas,
-		});
+	const attachment = createRendererAttachment((renderer) => {
+		const postProcessing = new PostProcessing(renderer);
+		postProcessing.outputNode = outputNode();
 
 		const render = () => {
-			const last = renderer.getRenderTarget();
-			renderer.setRenderTarget(renderTarget);
-			renderer.render(scene, camera);
-			renderer.setRenderTarget(last);
-			quad.render(renderer);
+			postProcessing.render();
 		};
 
 		$effect(() => {
-			renderTarget.setSize(resolution.width, resolution.height);
-
-			renderer.setSize(resolution.width, resolution.height, false);
-			renderer.getSize(uResolution.value);
-
-			updateCameraAspect(camera, resolution.width / resolution.height);
-
-			if (animationLoop === null) render();
-		});
-
-		const indicatingLoop: AnimationLoop = (time) => {
-			time *= 0.001;
-			const s = (Math.PI / 16) * Math.sin(time);
-
-			camera.position.set(Math.cos(s), 0, Math.sin(s)).multiplyScalar(5);
-			camera.lookAt(mesh.position);
+			resize(renderer, camera, canvasSize);
 			render();
-		};
-
-		$effect(() => {
-			switch (state) {
-				case "indicating":
-					renderer.setAnimationLoop((animationLoop = indicatingLoop));
-					const cb = () => {
-						state = "idle";
-					};
-
-					controls.addEventListener("start", cb);
-					return () => {
-						controls.removeEventListener("start", cb);
-						renderer.setAnimationLoop((animationLoop = null));
-					};
-				case "idle":
-					controls.addEventListener("change", render);
-					return () => {
-						controls.removeEventListener("change", render);
-					};
-				default:
-					const exhaustive: never = state;
-					console.error(exhaustive);
-			}
 		});
 
+		hdr.then(() => {
+			render();
+		});
+
+		controls.addEventListener("change", render);
 		controls.connect(renderer.domElement);
 
 		return () => {
+			controls.removeEventListener("change", render);
 			controls.disconnect();
-			renderer.dispose();
+			postProcessing.dispose();
 		};
-	};
+	});
 </script>
 
 <canvas
 	class="example-canvas"
-	bind:clientWidth={resolution.width}
-	bind:clientHeight={resolution.height}
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
 	{@attach attachment}
 >
 </canvas>

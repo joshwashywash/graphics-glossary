@@ -3,7 +3,7 @@ import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPU
 import { WebGPURenderer } from "three/webgpu";
 
 export const createRendererAttachment = (
-	f: (renderer: WebGPURenderer) => void | (() => void),
+	f: (renderer: WebGPURenderer) => (() => void) | void,
 	parameters: WebGPURendererParameters = {},
 ): Attachment<HTMLCanvasElement> => {
 	return (canvas) => {
