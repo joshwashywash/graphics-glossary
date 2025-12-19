@@ -3,36 +3,22 @@
 	lang="ts"
 >
 	const loader = new TextureLoader();
-
-	class FullScreenTriangleGeometry extends BufferGeometry {
-		constructor() {
-			super();
-			this.setAttribute(
-				"position",
-				new Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3),
-			);
-			this.setAttribute(
-				"uv",
-				new Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2),
-			);
-		}
-	}
 </script>
 
 <script lang="ts">
 	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
+	import { FullScreenTriangleGeometry } from "@classes/FullScreenTriangleGeometry";
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
+	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
-		BufferGeometry,
 		CanvasTexture,
-		Float32BufferAttribute,
 		Mesh,
 		MeshBasicMaterial,
 		OrthographicCamera,
@@ -79,7 +65,7 @@
 
 	const scene = new Scene().add(mesh);
 
-	const camera = new OrthographicCamera().translateZ(1);
+	const camera = createFullScreenCamera();
 
 	let useVertexColors = $state(true);
 	let useTexture = $state(true);

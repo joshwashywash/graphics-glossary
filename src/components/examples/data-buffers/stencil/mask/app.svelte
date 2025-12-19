@@ -6,7 +6,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import resize from "@functions/resize";
+	import { resize } from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { TransformControls } from "three/addons/controls/TransformControls.js";

@@ -12,7 +12,7 @@
 
 	import { Size } from "@classes/size.svelte";
 
-	import resize from "@functions/resize";
+	import { resize } from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
