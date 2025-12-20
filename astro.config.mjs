@@ -62,13 +62,7 @@ export default defineConfig({
 			],
 			title: "3d graphics glossary",
 		}),
-		svelte({
-			compilerOptions: {
-				experimental: {
-					async: true,
-				},
-			},
-		}),
+		svelte(),
 		sitemap(),
 	],
 
@@ -80,4 +74,3 @@ export default defineConfig({
 
 	adapter: cloudflare(),
 });
-

@@ -21,7 +21,6 @@
 		CanvasTexture,
 		Mesh,
 		MeshBasicMaterial,
-		OrthographicCamera,
 		SRGBColorSpace,
 		Scene,
 		TextureLoader,
