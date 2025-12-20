@@ -32,6 +32,8 @@
 		.element(bayerIndex.y)
 		.element(bayerIndex.x)
 		.setName("bayerValue");
+
+	const angle = 1 * DEG2RAD;
 </script>
 
 <script lang="ts">
@@ -39,11 +41,15 @@
 
 	import { Size } from "@classes/size.svelte";
 
+	import { Label } from "@components/controls";
+	import Example from "@components/examples/example.svelte";
+
 	import { resize } from "@functions/resize";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
+	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import { Fn, dot, mat4, pass, screenSize, uv, vec3, vec4 } from "three/tsl";
 	import {
 		EquirectangularReflectionMapping,
@@ -61,6 +67,9 @@
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
+	const camera = new PerspectiveCamera().translateOnAxis(axis, 5);
+	camera.lookAt(mesh.position);
+
 	const hdr = hdrLoader
 		.loadAsync("/hdrs/university_workshop_1k.hdr")
 		.then((hdr) => {
@@ -68,9 +77,6 @@
 			scene.background = hdr;
 			scene.environment = hdr;
 		});
-
-	const camera = new PerspectiveCamera().translateOnAxis(axis, 5);
-	camera.lookAt(mesh.position);
 
 	const controls = new OrbitControls(camera);
 
@@ -88,6 +94,10 @@
 		return vec4(v, v, v, 1.0);
 	});
 
+	let animationLoop: null | (() => void) = null;
+
+	let animate = $state(true);
+
 	const attachment = createRendererAttachment((renderer) => {
 		const postProcessing = new PostProcessing(renderer);
 		postProcessing.outputNode = outputNode();
@@ -96,30 +106,64 @@
 			postProcessing.render();
 		};
 
+		const renderIfNotAnimating = () => {
+			if (animationLoop !== null) render();
+		};
+
 		$effect(() => {
 			resize(renderer, camera, canvasSize);
-			render();
+			renderIfNotAnimating();
 		});
 
 		hdr.then(() => {
-			render();
+			renderIfNotAnimating();
 		});
 
-		controls.addEventListener("change", render);
+		const loop = () => {
+			mesh.rotateX(angle);
+			render();
+		};
+
+		$effect(() => {
+			if (animate) {
+				renderer.setAnimationLoop((animationLoop = loop));
+				return () => {
+					renderer.setAnimationLoop((animationLoop = null));
+				};
+			}
+			controls.addEventListener("change", render);
+			return () => {
+				controls.removeEventListener("change", render);
+			};
+		});
+
 		controls.connect(renderer.domElement);
 
 		return () => {
-			controls.removeEventListener("change", render);
 			controls.disconnect();
 			postProcessing.dispose();
 		};
 	});
 </script>
 
-<canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
-	{@attach attachment}
->
-</canvas>
+<Example>
+	<canvas
+		class="example-canvas"
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
+		{@attach attachment}
+	>
+	</canvas>
+	{#snippet pane()}
+		<details>
+			<summary>controls</summary>
+			<Label>
+				animate
+				<input
+					type="checkbox"
+					bind:checked={animate}
+				/>
+			</Label>
+		</details>
+	{/snippet}
+</Example>
