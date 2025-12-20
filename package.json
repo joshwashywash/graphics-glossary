@@ -15,12 +15,12 @@
     "@astrojs/starlight": "^0.37.1",
     "@astrojs/starlight-tailwind": "^4.0.2",
     "@astrojs/svelte": "^7.2.4",
-    "@tailwindcss/vite": "^4.1.17",
+    "@tailwindcss/vite": "^4.1.18",
     "@types/three": "^0.182.0",
-    "astro": "^5.16.5",
+    "astro": "^5.16.6",
     "sharp": "^0.34.5",
     "svelte": "^5.46.0",
-    "tailwindcss": "^4.1.17",
+    "tailwindcss": "^4.1.18",
     "three": "^0.182.0",
     "typescript": "^5.9.3"
   },
@@ -28,7 +28,7 @@
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "prettier": "3.7.4",
     "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-svelte": "^3.4.0",
+    "prettier-plugin-svelte": "^3.4.1",
     "prettier-plugin-tailwindcss": "^0.7.2"
   }
 }
