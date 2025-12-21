@@ -14,34 +14,11 @@ import { Steps } from "@astrojs/starlight/components";
 this article is a work in progress
 :::
 
-Assigns a color to each vertex of a geometry. Colors are interpolated along just like any other buffer attribute.
+Assigns a color to each vertex of a geometry. Colors are interpolated just like any other buffer attribute.
 
 <SimpleApp client:visible />
 
-## Usage
-
-{/* prettier-ignore-start */}
-
-<Steps>
-1. Assign a **"color"** attribute to the buffer geometry.
-
-    ```ts
-    const colorAttribute = createColorAttribute(); // stub function
-    geometry.setAttribute("color", colorAttribute);
-    ```
-
-2. Set the **vertexColors** property of the material to **true**.
-
-    ```ts
-    const material = new MeshBasicMaterial({
-    	vertexColors: true,
-    });
-    ```
-</Steps>
-
-{/* prettier-ignore-end */}
-
-## Purpose
+## Why
 
 ### Mixing Colors and Textures
 
@@ -50,19 +27,19 @@ Before PBR graphics, vertex coloring was often used to add depth to a scene's co
 <details open>
 	<summary>vertex coloring and textures enabled</summary>
 	![a screenshot of the beach location from pokemon snap with vertex coloring
-	disabled](@assets/pokemon-snap-beach.png)
+	and textures both enabled(@assets/pokemon-snap-beach.png)
 </details>
 
 <details>
 	<summary>vertex coloring disabled and textures enabled</summary>
-	![a screenshot of the beach location from pokemon snap with vertex coloring
-	disabled](@assets/pokemon-snap-beach-textures.png)
+	![a screenshot of the beach location from pokemon snap with textures enabled
+	and vertex coloring disabled](@assets/pokemon-snap-beach-textures.png)
 </details>
 
 <details>
 	<summary>vertex coloring enabled and textures disabled</summary>
 	![a screenshot of the beach location from pokemon snap with vertex coloring
-	disabled](@assets/pokemon-snap-beach-vertex-colors.png)
+	enabled and textures disabled](@assets/pokemon-snap-beach-vertex-colors.png)
 </details>
 
 Notice that the vertex color data is used to add a bit of darkness to the corners of the scene, for example around the surfboard, butterfree's wings, and the flowers. Because vertex colors are a buffer attributes they are interpolated. This is why they appear as gradients.
@@ -73,7 +50,7 @@ Interestingly, the water's vertex color is used to give a sense of where the wat
 
 ### Representing Data Through Coloring
 
-You can use vertex colors to represent data that can be expressed through a geometry's vertices. This really only works if the data is **per vertex** and is can be interpreted correctly when interpolated. For example, mapping height of a vertex to a color might consist of representing _higher_ vertices to more vibrant colors.
+You can use vertex colors to represent data that can be expressed through a geometry's vertices. This really only works if the data is **per vertex** and it can be interpreted correctly when interpolated.
 
 ## Resources
 
