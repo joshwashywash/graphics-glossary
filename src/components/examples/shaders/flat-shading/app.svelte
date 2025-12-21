@@ -184,7 +184,7 @@
 				</Label>
 			</fieldset>
 			<fieldset>
-				<summary>scene</summary>
+				<legend>scene</legend>
 				<Label>
 					flat shading
 					<input
