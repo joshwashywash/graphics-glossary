@@ -1,5 +1,5 @@
 ---
-description: An explanation of flat shading in three.js.
+description: An explanation of flat shading.
 sidebar:
   order: 1
 title: Flat Shading
@@ -7,25 +7,18 @@ title: Flat Shading
 
 import App from "@components/examples/shaders/flat-shading/app.svelte";
 
-Shading that assigns a uniform color across entire polygons. Useful for scenes that don't necessarily need so much detail or for cases where performance matters.
+Shading that assigns a uniform color across entire faces. Useful for scenes that don't necessarily need much detail or for cases where performance matters.
 
 <App client:only="svelte" />
 
-When using flat shading, lighting only needs to be evaluated per polygon, rather than per vertex or per fragment. This makes flat shading more performant at the cost of accuracy. Specular highlights are rendered poorly beacuse a vertex may not correctly represent the light at a particular point on the surface. Flat shading also causes sharp edges because polygons are accentuated.
+When using flat shading, lighting only needs to be evaluated per polygon, rather than per vertex or per fragment. This makes flat shading more performant at the cost of visual accuracy. Specular highlights are rendered poorly because a single surface point may not correctly represent the light at a particular point on the surface. Flat shading may also cause sharp edges because polygons are accentuated.
 
-## Usage
+## How
 
-```ts
-// could be any three.js material
-const material = new MeshStandardMaterial({
-	flatShading: true,
-});
-```
-
-When switching between flat and non-flat shading, the **needsUpdate** prop of
-the material must be set to **true** for the material to be properly updated.
+Flat shading is typically achieved by taking the dot product of the surface normal, _N_ and a vector pointing in the direction of the light source, _V_. The product is clamped to the range \[0, 1\] and the multiplied with the surface's color. When the surface normal points in the opposite direction of the light vector, the dot product yields a negative value. Clamping ensures that the result is never less than 0. A result of 0, is intepreted as the surface pointing away from the light source and therefore would effectively be unlit.
 
 ```ts
-material.flatShading = !material.flatShading;
-material.needsUpdate = true;
+fragment = surface_color * clamp(dot(N, V), 0, 1) * intensity;
 ```
+
+There isn't much strategy when choosing the surface normal. A simple strategy is to use the first vertex normal.
