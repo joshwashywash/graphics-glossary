@@ -6,6 +6,8 @@
 </script>
 
 <script lang="ts">
+	import butterfreeImageMetadata from "@assets/pokemon-snap-butterfree-wings.png";
+
 	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
 	import { FullScreenTriangleGeometry } from "@classes/FullScreenTriangleGeometry";
@@ -25,6 +27,16 @@
 		Scene,
 		TextureLoader,
 	} from "three/webgpu";
+
+	const oss = new OffscreenCanvas(1, 1);
+	const ossContext = oss.getContext("2d");
+	if (ossContext === null) {
+		throw new Error("texture context is null");
+	}
+
+	ossContext.fillStyle = "#ffffff";
+	ossContext.fillRect(0, 0, oss.width, oss.height);
+	const whiteTexture = new CanvasTexture(oss);
 
 	const canvasSize = new Size();
 
@@ -46,16 +58,6 @@
 
 	geometry.setAttribute("color", colors);
 
-	const oss = new OffscreenCanvas(1, 1);
-	const ossContext = oss.getContext("2d");
-	if (ossContext === null) {
-		throw new Error("texture context is null");
-	}
-
-	ossContext.fillStyle = "#ffffff";
-	ossContext.fillRect(0, 0, oss.width, oss.height);
-	const whiteTexture = new CanvasTexture(oss);
-
 	const material = new MeshBasicMaterial({
 		transparent: true,
 	});
@@ -69,8 +71,8 @@
 	let useVertexColors = $state(true);
 	let useTexture = $state(true);
 
-	const texture = await loader
-		.loadAsync("/textures/pokemon-snap-butterfree-wings.png")
+	const butterfreeWingTexture = loader
+		.loadAsync(butterfreeImageMetadata.src)
 		.then((texture) => {
 			texture.generateMipmaps = false;
 			texture.colorSpace = SRGBColorSpace;
@@ -82,11 +84,11 @@
 	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
-		texture.dispose();
+		butterfreeWingTexture.then((t) => t.dispose());
 		whiteTexture.dispose();
 	});
 
-	const map = $derived(useTexture ? texture : whiteTexture);
+	const map = $derived(useTexture ? await butterfreeWingTexture : whiteTexture);
 
 	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {

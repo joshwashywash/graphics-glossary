@@ -2,6 +2,8 @@
 	lang="ts"
 	module
 >
+	const cameraTranslationAxis = new Vector3(1, 0.5, 1).normalize();
+	const cameraTranslationAmount = 5;
 	const tau = 2 * Math.PI;
 
 	const forwardsFrameCount = 18;
@@ -99,8 +101,7 @@
 		map: canvasTexture,
 	});
 
-	const sprite = new Sprite(spriteMaterial);
-	sprite.translateZ(1);
+	const sprite = new Sprite(spriteMaterial).translateZ(1);
 
 	const material = new MeshNormalMaterial();
 	const geometry = new BoxGeometry();
@@ -114,14 +115,15 @@
 		geometry.dispose();
 	});
 
-	const mesh = new Mesh(geometry, material);
+	const mesh = new Mesh(geometry, material).translateZ(-1);
 	mesh.scale.setScalar(0.5);
-	mesh.translateZ(-1);
 
 	const scene = new Scene().add(sprite, mesh);
 
-	const camera = new PerspectiveCamera();
-	camera.translateZ(4);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		cameraTranslationAxis,
+		cameraTranslationAmount,
+	);
 
 	let lastOffset: number;
 
