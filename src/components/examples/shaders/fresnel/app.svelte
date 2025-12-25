@@ -33,7 +33,6 @@
 		Mesh,
 		MeshBasicNodeMaterial,
 		PerspectiveCamera,
-		Scene,
 		TorusKnotGeometry,
 	} from "three/webgpu";
 
@@ -62,8 +61,6 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	const scene = new Scene().add(mesh);
-
 	const camera = new PerspectiveCamera().translateZ(5);
 
 	let baseColor = $state("#583583");
@@ -77,7 +74,7 @@
 
 	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {
-			renderer.render(scene, camera);
+			renderer.render(mesh, camera);
 		};
 
 		const renderIfNotAnimating = () => {
@@ -110,12 +107,12 @@
 		});
 
 		$effect(() => {
-			if (rotateMesh) {
-				renderer.setAnimationLoop((animationLoop = loop));
-				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
-				};
-			}
+			if (!rotateMesh) return;
+
+			renderer.setAnimationLoop((animationLoop = loop));
+			return () => {
+				renderer.setAnimationLoop((animationLoop = null));
+			};
 		});
 	});
 </script>

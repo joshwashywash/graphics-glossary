@@ -4,11 +4,10 @@ import { WebGPURenderer } from "three/webgpu";
 
 export const createRendererAttachment = (
 	f: (renderer: WebGPURenderer) => (() => void) | void,
-	parameters: WebGPURendererParameters = {},
+	parameters: WebGPURendererParameters = { antialias: true },
 ): Attachment<HTMLCanvasElement> => {
 	return (canvas) => {
 		const promise = new WebGPURenderer({
-			antialias: true,
 			canvas,
 			...parameters,
 		})

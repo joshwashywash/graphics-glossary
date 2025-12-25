@@ -28,7 +28,6 @@
 		Mesh,
 		MeshBasicMaterial,
 		PerspectiveCamera,
-		Scene,
 		Vector3,
 	} from "three/webgpu";
 
@@ -51,10 +50,7 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	const scene = new Scene().add(mesh);
-
-	const camera = new PerspectiveCamera();
-	camera.translateZ(3);
+	const camera = new PerspectiveCamera().translateZ(3);
 
 	const canvasSize = new Size();
 
@@ -62,7 +58,7 @@
 
 	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {
-			renderer.render(scene, camera);
+			renderer.render(mesh, camera);
 		};
 
 		const renderIfNotAnimating = () => {
