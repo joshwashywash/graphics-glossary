@@ -3,7 +3,8 @@
 
 	import { Size } from "@classes/size.svelte";
 
-	import { createSphubeFunc } from "@functions/createSphubeFunc";
+	import { pringle } from "@functions/parametric/functions/pringle";
+	import { createSphube } from "@functions/parametric/functions/sphube";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
@@ -22,37 +23,18 @@
 	});
 
 	const detail = 1 << 8;
-	const sphubeGeometry = new ParametricGeometry(
-		createSphubeFunc(),
-		detail,
-		detail,
-	);
-	const pringleGeometry = new ParametricGeometry(
-		(u, v, target) => {
-			v *= 2 * Math.PI;
-			const cosV = Math.cos(v);
-			const sinV = Math.sin(v);
 
-			const x = u * cosV;
-			const y = u * sinV;
-			const z = u * u * cosV * sinV;
-
-			target.set(x, y, z);
-		},
-		detail,
-		detail,
-	);
+	const sphubeGeometry = new ParametricGeometry(createSphube(), detail, detail);
+	const pringleGeometry = new ParametricGeometry(pringle, detail, detail);
 
 	useCleanup(() => {
-		material.dispose();
-		pringleGeometry.dispose();
 		sphubeGeometry.dispose();
+		pringleGeometry.dispose();
+		material.dispose();
 	});
 
 	const sphubeMesh = new Mesh(sphubeGeometry, material).translateX(-1);
-	const pringleMesh = new Mesh(pringleGeometry, material)
-		.rotateX(0.5 * Math.PI)
-		.translateX(1);
+	const pringleMesh = new Mesh(pringleGeometry, material).translateX(1);
 
 	const scene = new Scene().add(pringleMesh, sphubeMesh);
 
