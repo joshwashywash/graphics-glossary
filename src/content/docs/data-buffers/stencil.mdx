@@ -15,36 +15,6 @@ In 3D graphics there are various data buffers, for example, the z-buffer or dept
 <MaskApp client:visible />
 <OutlineApp client:visible />
 
-## Usage
-
-To use the stencil buffer in three.js, it needs to be enabled via the renderer's constructor.
-
-```ts
-const parameters: RendererParameters = {
-	stenci: true,
-};
-
-const glRenderer = new WebGLRenderer(parameters);
-const wgpuRenderer = new WebGPURenderer(parameters);
-```
-
-The stencil buffer is an opt-in feature because it requires extra space which may go unused if the application doesn't need to use the stencil buffer.
-
-With the stencil buffer enabled, each material that makes use of the stencil buffer needs to define how it interacts with it. This is done through the various `stencil*` properties of the material, the most important being `stencilWrite`.
-
-```ts
-// could be any three.js material
-const material = new MeshBasicMaterial({
-	stencilWrite: true,
-});
-```
-
-Enabling the `stencilWrite` property allows the material to read and write to the stencil buffer.
-
-You can read more about the stencil properties in the [three.js material docs](https://threejs.org/docs/#api/en/materials/Material) page.
-
-Notably there are properties that determine what value to use when comparing against the stencil buffer, what gl function to use for the comparison, and what operation to perform if the depth test passes or fails and the stencil function passes.
-
 ## Resources
 
 - [stencil buffer wikipedia article](https://en.wikipedia.org/wiki/Stencil_buffer)
