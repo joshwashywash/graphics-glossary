@@ -18,7 +18,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { resize } from "@functions/resize";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -90,7 +90,7 @@
 
 	const controls = new OrbitControls(camera);
 
-	const size = new Size();
+	const canvasSize = new Size();
 
 	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {
@@ -109,7 +109,9 @@
 		};
 
 		$effect(() => {
-			resize(renderer, camera, size);
+			renderer.setSize(canvasSize.width, canvasSize.height, false);
+			const aspect = canvasSize.width / canvasSize.height;
+			updateCameraAspect(camera, aspect);
 			renderIfNotAnimating();
 		});
 

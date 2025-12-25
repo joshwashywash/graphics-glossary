@@ -4,7 +4,7 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createSphubeFunc } from "@functions/createSphubeFunc";
-	import { resize } from "@functions/resize";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -67,7 +67,9 @@
 		};
 
 		$effect(() => {
-			resize(renderer, camera, canvasSize);
+			renderer.setSize(canvasSize.width, canvasSize.height, false);
+			const aspect = canvasSize.width / canvasSize.height;
+			updateCameraAspect(camera, aspect);
 
 			render();
 		});

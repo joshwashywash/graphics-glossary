@@ -6,7 +6,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { resize } from "@functions/resize";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { TransformControls } from "three/addons/controls/TransformControls.js";
@@ -90,7 +90,9 @@
 			};
 
 			$effect(() => {
-				resize(renderer, camera, canvasSize);
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				const aspect = canvasSize.width / canvasSize.height;
+				updateCameraAspect(camera, aspect);
 				render();
 			});
 
@@ -103,8 +105,8 @@
 			controls.addEventListener("change", render);
 
 			return () => {
-				controls.disconnect();
 				controls.removeEventListener("change", render);
+				controls.disconnect();
 			};
 		},
 		{ stencil: true },

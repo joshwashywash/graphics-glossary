@@ -18,7 +18,7 @@
 	import { Label } from "@components/controls";
 	import Example from "@components/examples/example.svelte";
 
-	import { resize } from "@functions/resize";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -66,7 +66,10 @@
 		};
 
 		$effect(() => {
-			resize(renderer, camera, canvasSize);
+			renderer.setSize(canvasSize.width, canvasSize.height, false);
+			const aspect = canvasSize.width / canvasSize.height;
+			updateCameraAspect(camera, aspect);
+
 			renderIfNotAnimating();
 		});
 
