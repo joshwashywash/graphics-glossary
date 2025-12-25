@@ -21,6 +21,7 @@
 
 	import {
 		CanvasTexture,
+		Float32BufferAttribute,
 		Mesh,
 		MeshBasicMaterial,
 		SRGBColorSpace,
@@ -40,27 +41,12 @@
 
 	const canvasSize = new Size();
 
-	const geometry = new FullScreenTriangleGeometry();
+	const geometry = new FullScreenTriangleGeometry().setAttribute(
+		"color",
+		new Float32BufferAttribute([1, 1, 1, 0, 0, 0, 1, 1, 1], 3),
+	);
 
-	const colors = geometry.getAttribute("position").clone();
-
-	const bottomLeft = colors.count - 2;
-
-	for (let i = 0; i < bottomLeft; i += 1) {
-		colors.setXYZ(i, 1, 1, 1);
-	}
-
-	colors.setXYZ(bottomLeft, 0, 0, 0);
-
-	for (let i = bottomLeft + 1; i < colors.count; i += 1) {
-		colors.setXYZ(i, 1, 1, 1);
-	}
-
-	geometry.setAttribute("color", colors);
-
-	const material = new MeshBasicMaterial({
-		transparent: true,
-	});
+	const material = new MeshBasicMaterial();
 
 	const mesh = new Mesh(geometry, material);
 
