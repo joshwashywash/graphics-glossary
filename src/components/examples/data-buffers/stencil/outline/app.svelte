@@ -35,7 +35,6 @@
 		NotEqualStencilFunc,
 		PerspectiveCamera,
 		ReplaceStencilOp,
-		Scene,
 		TorusGeometry,
 		TorusKnotGeometry,
 		Vector3,
@@ -78,7 +77,6 @@
 
 	const allGroup = new Group().add(meshGroup, outlineGroup);
 
-	const scene = new Scene().add(allGroup);
 
 	for (const geometry of geometries) {
 		const mesh = new Mesh(geometry, material).translateOnAxis(
@@ -100,7 +98,7 @@
 		kHat,
 		5 * translationAmount,
 	);
-	camera.lookAt(scene.position);
+	camera.lookAt(allGroup.position);
 
 	let outlinesVisible = $state(true);
 	let outlineScale = $state(initialOutlineScale);
@@ -115,7 +113,7 @@
 	const attachment = createRendererAttachment(
 		(renderer) => {
 			const render = () => {
-				renderer.render(scene, camera);
+				renderer.render(allGroup, camera);
 			};
 
 			const renderIfNotAnimating = () => {
