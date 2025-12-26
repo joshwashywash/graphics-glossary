@@ -77,7 +77,6 @@
 
 	const allGroup = new Group().add(meshGroup, outlineGroup);
 
-
 	for (const geometry of geometries) {
 		const mesh = new Mesh(geometry, material).translateOnAxis(
 			axis.applyAxisAngle(kHat, a),
@@ -127,8 +126,7 @@
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				const aspect = canvasSize.width / canvasSize.height;
-				updateCameraAspect(camera, aspect);
+				updateCameraAspect(camera, canvasSize.ratio);
 				renderIfNotAnimating();
 			});
 

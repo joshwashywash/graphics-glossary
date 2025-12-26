@@ -112,8 +112,7 @@
 
 		$effect(() => {
 			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			const aspect = canvasSize.width / canvasSize.height;
-			updateCameraAspect(camera, aspect);
+			updateCameraAspect(camera, canvasSize.ratio);
 			renderIfNotAnimating();
 		});
 
