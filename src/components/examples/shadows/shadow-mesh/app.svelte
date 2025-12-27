@@ -13,7 +13,6 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -99,19 +98,17 @@
 	let animationLoop: null | (() => void) = null;
 </script>
 
-<Example>
-	{#snippet pane()}
-		<details>
-			<summary>controls</summary>
-			<Label>
-				rotate mesh
-				<input
-					type="checkbox"
-					bind:checked={rotateMesh}
-				/>
-			</Label>
-		</details>
-	{/snippet}
+<div class="relative">
+	<details class="example-pane">
+		<summary>controls</summary>
+		<Label>
+			rotate mesh
+			<input
+				type="checkbox"
+				bind:checked={rotateMesh}
+			/>
+		</Label>
+	</details>
 
 	<canvas
 		class="example-canvas"
@@ -163,4 +160,4 @@
 		}}
 	>
 	</canvas>
-</Example>
+</div>

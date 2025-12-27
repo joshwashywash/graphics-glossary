@@ -19,7 +19,6 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -161,43 +160,41 @@
 	);
 </script>
 
-<Example>
-	{#snippet pane()}
-		<details>
-			<summary>controls</summary>
-			<Label>
-				outlines visible
-				<input
-					type="checkbox"
-					bind:checked={outlinesVisible}
-				/>
-			</Label>
-			<Label>
-				color
-				<input
-					type="color"
-					bind:value={outlineColor}
-				/>
-			</Label>
-			<Label>
-				scale
-				<input
-					type="range"
-					bind:value={outlineScale}
-					min={1}
-					max={2}
-					step={0.1}
-				/>
-			</Label>
-			<Label>
-				rotate meshes
-				<input
-					type="checkbox"
-					bind:checked={rotateMeshes}
-				/>
-			</Label>
-		</details>
-	{/snippet}
+<div class="relative">
+	<details class="example-pane">
+		<summary>controls</summary>
+		<Label>
+			outlines visible
+			<input
+				type="checkbox"
+				bind:checked={outlinesVisible}
+			/>
+		</Label>
+		<Label>
+			color
+			<input
+				type="color"
+				bind:value={outlineColor}
+			/>
+		</Label>
+		<Label>
+			scale
+			<input
+				type="range"
+				bind:value={outlineScale}
+				min={1}
+				max={2}
+				step={0.1}
+			/>
+		</Label>
+		<Label>
+			rotate meshes
+			<input
+				type="checkbox"
+				bind:checked={rotateMeshes}
+			/>
+		</Label>
+	</details>
 
 	<canvas
 		class="example-canvas"
@@ -206,4 +203,4 @@
 		{@attach attachment}
 	>
 	</canvas>
-</Example>
+</div>

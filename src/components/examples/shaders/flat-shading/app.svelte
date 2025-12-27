@@ -16,7 +16,6 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -160,62 +159,60 @@
 	});
 </script>
 
-<Example>
-	{#snippet pane()}
-		<details>
-			<summary>controls</summary>
-			<fieldset>
-				<legend>material</legend>
-				<Label>
-					color
-					<input
-						type="color"
-						bind:value={color}
-					/>
-				</Label>
-				<Label>
-					shininess
-					<input
-						type="range"
-						bind:value={shininess}
-						min={0}
-						max={SHININESS_MAX}
-						step={1}
-					/>
-				</Label>
-			</fieldset>
-			<fieldset>
-				<legend>scene</legend>
-				<Label>
-					flat shading
-					<input
-						type="checkbox"
-						bind:checked={flatShading}
-					/>
-				</Label>
-				<Label>
-					rotate
-					<input
-						type="checkbox"
-						bind:checked={rotate}
-					/>
-				</Label>
-				<Label>
-					directional light helper visible
-					<input
-						type="checkbox"
-						bind:checked={directionalLightHelperVisible}
-					/>
-				</Label>
-			</fieldset>
-		</details>
-	{/snippet}
+<div class="relative">
+	<details class="example-pane">
+		<summary>controls</summary>
+		<fieldset>
+			<legend>material</legend>
+			<Label>
+				color
+				<input
+					type="color"
+					bind:value={color}
+				/>
+			</Label>
+			<Label>
+				shininess
+				<input
+					type="range"
+					bind:value={shininess}
+					min={0}
+					max={SHININESS_MAX}
+					step={1}
+				/>
+			</Label>
+		</fieldset>
+		<fieldset>
+			<legend>scene</legend>
+			<Label>
+				flat shading
+				<input
+					type="checkbox"
+					bind:checked={flatShading}
+				/>
+			</Label>
+			<Label>
+				rotate
+				<input
+					type="checkbox"
+					bind:checked={rotate}
+				/>
+			</Label>
+			<Label>
+				directional light helper visible
+				<input
+					type="checkbox"
+					bind:checked={directionalLightHelperVisible}
+				/>
+			</Label>
+		</fieldset>
+	</details>
 
 	<canvas
 		class="example-canvas"
-		bind:clientWidth={size.width}
-		bind:clientHeight={size.height}
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
 		{@attach attachment}
 	>
 	</canvas>
-</Example>
+</div>

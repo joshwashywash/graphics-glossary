@@ -2,7 +2,6 @@
 	import { createShadowGradient } from "../createShadowGradient";
 
 	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
 
 	let width = $state(1);
 	let height = $state(1);
@@ -10,19 +9,17 @@
 	let shadowColor = $state("#ffffff");
 </script>
 
-<Example>
-	{#snippet pane()}
-		<details>
-			<summary>controls</summary>
-			<Label>
-				shadow color
-				<input
-					type="color"
-					bind:value={shadowColor}
-				/>
-			</Label>
-		</details>
-	{/snippet}
+<div class="relative">
+	<details class="example-pane">
+		<summary>controls</summary>
+		<Label>
+			shadow color
+			<input
+				type="color"
+				bind:value={shadowColor}
+			/>
+		</Label>
+	</details>
 
 	<canvas
 		bind:clientWidth={width}
@@ -48,4 +45,4 @@
 		}}
 	>
 	</canvas>
-</Example>
+</div>

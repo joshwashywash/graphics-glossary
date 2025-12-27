@@ -42,7 +42,6 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -147,7 +146,17 @@
 	});
 </script>
 
-<Example>
+<div class="relative">
+	<details class="example-pane">
+		<summary>controls</summary>
+		<Label>
+			animate
+			<input
+				type="checkbox"
+				bind:checked={animate}
+			/>
+		</Label>
+	</details>
 	<canvas
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
@@ -155,16 +164,4 @@
 		{@attach attachment}
 	>
 	</canvas>
-	{#snippet pane()}
-		<details>
-			<summary>controls</summary>
-			<Label>
-				animate
-				<input
-					type="checkbox"
-					bind:checked={animate}
-				/>
-			</Label>
-		</details>
-	{/snippet}
-</Example>
+</div>

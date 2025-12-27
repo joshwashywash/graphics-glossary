@@ -14,7 +14,6 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
 
 	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -103,26 +102,24 @@
 	{#snippet failed(error)}
 		<p>{error}</p>
 	{/snippet}
-	<Example>
-		{#snippet pane()}
-			<details>
-				<summary>butterfree wing</summary>
-				<Label>
-					use vertex colors
-					<input
-						type="checkbox"
-						bind:checked={useVertexColors}
-					/>
-				</Label>
-				<Label>
-					use texture
-					<input
-						type="checkbox"
-						bind:checked={useTexture}
-					/>
-				</Label>
-			</details>
-		{/snippet}
+	<div class="relative">
+		<details class="example-pane">
+			<summary>butterfree wing</summary>
+			<Label>
+				use vertex colors
+				<input
+					type="checkbox"
+					bind:checked={useVertexColors}
+				/>
+			</Label>
+			<Label>
+				use texture
+				<input
+					type="checkbox"
+					bind:checked={useTexture}
+				/>
+			</Label>
+		</details>
 
 		<canvas
 			class="example-canvas"
@@ -131,5 +128,5 @@
 			{@attach attachment}
 		>
 		</canvas>
-	</Example>
+	</div>
 </svelte:boundary>

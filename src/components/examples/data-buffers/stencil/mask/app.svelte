@@ -4,7 +4,6 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
-	import Example from "@components/examples/example.svelte";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -112,19 +111,17 @@
 	);
 </script>
 
-<Example>
-	{#snippet pane()}
-		<details>
-			<summary>mask</summary>
-			<Label>
-				invert
-				<input
-					type="checkbox"
-					bind:checked={invert}
-				/>
-			</Label>
-		</details>
-	{/snippet}
+<div class="relative">
+	<details class="example-pane">
+		<summary>mask</summary>
+		<Label>
+			invert
+			<input
+				type="checkbox"
+				bind:checked={invert}
+			/>
+		</Label>
+	</details>
 
 	<canvas
 		class="example-canvas"
@@ -133,4 +130,4 @@
 		{@attach attachment}
 	>
 	</canvas>
-</Example>
+</div>

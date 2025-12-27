@@ -12,10 +12,10 @@
 	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
 	import {
 		DoubleSide,
+		Group,
 		Mesh,
 		MeshNormalMaterial,
 		PerspectiveCamera,
-		Scene,
 	} from "three/webgpu";
 
 	const material = new MeshNormalMaterial({
@@ -36,7 +36,7 @@
 	const sphubeMesh = new Mesh(sphubeGeometry, material).translateX(-1);
 	const pringleMesh = new Mesh(pringleGeometry, material).translateX(1);
 
-	const scene = new Scene().add(pringleMesh, sphubeMesh);
+	const group = new Group().add(pringleMesh, sphubeMesh);
 
 	const camera = new PerspectiveCamera().translateZ(5);
 	const controls = new OrbitControls(camera);
@@ -45,7 +45,7 @@
 
 	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {
-			renderer.render(scene, camera);
+			renderer.render(group, camera);
 		};
 
 		$effect(() => {
