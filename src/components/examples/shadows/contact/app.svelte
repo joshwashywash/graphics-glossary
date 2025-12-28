@@ -2,7 +2,7 @@
 	lang="ts"
 	module
 >
-	const cameraTranslationAxis = new Vector3(-1, 0.5, 1).normalize();
+	const cameraTranslationAxis = new Vector3(-1, 1, 1).normalize();
 	const cameraTranslationAmount = 10;
 </script>
 
@@ -42,7 +42,7 @@
 	const uBlur = uniform(3.5);
 
 	const depthMaterial = new NodeMaterial();
-	depthMaterial.colorNode = vec3(0);
+	depthMaterial.colorNode = vec3();
 	depthMaterial.opacityNode = depth.oneMinus().mul(uDarkness);
 	depthMaterial.depthTest = false;
 	depthMaterial.depthWrite = false;
@@ -54,7 +54,7 @@
 	const shadowPlaneMaterial = new NodeMaterial();
 	shadowPlaneMaterial.transparent = true;
 	shadowPlaneMaterial.depthWrite = false;
-	shadowPlaneMaterial.colorNode = vec3(0);
+	shadowPlaneMaterial.colorNode = vec3();
 	shadowPlaneMaterial.opacityNode = gaussianBlur(
 		texture(renderTarget.texture),
 		uBlur,
@@ -85,6 +85,7 @@
 	shadowCamera.lookAt(mesh.position);
 
 	const helper = new CameraHelper(shadowCamera);
+	helper.visible = false;
 
 	const scene = new Scene().add(shadowPlaneMesh, mesh, helper);
 	scene.background = new Color("#eeeeee");
@@ -110,23 +111,7 @@
 	let darkness = $state(uDarkness.value);
 	let shadowOpacity = $state(uShadowOpacity.value);
 	let blur = $state(uBlur.value);
-	let shadowCameraHelperVisible = $state(false);
-
-	$effect(() => {
-		uDarkness.value = darkness;
-	});
-
-	$effect(() => {
-		uShadowOpacity.value = shadowOpacity;
-	});
-
-	$effect(() => {
-		uBlur.value = blur;
-	});
-
-	$effect(() => {
-		helper.visible = shadowCameraHelperVisible;
-	});
+	let shadowCameraHelperVisible = $state(helper.visible);
 
 	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {
@@ -183,7 +168,12 @@
 		<Label>
 			darkness
 			<input
-				bind:value={darkness}
+				bind:value={
+					() => darkness,
+					(value) => {
+						darkness = uDarkness.value = value;
+					}
+				}
 				type="range"
 				min={0}
 				max={1}
@@ -193,7 +183,12 @@
 		<Label>
 			shadow opacity
 			<input
-				bind:value={shadowOpacity}
+				bind:value={
+					() => shadowOpacity,
+					(value) => {
+						shadowOpacity = uShadowOpacity.value = value;
+					}
+				}
 				type="range"
 				min={0}
 				max={1}
@@ -203,7 +198,12 @@
 		<Label>
 			blur
 			<input
-				bind:value={blur}
+				bind:value={
+					() => blur,
+					(value) => {
+						blur = uBlur.value = value;
+					}
+				}
 				type="range"
 				min={0}
 				max={5}
@@ -214,7 +214,12 @@
 			shadow camera helper visible
 			<input
 				type="checkbox"
-				bind:checked={shadowCameraHelperVisible}
+				bind:checked={
+					() => shadowCameraHelperVisible,
+					(value) => {
+						shadowCameraHelperVisible = helper.visible = value;
+					}
+				}
 			/>
 		</Label>
 	</details>
