@@ -47,7 +47,7 @@
 	depthMaterial.depthTest = false;
 	depthMaterial.depthWrite = false;
 
-	const renderTargetSize = 1 << 9;
+	const renderTargetSize = 1 << 8;
 	const renderTarget = new RenderTarget(renderTargetSize, renderTargetSize);
 	renderTarget.texture.generateMipmaps = false;
 
@@ -68,7 +68,7 @@
 		-1 * 0.5 * Math.PI,
 	);
 
-	const meshGeometry = new TorusKnotGeometry();
+	const meshGeometry = new TorusKnotGeometry(1, 0.4, 64, 8, 3, 1);
 	const meshMaterial = new MeshNormalMaterial();
 	const mesh = new Mesh(meshGeometry, meshMaterial).translateY(2);
 
@@ -85,7 +85,6 @@
 	shadowCamera.lookAt(mesh.position);
 
 	const helper = new CameraHelper(shadowCamera);
-	helper.visible = false;
 
 	const scene = new Scene().add(shadowPlaneMesh, mesh, helper);
 	scene.background = new Color("#eeeeee");
@@ -111,7 +110,7 @@
 	let darkness = $state(uDarkness.value);
 	let shadowOpacity = $state(uShadowOpacity.value);
 	let blur = $state(uBlur.value);
-	let shadowCameraHelperVisible = $state(helper.visible);
+	let shadowCameraHelperVisible = $state((helper.visible = false));
 
 	const attachment = createRendererAttachment((renderer) => {
 		const render = () => {
@@ -120,9 +119,6 @@
 
 			const lastOverrideMaterial = scene.overrideMaterial;
 			scene.overrideMaterial = depthMaterial;
-
-			const lastClearAlpha = renderer.getClearAlpha();
-			renderer.setClearAlpha(0);
 
 			const lastRenderTarget = renderer.getRenderTarget();
 			renderer.setRenderTarget(renderTarget);
@@ -135,7 +131,6 @@
 
 			scene.background = lastBackground;
 			scene.overrideMaterial = lastOverrideMaterial;
-			renderer.setClearAlpha(lastClearAlpha);
 			renderer.setRenderTarget(lastRenderTarget);
 
 			helper.visible = lastCameraHelperVisible;

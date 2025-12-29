@@ -1,10 +1,18 @@
 ---
-description: An article about contact shadows.
+description: A high-level article explaining 3D contact shadows.
 sidebar:
-  order: 3
+  order: 2
 title: Contact
 ---
 
 import App from "@components/examples/shadows/contact/app.svelte";
 
 <App client:visible />
+
+A simple way to make contact shadows is to render (using a shadow camera) the scene's depth into a separate texture and use it as input into the ground mesh's material or shader. Typically the shadow camera uses an orthographic projection and is positioned in such a way that object's are partially inside its viewing frustum. The camera's near plane is treated as the shadow's surface. The depth of the scene is inverted so that close objects appear darker. Before rendering to the shadow texture, each object in the scene is assigned to the shadow material.
+
+## Limitations
+
+Because the depth is rendered into a texture, this approach really only works well for casting shadows onto flat surfaces. Its fine if the surface is rotated, just make sure the shadow camera is rotated as well.
+
+The accuracy of the shadows is limited by the size of the render target's texture. The shadow camera may be capable of rendering the entire scene (or at least the objects inside its frustrum) but it still has to squeeze it all into the texture.
