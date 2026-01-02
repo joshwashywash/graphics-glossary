@@ -2,13 +2,11 @@
 	lang="ts"
 	module
 >
-	const cameraTranslationAxis = new Vector3(-1, 1, 1).normalize();
+	const cameraTranslationAxis = new Vector3(0, 1, 1).normalize();
 	const cameraTranslationAmount = 10;
 </script>
 
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -33,6 +31,7 @@
 		Scene,
 		TorusKnotGeometry,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const canvasSize = new Size();
@@ -111,50 +110,6 @@
 	let shadowOpacity = $state(uShadowOpacity.value);
 	let blur = $state(uBlur.value);
 	let shadowCameraHelperVisible = $state((helper.visible = false));
-
-	const attachment = createRendererAttachment((renderer) => {
-		const render = () => {
-			const lastBackground = scene.background;
-			scene.background = null;
-
-			const lastOverrideMaterial = scene.overrideMaterial;
-			scene.overrideMaterial = depthMaterial;
-
-			const lastRenderTarget = renderer.getRenderTarget();
-			renderer.setRenderTarget(renderTarget);
-
-			const lastCameraHelperVisible = helper.visible;
-
-			helper.visible = false;
-
-			renderer.render(scene, shadowCamera);
-
-			scene.background = lastBackground;
-			scene.overrideMaterial = lastOverrideMaterial;
-			renderer.setRenderTarget(lastRenderTarget);
-
-			helper.visible = lastCameraHelperVisible;
-
-			renderer.render(scene, camera);
-		};
-
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			updateCameraAspect(camera, canvasSize.ratio);
-		});
-
-		renderer.setAnimationLoop(() => {
-			mesh.rotateY(1 * DEG2RAD);
-			mesh.rotateZ(0.5 * DEG2RAD);
-			render();
-		});
-
-		controls.connect(renderer.domElement);
-		return () => {
-			renderer.setAnimationLoop(null);
-			controls.disconnect();
-		};
-	});
 </script>
 
 <div class="relative">
@@ -212,7 +167,7 @@
 				bind:checked={
 					() => shadowCameraHelperVisible,
 					(value) => {
-						shadowCameraHelperVisible = helper.visible = value;
+						helper.visible = shadowCameraHelperVisible = value;
 					}
 				}
 			/>
@@ -223,7 +178,55 @@
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
-		{@attach attachment}
+		{@attach (canvas) => {
+			const renderer = new WebGPURenderer({
+				antialias: true,
+				canvas,
+			});
+
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				updateCameraAspect(camera, canvasSize.ratio);
+			});
+
+			const render = () => {
+				const lastBackground = scene.background;
+				scene.background = null;
+
+				const lastOverrideMaterial = scene.overrideMaterial;
+				scene.overrideMaterial = depthMaterial;
+
+				const lastRenderTarget = renderer.getRenderTarget();
+				renderer.setRenderTarget(renderTarget);
+
+				const lastCameraHelperVisible = helper.visible;
+
+				helper.visible = false;
+
+				renderer.render(scene, shadowCamera);
+
+				scene.background = lastBackground;
+				scene.overrideMaterial = lastOverrideMaterial;
+				renderer.setRenderTarget(lastRenderTarget);
+
+				helper.visible = lastCameraHelperVisible;
+
+				renderer.render(scene, camera);
+			};
+
+			renderer.setAnimationLoop(() => {
+				mesh.rotateX(1 * DEG2RAD).rotateZ(0.5 * DEG2RAD);
+				render();
+			});
+
+			controls.connect(renderer.domElement);
+
+			return () => {
+				controls.disconnect();
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
+		}}
 	>
 	</canvas>
 </div>

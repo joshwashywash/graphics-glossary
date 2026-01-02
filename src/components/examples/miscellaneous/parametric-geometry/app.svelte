@@ -1,6 +1,12 @@
-<script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
+<script
+	lang="ts"
+	module
+>
+	const cameraTranslationAxis = new Vector3(1, 1, 1).normalize();
+	const cameraTranslationAmount = 5;
+</script>
 
+<script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
 	import { pringle } from "@functions/parametric/functions/pringle";
@@ -16,6 +22,8 @@
 		Mesh,
 		MeshNormalMaterial,
 		PerspectiveCamera,
+		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const material = new MeshNormalMaterial({
@@ -38,37 +46,45 @@
 
 	const group = new Group().add(pringleMesh, sphubeMesh);
 
-	const camera = new PerspectiveCamera().translateZ(5);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		cameraTranslationAxis,
+		cameraTranslationAmount,
+	);
+	camera.lookAt(group.position);
+
 	const controls = new OrbitControls(camera);
+	controls.autoRotate = true;
 
 	const canvasSize = new Size();
-
-	const attachment = createRendererAttachment((renderer) => {
-		const render = () => {
-			renderer.render(group, camera);
-		};
-
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			updateCameraAspect(camera, canvasSize.ratio);
-
-			render();
-		});
-
-		controls.addEventListener("change", render);
-		controls.connect(renderer.domElement);
-
-		return () => {
-			controls.removeEventListener("change", render);
-			controls.disconnect();
-		};
-	});
 </script>
 
 <canvas
 	class="example-canvas"
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
-	{@attach attachment}
+	{@attach (canvas) => {
+		const renderer = new WebGPURenderer({
+			antialias: true,
+			canvas,
+		});
+
+		$effect(() => {
+			renderer.setSize(canvasSize.width, canvasSize.height, false);
+			updateCameraAspect(camera, canvasSize.ratio);
+		});
+
+		renderer.setAnimationLoop(() => {
+			controls.update();
+			renderer.render(group, camera);
+		});
+
+		controls.connect(renderer.domElement);
+
+		return () => {
+			controls.disconnect();
+			renderer.setAnimationLoop(null);
+			renderer.dispose();
+		};
+	}}
 >
 </canvas>

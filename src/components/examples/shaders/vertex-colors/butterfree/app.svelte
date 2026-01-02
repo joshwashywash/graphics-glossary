@@ -8,8 +8,6 @@
 <script lang="ts">
 	import butterfreeImageMetadata from "@assets/pokemon-snap-butterfree-wings.png";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { FullScreenTriangleGeometry } from "@classes/FullScreenTriangleGeometry";
 	import { Size } from "@classes/size.svelte";
 
@@ -24,8 +22,8 @@
 		Mesh,
 		MeshBasicMaterial,
 		SRGBColorSpace,
-		Scene,
 		TextureLoader,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const oss = new OffscreenCanvas(1, 1);
@@ -42,14 +40,13 @@
 
 	const geometry = new FullScreenTriangleGeometry().setAttribute(
 		"color",
+		// white, black, white
 		new Float32BufferAttribute([1, 1, 1, 0, 0, 0, 1, 1, 1], 3),
 	);
 
 	const material = new MeshBasicMaterial();
 
 	const mesh = new Mesh(geometry, material);
-
-	const scene = new Scene().add(mesh);
 
 	const camera = createFullScreenCamera();
 
@@ -75,26 +72,8 @@
 
 	const map = $derived(useTexture ? await butterfreeWingTexture : whiteTexture);
 
-	const attachment = createRendererAttachment((renderer) => {
-		const render = () => {
-			renderer.render(scene, camera);
-		};
-
-		$effect(() => {
-			material.map = map;
-			render();
-		});
-
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			render();
-		});
-
-		$effect(() => {
-			material.vertexColors = useVertexColors;
-			material.needsUpdate = true;
-			render();
-		});
+	$effect(() => {
+		material.map = map;
 	});
 </script>
 
@@ -109,7 +88,13 @@
 				use vertex colors
 				<input
 					type="checkbox"
-					bind:checked={useVertexColors}
+					bind:checked={
+						() => useVertexColors,
+						(value) => {
+							useVertexColors = material.vertexColors = value;
+							material.needsUpdate = true;
+						}
+					}
 				/>
 			</Label>
 			<Label>
@@ -125,7 +110,25 @@
 			class="example-canvas"
 			bind:clientWidth={canvasSize.width}
 			bind:clientHeight={canvasSize.height}
-			{@attach attachment}
+			{@attach (canvas) => {
+				const renderer = new WebGPURenderer({
+					antialias: true,
+					canvas,
+				});
+
+				$effect(() => {
+					renderer.setSize(canvasSize.width, canvasSize.height, false);
+				});
+
+				renderer.setAnimationLoop(() => {
+					renderer.render(mesh, camera);
+				});
+
+				return () => {
+					renderer.setAnimationLoop(null);
+					renderer.dispose();
+				};
+			}}
 		>
 		</canvas>
 	</div>

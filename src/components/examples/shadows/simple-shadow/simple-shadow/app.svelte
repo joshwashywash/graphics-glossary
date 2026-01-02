@@ -2,17 +2,19 @@
 	lang="ts"
 	module
 >
-	const cameraAxis = new Vector3(1, 1, 1).normalize();
+	const cameraTranslationAxis = new Vector3(1, 1, 1).normalize();
 	const positionYInitial = 2.5;
 	const speed = 1 / 1000;
 
+	const cameraTranslationAmount = 9;
+
 	const textureCanvasSize = 128;
+
+	const floorSize = 7;
 </script>
 
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
-
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
 
 	import { Label } from "@components/controls";
 
@@ -31,6 +33,7 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const textureCanvas = new OffscreenCanvas(
@@ -44,8 +47,6 @@
 		throw new Error("canvas texture context is null");
 	}
 
-	let shadowColor = $state("#000000");
-
 	const gradient = createShadowGradient(context, "#ffffff");
 	context.fillStyle = gradient;
 	context.fillRect(0, 0, context.canvas.width, context.canvas.height);
@@ -53,23 +54,25 @@
 	const shadowTexture = new CanvasTexture(textureCanvas);
 
 	const shadowMaterial = new MeshBasicMaterial({
+		color: "#000000",
 		depthWrite: false,
 		map: shadowTexture,
 		transparent: true,
 	});
 
+	let shadowColor = $state(shadowMaterial.color);
+
 	const sphereRadius = 1;
 
 	const sphereDiameter = 2 * sphereRadius;
 	const shadowGeometry = new PlaneGeometry(sphereDiameter, sphereDiameter);
-	const shadowMesh = new Mesh(shadowGeometry, shadowMaterial);
+	const shadowMesh = new Mesh(shadowGeometry, shadowMaterial).translateZ(0.01);
 
-	shadowMesh.translateZ(0.01);
-
-	const floorSize = 7;
 	const floorGeometry = new PlaneGeometry(floorSize, floorSize);
 
-	const floorMaterial = new MeshBasicMaterial({ color: "#ccccaa" });
+	const floorMaterial = new MeshBasicMaterial({
+		color: "#ccccaa",
+	});
 
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
 
@@ -78,8 +81,9 @@
 		floorMaterial.dispose();
 	};
 
-	const group = new Group().add(shadowMesh, floorMesh);
-	group.rotateX(-1 * 0.5 * Math.PI);
+	const group = new Group()
+		.add(shadowMesh, floorMesh)
+		.rotateX(-1 * 0.5 * Math.PI);
 
 	const sphereGeometry = new SphereGeometry();
 	const sphereMaterial = new MeshNormalMaterial();
@@ -100,40 +104,11 @@
 		shadowMaterial.dispose();
 	});
 
-	const camera = new PerspectiveCamera();
-	camera.translateOnAxis(cameraAxis, 9);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		cameraTranslationAxis,
+		cameraTranslationAmount,
+	);
 	camera.lookAt(sphereMesh.position);
-
-	$effect(() => {
-		shadowMaterial.color.set(shadowColor);
-	});
-
-	const attachment = createRendererAttachment((renderer) => {
-		renderer.setAnimationLoop((time) => {
-			const { clientHeight, clientWidth, height, width } = renderer.domElement;
-			if (clientHeight !== height || clientWidth !== width) {
-				renderer.setSize(clientWidth, clientHeight, false);
-				updateCameraAspect(camera, clientWidth / clientHeight);
-			}
-			// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
-			const t = 0.5 * (1 + Math.sin(time * speed));
-
-			sphereMesh.position.y = lerp(
-				positionYInitial - 1,
-				positionYInitial + 1,
-				t,
-			);
-			shadowMesh.scale.setScalar(1 + t);
-
-			shadowMaterial.opacity = lerp(1, 0, t);
-
-			renderer.render(scene, camera);
-		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
-	});
 </script>
 
 <svelte:boundary>
@@ -148,14 +123,51 @@
 				shadow color
 				<input
 					type="color"
-					bind:value={shadowColor}
+					bind:value={
+						() => shadowColor,
+						(value) => {
+							shadowMaterial.color.set((shadowColor = value));
+						}
+					}
 				/>
 			</Label>
 		</details>
 
 		<canvas
 			class="example-canvas"
-			{@attach attachment}
+			{@attach (canvas) => {
+				const renderer = new WebGPURenderer({
+					antialias: true,
+					canvas,
+				});
+
+				renderer.setAnimationLoop((time) => {
+					const { clientHeight, clientWidth, height, width } =
+						renderer.domElement;
+					if (clientHeight !== height || clientWidth !== width) {
+						renderer.setSize(clientWidth, clientHeight, false);
+						updateCameraAspect(camera, clientWidth / clientHeight);
+					}
+					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
+					const t = 0.5 * (1 + Math.sin(time * speed));
+
+					sphereMesh.position.y = lerp(
+						positionYInitial - 1,
+						positionYInitial + 1,
+						t,
+					);
+					shadowMesh.scale.setScalar(1 + t);
+
+					shadowMaterial.opacity = lerp(1, 0, t);
+
+					renderer.render(scene, camera);
+				});
+
+				return () => {
+					renderer.setAnimationLoop(null);
+					renderer.dispose();
+				};
+			}}
 		>
 		</canvas>
 	</div>

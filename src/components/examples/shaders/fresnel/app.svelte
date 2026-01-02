@@ -16,8 +16,6 @@
 </script>
 
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -33,13 +31,14 @@
 		MeshBasicNodeMaterial,
 		PerspectiveCamera,
 		TorusKnotGeometry,
+		WebGPURenderer,
 	} from "three/webgpu";
 
-	let rotateMesh = $state(true);
-
-	const baseColorUniform = uniform(new Color()).setName("baseColor");
-	const fresnelColorUniform = uniform(new Color()).setName("fresnelColor");
-	const powerUniform = uniform(0).setName("power");
+	const baseColorUniform = uniform(new Color("#583583")).setName("baseColor");
+	const fresnelColorUniform = uniform(new Color("#ccccaa")).setName(
+		"fresnelColor",
+	);
+	const powerUniform = uniform(POWER_DEFAULT).setName("power");
 
 	const fresnel = f.pow(powerUniform).mul(baseColorUniform).setName("fresnel");
 	const inverseFresnel = f
@@ -62,59 +61,11 @@
 
 	const camera = new PerspectiveCamera().translateZ(5);
 
-	let baseColor = $state("#583583");
-
-	let fresnelColor = $state("#ccccaa");
-	let power = $state(POWER_DEFAULT);
+	let baseColor = $state(`#${baseColorUniform.value.getHexString()}`);
+	let fresnelColor = $state(`#${fresnelColorUniform.value.getHexString()}`);
+	let power = $state(powerUniform.value);
 
 	const canvasSize = new Size();
-
-	let animationLoop: null | (() => void) = null;
-
-	const attachment = createRendererAttachment((renderer) => {
-		const render = () => {
-			renderer.render(mesh, camera);
-		};
-
-		const renderIfNotAnimating = () => {
-			if (animationLoop === null) render();
-		};
-
-		const loop = () => {
-			mesh.rotateY(angle);
-			render();
-		};
-
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			updateCameraAspect(camera, canvasSize.ratio);
-			renderIfNotAnimating();
-		});
-
-		$effect(() => {
-			baseColorUniform.value.setStyle(baseColor);
-			renderIfNotAnimating();
-		});
-
-		$effect(() => {
-			fresnelColorUniform.value.setStyle(fresnelColor);
-			renderIfNotAnimating();
-		});
-
-		$effect(() => {
-			powerUniform.value = power;
-			renderIfNotAnimating();
-		});
-
-		$effect(() => {
-			if (!rotateMesh) return;
-
-			renderer.setAnimationLoop((animationLoop = loop));
-			return () => {
-				renderer.setAnimationLoop((animationLoop = null));
-			};
-		});
-	});
 </script>
 
 <div class="relative">
@@ -124,31 +75,42 @@
 			base color
 			<input
 				type="color"
-				bind:value={baseColor}
+				bind:value={
+					() => baseColor,
+					(value) => {
+						baseColorUniform.value.set(value);
+						baseColor = value;
+					}
+				}
 			/>
 		</Label>
 		<Label>
 			fresnel color
 			<input
 				type="color"
-				bind:value={fresnelColor}
+				bind:value={
+					() => fresnelColor,
+					(value) => {
+						fresnelColorUniform.value.set(value);
+						fresnelColor = value;
+					}
+				}
 			/>
 		</Label>
 		<Label>
 			power
 			<input
 				type="range"
-				bind:value={power}
+				bind:value={
+					() => power,
+					(value) => {
+						powerUniform.value = value;
+						power = value;
+					}
+				}
 				min={POWER_MIN}
 				max={POWER_MAX}
 				step={POWER_STEP}
-			/>
-		</Label>
-		<Label>
-			rotate mesh
-			<input
-				type="checkbox"
-				bind:checked={rotateMesh}
 			/>
 		</Label>
 	</details>
@@ -157,7 +119,27 @@
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
-		{@attach attachment}
+		{@attach (canvas) => {
+			const renderer = new WebGPURenderer({
+				antialias: true,
+				canvas,
+			});
+
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				updateCameraAspect(camera, canvasSize.ratio);
+			});
+
+			renderer.setAnimationLoop(() => {
+				mesh.rotateY(angle);
+				renderer.render(mesh, camera);
+			});
+
+			return () => {
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
+		}}
 	>
 	</canvas>
 </div>

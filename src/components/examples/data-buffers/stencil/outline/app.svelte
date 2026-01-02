@@ -14,8 +14,6 @@
 </script>
 
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -37,6 +35,7 @@
 		TorusGeometry,
 		TorusKnotGeometry,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const stencilRef = 1;
@@ -48,6 +47,7 @@
 	});
 
 	const outlineMaterial = new MeshBasicMaterial({
+		color: "#ffffff",
 		depthWrite: false,
 		stencilFunc: NotEqualStencilFunc,
 		stencilRef,
@@ -87,6 +87,7 @@
 			axis,
 			translationAmount,
 		);
+		outlineMesh.scale.setScalar(initialOutlineScale);
 
 		outlineMeshes.push(outlineMesh);
 		outlineGroup.add(outlineMesh);
@@ -98,66 +99,11 @@
 	);
 	camera.lookAt(allGroup.position);
 
-	let outlinesVisible = $state(true);
+	let outlinesVisible = $state(outlineGroup.visible);
 	let outlineScale = $state(initialOutlineScale);
-	let outlineColor = $state("#ffffff");
-
-	let rotateMeshes = $state(true);
+	let outlineColor = $state(`#${outlineMaterial.color.getHexString()}`);
 
 	const canvasSize = new Size();
-
-	let animationLoop: null | (() => void) = null;
-
-	const attachment = createRendererAttachment(
-		(renderer) => {
-			const render = () => {
-				renderer.render(allGroup, camera);
-			};
-
-			const renderIfNotAnimating = () => {
-				if (animationLoop === null) render();
-			};
-
-			const loop = () => {
-				allGroup.rotateY(angle);
-				render();
-			};
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				updateCameraAspect(camera, canvasSize.ratio);
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				outlineGroup.visible = outlinesVisible;
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				outlineMaterial.color.setStyle(outlineColor);
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				for (const mesh of outlineMeshes) {
-					mesh.scale.setScalar(outlineScale);
-				}
-				renderIfNotAnimating();
-			});
-
-			$effect(() => {
-				if (!rotateMeshes) return;
-
-				renderer.setAnimationLoop((animationLoop = loop));
-
-				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
-				};
-			});
-		},
-		{ stencil: true },
-	);
 </script>
 
 <div class="relative">
@@ -167,31 +113,41 @@
 			outlines visible
 			<input
 				type="checkbox"
-				bind:checked={outlinesVisible}
+				bind:checked={
+					() => outlinesVisible,
+					(value) => {
+						outlinesVisible = outlineGroup.visible = value;
+					}
+				}
 			/>
 		</Label>
 		<Label>
 			color
 			<input
 				type="color"
-				bind:value={outlineColor}
+				bind:value={
+					() => outlineColor,
+					(value) => {
+						outlineMaterial.color.setStyle(value);
+						outlineColor = value;
+					}
+				}
 			/>
 		</Label>
 		<Label>
 			scale
 			<input
 				type="range"
-				bind:value={outlineScale}
+				bind:value={
+					() => outlineScale,
+					(value) => {
+						for (const mesh of outlineMeshes) mesh.scale.setScalar(value);
+						outlineScale = value;
+					}
+				}
 				min={1}
 				max={2}
 				step={0.1}
-			/>
-		</Label>
-		<Label>
-			rotate meshes
-			<input
-				type="checkbox"
-				bind:checked={rotateMeshes}
 			/>
 		</Label>
 	</details>
@@ -200,7 +156,26 @@
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
-		{@attach attachment}
+		{@attach (canvas) => {
+			const renderer = new WebGPURenderer({
+				antialias: true,
+				canvas,
+				stencil: true,
+			});
+
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				updateCameraAspect(camera, canvasSize.ratio);
+			});
+
+			renderer.setAnimationLoop(() => {
+				renderer.render(allGroup.rotateY(angle), camera);
+			});
+
+			return () => {
+				renderer.dispose();
+			};
+		}}
 	>
 	</canvas>
 </div>

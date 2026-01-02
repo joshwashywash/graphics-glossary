@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/size.svelte";
 
 	import { Label } from "@components/controls";
@@ -22,6 +20,7 @@
 		RingGeometry,
 		Scene,
 		TorusKnotGeometry,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const stencilRef = 1;
@@ -29,8 +28,11 @@
 	const meshGeometry = new TorusKnotGeometry();
 	const meshMaterial = new MeshNormalMaterial({
 		stencilRef,
+		stencilFunc: EqualStencilFunc,
 		stencilWrite: true,
 	});
+
+	let invert = $state(false);
 
 	const maskGeometry = new CircleGeometry();
 
@@ -60,11 +62,6 @@
 	const camera = new PerspectiveCamera().translateZ(5);
 	camera.lookAt(scene.position);
 
-	let invert = $state(false);
-	const meshMaterialStencilFunc = $derived(
-		invert ? NotEqualStencilFunc : EqualStencilFunc,
-	);
-
 	const canvasSize = new Size();
 
 	const controls = new TransformControls(camera).attach(maskGroup);
@@ -79,36 +76,8 @@
 		meshMaterial.dispose();
 		meshGeometry.dispose();
 		helper.dispose();
-		controls.detach().dispose();
+		controls.dispose();
 	});
-
-	const attachment = createRendererAttachment(
-		(renderer) => {
-			const render = () => {
-				renderer.render(scene, camera);
-			};
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				updateCameraAspect(camera, canvasSize.ratio);
-				render();
-			});
-
-			$effect(() => {
-				meshMaterial.stencilFunc = meshMaterialStencilFunc;
-				render();
-			});
-
-			controls.connect(renderer.domElement);
-			controls.addEventListener("change", render);
-
-			return () => {
-				controls.removeEventListener("change", render);
-				controls.disconnect();
-			};
-		},
-		{ stencil: true },
-	);
 </script>
 
 <div class="relative">
@@ -118,7 +87,15 @@
 			invert
 			<input
 				type="checkbox"
-				bind:checked={invert}
+				bind:checked={
+					() => invert,
+					(value) => {
+						meshMaterial.stencilFunc = value
+							? NotEqualStencilFunc
+							: EqualStencilFunc;
+						invert = value;
+					}
+				}
 			/>
 		</Label>
 	</details>
@@ -127,7 +104,30 @@
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
-		{@attach attachment}
+		{@attach (canvas) => {
+			const renderer = new WebGPURenderer({
+				antialias: true,
+				canvas,
+				stencil: true,
+			});
+
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				updateCameraAspect(camera, canvasSize.ratio);
+			});
+
+			renderer.setAnimationLoop(() => {
+				renderer.render(scene, camera);
+			});
+
+			controls.connect(renderer.domElement);
+
+			return () => {
+				controls.disconnect();
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
+		}}
 	>
 	</canvas>
 </div>

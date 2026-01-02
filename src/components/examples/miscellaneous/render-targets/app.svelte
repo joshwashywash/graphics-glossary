@@ -3,13 +3,12 @@
 	module
 >
 	const hdrLoader = new HDRLoader();
-	const axis = new Vector3(1, 0, 1).normalize();
+	const cameraTranslationAxis = new Vector3(1, 0, 1).normalize();
+	const cameraTranslationAmount = 2;
 	const backgroundBlurriness = 0.1;
 </script>
 
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/size.svelte";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -27,14 +26,15 @@
 		RenderTarget,
 		Scene,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
-	const hdr = hdrLoader
-		.loadAsync("/hdrs/university_workshop_1k.hdr")
-		.then((hdr) => {
-			hdr.mapping = EquirectangularReflectionMapping;
-			return hdr;
-		});
+	const scene = new Scene();
+	hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr").then((hdr) => {
+		hdr.mapping = EquirectangularReflectionMapping;
+		scene.background = hdr;
+		scene.environment = hdr;
+	});
 
 	const geometry = new PlaneGeometry();
 	const target = new RenderTarget();
@@ -44,10 +44,12 @@
 	});
 
 	const mesh = new Mesh(geometry, material);
+	scene.add(mesh);
 
-	const scene = new Scene().add(mesh);
-
-	const camera = new PerspectiveCamera().translateOnAxis(axis, 2);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		cameraTranslationAxis,
+		cameraTranslationAmount,
+	);
 	camera.lookAt(scene.position);
 
 	const controls = new OrbitControls(camera);
@@ -59,8 +61,18 @@
 	});
 
 	const canvasSize = new Size();
+</script>
 
-	const attachment = createRendererAttachment((renderer) => {
+<canvas
+	class="example-canvas"
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
+	{@attach (canvas) => {
+		const renderer = new WebGPURenderer({
+			antialias: true,
+			canvas,
+		});
+
 		const render = () => {
 			mesh.visible = false;
 
@@ -80,34 +92,22 @@
 			scene.backgroundBlurriness = lastBlurriness;
 		};
 
-		hdr.then((hdr) => {
-			scene.background = hdr;
-			scene.environment = hdr;
-			render();
-		});
-
 		$effect(() => {
 			target.setSize(canvasSize.width, canvasSize.height);
 
 			renderer.setSize(canvasSize.width, canvasSize.height, false);
 			updateCameraAspect(camera, canvasSize.ratio);
-			render();
 		});
 
-		controls.addEventListener("change", render);
+		renderer.setAnimationLoop(render);
+
 		controls.connect(renderer.domElement);
 
 		return () => {
-			controls.removeEventListener("change", render);
 			controls.disconnect();
+			renderer.setAnimationLoop(null);
+			renderer.dispose();
 		};
-	});
-</script>
-
-<canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
-	{@attach attachment}
+	}}
 >
 </canvas>

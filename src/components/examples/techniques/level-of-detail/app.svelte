@@ -3,34 +3,44 @@
 	module
 >
 	const speed = 1 / 1000;
+
+	const maxDistance = 15;
+	const minDistance = 3;
+	const halfway = 0.5 * (maxDistance + minDistance);
+
+	const distances = [maxDistance, halfway, minDistance];
+
+	const radius = 1;
+
+	const cameraPositionZStart = 2 + maxDistance;
 </script>
 
 <script lang="ts">
 	import { createLOD } from "./createLOD";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
-	import { PerspectiveCamera, Scene } from "three/webgpu";
+	import { PerspectiveCamera, WebGPURenderer } from "three/webgpu";
 
-	const maxDistance = 15;
-	const minDistance = 3;
-	const halfway = 0.5 * (maxDistance + minDistance);
-	const distances = [maxDistance, halfway, minDistance];
-
-	const radius = 1;
 	const { lod, dispose: disposeLOD } = createLOD(distances, radius);
-
-	const scene = new Scene().add(lod);
 
 	useCleanup(disposeLOD);
 
-	const camera = new PerspectiveCamera();
+	const cameraPositionZEnd = 2 + lod.position.z + radius;
 
-	const attachment = createRendererAttachment((renderer) => {
+	const camera = new PerspectiveCamera();
+</script>
+
+<canvas
+	class="example-canvas"
+	{@attach (canvas) => {
+		const renderer = new WebGPURenderer({
+			antialias: true,
+			canvas,
+		});
+
 		renderer.setAnimationLoop((time) => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
@@ -39,23 +49,15 @@
 			}
 
 			time = 0.5 * (1 + Math.sin(time * speed));
-			camera.position.z = lerp(
-				maxDistance + 2,
-				lod.position.z + radius + 2,
-				time,
-			);
+			camera.position.z = lerp(cameraPositionZStart, cameraPositionZEnd, time);
 
-			renderer.render(scene, camera);
+			renderer.render(lod, camera);
 		});
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			renderer.dispose();
 		};
-	});
-</script>
-
-<canvas
-	class="example-canvas"
-	{@attach attachment}
+	}}
 >
 </canvas>

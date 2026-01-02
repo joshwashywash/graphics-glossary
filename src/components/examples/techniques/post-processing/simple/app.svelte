@@ -37,11 +37,7 @@
 </script>
 
 <script lang="ts">
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { Size } from "@classes/size.svelte";
-
-	import { Label } from "@components/controls";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -59,6 +55,7 @@
 		Scene,
 		TorusKnotGeometry,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const geometry = new TorusKnotGeometry();
@@ -69,15 +66,14 @@
 	const camera = new PerspectiveCamera().translateOnAxis(axis, 5);
 	camera.lookAt(mesh.position);
 
-	const hdr = hdrLoader
-		.loadAsync("/hdrs/university_workshop_1k.hdr")
-		.then((hdr) => {
-			hdr.mapping = EquirectangularReflectionMapping;
-			scene.background = hdr;
-			scene.environment = hdr;
-		});
+	hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr").then((hdr) => {
+		hdr.mapping = EquirectangularReflectionMapping;
+		scene.background = hdr;
+		scene.environment = hdr;
+	});
 
 	const controls = new OrbitControls(camera);
+	controls.autoRotate = true;
 
 	useCleanup(() => {
 		geometry.dispose();
@@ -92,76 +88,40 @@
 			.toFloat();
 		return vec4(v, v, v, 1.0);
 	});
+</script>
 
-	let animationLoop: null | (() => void) = null;
+<canvas
+	class="example-canvas"
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
+	{@attach (canvas) => {
+		const renderer = new WebGPURenderer({
+			antialias: true,
+			canvas,
+		});
 
-	let animate = $state(true);
-
-	const attachment = createRendererAttachment((renderer) => {
 		const postProcessing = new PostProcessing(renderer);
 		postProcessing.outputNode = outputNode();
 
-		const render = () => {
+		renderer.setAnimationLoop(() => {
+			mesh.rotateX(angle);
+			controls.update();
 			postProcessing.render();
-		};
-
-		const renderIfNotAnimating = () => {
-			if (animationLoop !== null) render();
-		};
+		});
 
 		$effect(() => {
 			renderer.setSize(canvasSize.width, canvasSize.height, false);
 			updateCameraAspect(camera, canvasSize.ratio);
-			renderIfNotAnimating();
-		});
-
-		hdr.then(() => {
-			renderIfNotAnimating();
-		});
-
-		const loop = () => {
-			mesh.rotateX(angle);
-			render();
-		};
-
-		$effect(() => {
-			if (animate) {
-				renderer.setAnimationLoop((animationLoop = loop));
-				return () => {
-					renderer.setAnimationLoop((animationLoop = null));
-				};
-			}
-			controls.addEventListener("change", render);
-			return () => {
-				controls.removeEventListener("change", render);
-			};
 		});
 
 		controls.connect(renderer.domElement);
 
 		return () => {
 			controls.disconnect();
+			renderer.setAnimationLoop(null);
+			renderer.dispose();
 			postProcessing.dispose();
 		};
-	});
-</script>
-
-<div class="relative">
-	<details class="example-pane">
-		<summary>controls</summary>
-		<Label>
-			animate
-			<input
-				type="checkbox"
-				bind:checked={animate}
-			/>
-		</Label>
-	</details>
-	<canvas
-		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
-		{@attach attachment}
-	>
-	</canvas>
-</div>
+	}}
+>
+</canvas>

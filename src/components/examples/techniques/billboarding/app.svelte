@@ -29,8 +29,6 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
-	import { createRendererAttachment } from "@attachments/createRendererAttachment.svelte";
-
 	import { loadImage } from "@functions/loadImage";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -47,6 +45,7 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const booCanvas = new OffscreenCanvas(
@@ -126,8 +125,16 @@
 	);
 
 	let lastOffset: number;
+</script>
 
-	const attachment = createRendererAttachment((renderer) => {
+<canvas
+	class="example-canvas"
+	{@attach (canvas) => {
+		const renderer = new WebGPURenderer({
+			antialias: true,
+			canvas,
+		});
+
 		renderer.setAnimationLoop(() => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
@@ -158,12 +165,8 @@
 
 		return () => {
 			renderer.setAnimationLoop(null);
+			renderer.dispose();
 		};
-	});
-</script>
-
-<canvas
-	class="example-canvas"
-	{@attach attachment}
+	}}
 >
 </canvas>
