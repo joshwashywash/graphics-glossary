@@ -14,6 +14,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import {
@@ -52,8 +53,6 @@
 	);
 	camera.lookAt(scene.position);
 
-	const controls = new OrbitControls(camera);
-
 	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
@@ -71,6 +70,10 @@
 		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
+		});
+
+		$effect(() => {
+			renderer.setPixelRatio(devicePixelRatio.current);
 		});
 
 		const render = () => {
@@ -101,7 +104,7 @@
 
 		renderer.setAnimationLoop(render);
 
-		controls.connect(renderer.domElement);
+		const controls = new OrbitControls(camera, renderer.domElement);
 
 		return () => {
 			controls.disconnect();

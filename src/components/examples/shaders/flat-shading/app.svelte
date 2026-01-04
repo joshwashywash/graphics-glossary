@@ -18,6 +18,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import {
@@ -84,8 +85,6 @@
 		3,
 	);
 	camera.lookAt(scene.position);
-
-	const controls = new OrbitControls(camera);
 
 	const canvasSize = new Size();
 </script>
@@ -170,6 +169,10 @@
 			});
 
 			$effect(() => {
+				renderer.setPixelRatio(devicePixelRatio.current);
+			});
+
+			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
 				updateCameraAspect(camera, canvasSize.ratio);
 			});
@@ -179,10 +182,10 @@
 				renderer.render(scene, camera);
 			});
 
-			controls.connect(renderer.domElement);
+			const controls = new OrbitControls(camera, renderer.domElement);
 
 			return () => {
-				controls.disconnect();
+				controls.dispose();
 				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};

@@ -7,6 +7,7 @@
 	);
 
 	const cameraTranslationAxis = new Vector3(1, 1, 1).normalize();
+	const cameraTranslationAmount = 3;
 </script>
 
 <script lang="ts">
@@ -15,6 +16,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
 		BoxGeometry,
@@ -48,11 +50,8 @@
 
 	const camera = new PerspectiveCamera().translateOnAxis(
 		cameraTranslationAxis,
-		3,
+		cameraTranslationAmount,
 	);
-
-	const controls = new OrbitControls(camera);
-	controls.autoRotate = true;
 
 	const canvasSize = new Size();
 </script>
@@ -72,17 +71,22 @@
 			updateCameraAspect(camera, canvasSize.ratio);
 		});
 
+		$effect(() => {
+			renderer.setPixelRatio(devicePixelRatio.current);
+		});
+
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.autoRotate = true;
+
 		renderer.setAnimationLoop(() => {
 			controls.update();
 			renderer.render(mesh, camera);
 		});
 
-		controls.connect(renderer.domElement);
-
 		return () => {
+			controls.dispose();
 			renderer.setAnimationLoop(null);
 			renderer.dispose();
-			controls.disconnect();
 		};
 	}}
 >

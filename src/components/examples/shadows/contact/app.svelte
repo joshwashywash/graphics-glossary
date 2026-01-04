@@ -14,6 +14,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { gaussianBlur } from "three/addons/tsl/display/GaussianBlurNode.js";
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -104,8 +105,6 @@
 		helper.dispose();
 	});
 
-	const controls = new OrbitControls(camera);
-
 	let darkness = $state(uDarkness.value);
 	let shadowOpacity = $state(uShadowOpacity.value);
 	let blur = $state(uBlur.value);
@@ -185,6 +184,10 @@
 			});
 
 			$effect(() => {
+				renderer.setPixelRatio(devicePixelRatio.current);
+			});
+
+			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
 				updateCameraAspect(camera, canvasSize.ratio);
 			});
@@ -214,15 +217,16 @@
 				renderer.render(scene, camera);
 			};
 
+			const controls = new OrbitControls(camera, renderer.domElement);
+
 			renderer.setAnimationLoop(() => {
 				mesh.rotateX(1 * DEG2RAD).rotateZ(0.5 * DEG2RAD);
 				render();
 			});
 
-			controls.connect(renderer.domElement);
-
 			return () => {
-				controls.disconnect();
+				controls.dispose();
+
 				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};

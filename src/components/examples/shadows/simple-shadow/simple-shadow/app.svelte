@@ -21,6 +21,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { lerp } from "three/src/math/MathUtils.js";
 	import {
 		CanvasTexture,
@@ -139,6 +140,10 @@
 				const renderer = new WebGPURenderer({
 					antialias: true,
 					canvas,
+				});
+
+				$effect(() => {
+					renderer.setPixelRatio(devicePixelRatio.current);
 				});
 
 				renderer.setAnimationLoop((time) => {

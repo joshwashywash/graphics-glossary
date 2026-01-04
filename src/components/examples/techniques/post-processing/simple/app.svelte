@@ -42,6 +42,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -72,9 +73,6 @@
 		scene.environment = hdr;
 	});
 
-	const controls = new OrbitControls(camera);
-	controls.autoRotate = true;
-
 	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
@@ -100,8 +98,15 @@
 			canvas,
 		});
 
+		$effect(() => {
+			renderer.setPixelRatio(devicePixelRatio.current);
+		});
+
 		const postProcessing = new PostProcessing(renderer);
 		postProcessing.outputNode = outputNode();
+
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.autoRotate = true;
 
 		renderer.setAnimationLoop(() => {
 			mesh.rotateX(angle);
@@ -114,10 +119,8 @@
 			updateCameraAspect(camera, canvasSize.ratio);
 		});
 
-		controls.connect(renderer.domElement);
-
 		return () => {
-			controls.disconnect();
+			controls.dispose();
 			renderer.setAnimationLoop(null);
 			renderer.dispose();
 			postProcessing.dispose();

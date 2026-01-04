@@ -14,6 +14,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
 	import {
@@ -52,9 +53,6 @@
 	);
 	camera.lookAt(group.position);
 
-	const controls = new OrbitControls(camera);
-	controls.autoRotate = true;
-
 	const canvasSize = new Size();
 </script>
 
@@ -73,15 +71,20 @@
 			updateCameraAspect(camera, canvasSize.ratio);
 		});
 
+		$effect(() => {
+			renderer.setPixelRatio(devicePixelRatio.current);
+		});
+
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.autoRotate = true;
+
 		renderer.setAnimationLoop(() => {
 			controls.update();
 			renderer.render(group, camera);
 		});
 
-		controls.connect(renderer.domElement);
-
 		return () => {
-			controls.disconnect();
+			controls.dispose();
 			renderer.setAnimationLoop(null);
 			renderer.dispose();
 		};

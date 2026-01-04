@@ -1,3 +1,11 @@
+<script
+	lang="ts"
+	module
+>
+	const cameraTranslationAxis = new Vector3(0, 0, 1);
+	const cameraTranslationAmount = 5;
+</script>
+
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
@@ -6,6 +14,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { TransformControls } from "three/addons/controls/TransformControls.js";
 	import {
 		CircleGeometry,
@@ -20,6 +29,7 @@
 		RingGeometry,
 		Scene,
 		TorusKnotGeometry,
+		Vector3,
 		WebGPURenderer,
 	} from "three/webgpu";
 
@@ -59,24 +69,19 @@
 
 	const scene = new Scene().add(mesh, maskGroup);
 
-	const camera = new PerspectiveCamera().translateZ(5);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		cameraTranslationAxis,
+		cameraTranslationAmount,
+	);
 	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
-
-	const controls = new TransformControls(camera).attach(maskGroup);
-	controls.showZ = false;
-
-	const helper = controls.getHelper();
-	scene.add(helper);
 
 	useCleanup(() => {
 		maskGeometry.dispose();
 		maskMaterial.dispose();
 		meshMaterial.dispose();
 		meshGeometry.dispose();
-		helper.dispose();
-		controls.dispose();
 	});
 </script>
 
@@ -112,6 +117,10 @@
 			});
 
 			$effect(() => {
+				renderer.setPixelRatio(devicePixelRatio.current);
+			});
+
+			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
 				updateCameraAspect(camera, canvasSize.ratio);
 			});
@@ -120,10 +129,17 @@
 				renderer.render(scene, camera);
 			});
 
-			controls.connect(renderer.domElement);
+			const controls = new TransformControls(
+				camera,
+				renderer.domElement,
+			).attach(maskGroup);
+			controls.showZ = false;
+
+			scene.add(controls.getHelper());
 
 			return () => {
 				controls.disconnect();
+				controls.dispose();
 				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};

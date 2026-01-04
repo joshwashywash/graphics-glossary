@@ -1,12 +1,16 @@
 import type { ParametricFunction } from "./types";
 
-export const createSphube = (
+type SphubeFuncParameters = {
+	radius: number;
+	squareness: number;
+};
+
+export const createSphube = ({
 	radius = 0.5,
 	squareness = 0.8,
-): ParametricFunction => {
+}: Partial<SphubeFuncParameters> = {}): ParametricFunction => {
+	const tau = 2 * Math.PI;
 	return (u, v, target) => {
-		const tau = 2 * Math.PI;
-
 		u *= tau;
 		v *= tau;
 

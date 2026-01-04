@@ -23,6 +23,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import { normalWorld, positionViewDirection, uniform } from "three/tsl";
 	import {
@@ -123,6 +124,10 @@
 			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
+			});
+
+			$effect(() => {
+				renderer.setPixelRatio(devicePixelRatio.current);
 			});
 
 			$effect(() => {

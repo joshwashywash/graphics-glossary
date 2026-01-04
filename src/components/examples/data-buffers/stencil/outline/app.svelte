@@ -8,9 +8,6 @@
 	const axis = new Vector3(1, 0, 0);
 
 	const initialOutlineScale = 1.1;
-
-	const degrees = 1;
-	const angle = DEG2RAD * degrees;
 </script>
 
 <script lang="ts">
@@ -21,7 +18,8 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { DEG2RAD } from "three/src/math/MathUtils.js";
+	import { devicePixelRatio } from "svelte/reactivity/window";
+	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import {
 		BoxGeometry,
 		BufferGeometry,
@@ -164,15 +162,25 @@
 			});
 
 			$effect(() => {
+				renderer.setPixelRatio(devicePixelRatio.current);
+			});
+
+			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
 				updateCameraAspect(camera, canvasSize.ratio);
 			});
 
+			const controls = new OrbitControls(camera, renderer.domElement);
+			controls.autoRotate = true;
+
 			renderer.setAnimationLoop(() => {
-				renderer.render(allGroup.rotateY(angle), camera);
+				controls.update();
+				renderer.render(allGroup, camera);
 			});
 
 			return () => {
+				controls.dispose();
+				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};
 		}}

@@ -17,6 +17,7 @@
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		DirectionalLight,
 		DirectionalLightHelper,
@@ -119,6 +120,10 @@
 				antialias: true,
 				canvas,
 				stencil: true,
+			});
+
+			$effect(() => {
+				renderer.setPixelRatio(devicePixelRatio.current ?? 1);
 			});
 
 			const render = () => {

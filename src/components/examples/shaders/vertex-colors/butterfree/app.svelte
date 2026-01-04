@@ -16,6 +16,7 @@
 	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
+	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		CanvasTexture,
 		Float32BufferAttribute,
@@ -114,6 +115,10 @@
 				const renderer = new WebGPURenderer({
 					antialias: true,
 					canvas,
+				});
+
+				$effect(() => {
+					renderer.setPixelRatio(devicePixelRatio.current);
 				});
 
 				$effect(() => {
