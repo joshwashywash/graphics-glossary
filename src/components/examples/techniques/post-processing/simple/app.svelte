@@ -46,7 +46,7 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
-	import { Fn, dot, mat4, pass, screenSize, uv, vec3, vec4 } from "three/tsl";
+	import { dot, mat4, pass, screenSize, uv, vec3, vec4 } from "three/tsl";
 	import {
 		EquirectangularReflectionMapping,
 		Mesh,
@@ -79,13 +79,6 @@
 	});
 
 	const canvasSize = new Size();
-
-	const outputNode = Fn(() => {
-		const v = dot(vec3(0.2126, 0.7152, 0.0722), pass(scene, camera).rgb)
-			.lessThan(bayerValue)
-			.toFloat();
-		return vec4(v, v, v, 1.0);
-	});
 </script>
 
 <canvas
@@ -103,7 +96,12 @@
 		});
 
 		const postProcessing = new PostProcessing(renderer);
-		postProcessing.outputNode = outputNode();
+		postProcessing.outputNode = vec4(
+			dot(vec3(0.2126, 0.7152, 0.0722), pass(scene, camera).rgb)
+				.lessThan(bayerValue)
+				.toVec3(),
+			1.0,
+		);
 
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.autoRotate = true;
