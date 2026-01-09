@@ -61,8 +61,6 @@
 		transparent: true,
 	});
 
-	let shadowColor = $state(shadowMaterial.color);
-
 	const sphereRadius = 1;
 
 	const sphereDiameter = 2 * sphereRadius;
@@ -110,6 +108,12 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(sphereMesh.position);
+
+	let shadowColor = $state(`#${shadowMaterial.color.getHexString()}`);
+	const getShadowColor = () => shadowColor;
+	const setShadowColor = (value: string) => {
+		shadowMaterial.color.set((shadowColor = value));
+	};
 </script>
 
 <svelte:boundary>
@@ -124,12 +128,7 @@
 				shadow color
 				<input
 					type="color"
-					bind:value={
-						() => shadowColor,
-						(value) => {
-							shadowMaterial.color.set((shadowColor = value));
-						}
-					}
+					bind:value={getShadowColor, setShadowColor}
 				/>
 			</Label>
 		</details>

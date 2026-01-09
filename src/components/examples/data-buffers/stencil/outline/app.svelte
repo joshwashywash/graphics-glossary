@@ -61,9 +61,7 @@
 	useCleanup(() => {
 		material.dispose();
 		outlineMaterial.dispose();
-		for (const geometry of geometries) {
-			geometry.dispose();
-		}
+		for (const geometry of geometries) geometry.dispose();
 	});
 
 	const a = (2 * Math.PI) / geometries.length;
@@ -98,8 +96,24 @@
 	camera.lookAt(allGroup.position);
 
 	let outlinesVisible = $state(outlineGroup.visible);
+	const getOutlinesVisible = () => outlinesVisible;
+	const setOutlinesVisible = (value: boolean) => {
+		outlinesVisible = outlineGroup.visible = value;
+	};
+
 	let outlineScale = $state(initialOutlineScale);
+	const getOutlineScale = () => outlineScale;
+	const setOutlineScale = (value: number) => {
+		for (const mesh of outlineMeshes) mesh.scale.setScalar(value);
+		outlineScale = value;
+	};
+
 	let outlineColor = $state(`#${outlineMaterial.color.getHexString()}`);
+	const getOutlineColor = () => outlineColor;
+	const setOutlineColor = (value: string) => {
+		outlineMaterial.color.setStyle(value);
+		outlineColor = value;
+	};
 
 	const canvasSize = new Size();
 </script>
@@ -111,38 +125,21 @@
 			outlines visible
 			<input
 				type="checkbox"
-				bind:checked={
-					() => outlinesVisible,
-					(value) => {
-						outlinesVisible = outlineGroup.visible = value;
-					}
-				}
+				bind:checked={getOutlinesVisible, setOutlinesVisible}
 			/>
 		</Label>
 		<Label>
 			color
 			<input
 				type="color"
-				bind:value={
-					() => outlineColor,
-					(value) => {
-						outlineMaterial.color.setStyle(value);
-						outlineColor = value;
-					}
-				}
+				bind:value={getOutlineColor, setOutlineColor}
 			/>
 		</Label>
 		<Label>
 			scale
 			<input
 				type="range"
-				bind:value={
-					() => outlineScale,
-					(value) => {
-						for (const mesh of outlineMeshes) mesh.scale.setScalar(value);
-						outlineScale = value;
-					}
-				}
+				bind:value={getOutlineScale, setOutlineScale}
 				min={1}
 				max={2}
 				step={0.1}

@@ -2,9 +2,6 @@
 	lang="ts"
 	module
 >
-	const degrees = 1;
-	const angle = DEG2RAD * degrees;
-
 	const POWER_MIN = 0;
 	const POWER_MAX = 3;
 	const POWER_STEP = 0.5;
@@ -24,7 +21,7 @@
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { DEG2RAD } from "three/src/math/MathUtils.js";
+	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { normalWorld, positionViewDirection, uniform } from "three/tsl";
 	import {
 		Color,
@@ -63,8 +60,22 @@
 	const camera = new PerspectiveCamera().translateZ(5);
 
 	let baseColor = $state(`#${baseColorUniform.value.getHexString()}`);
+	const getBaseColor = () => baseColor;
+	const setBaseColor = (value: string) => {
+		baseColorUniform.value.set((baseColor = value));
+	};
+
 	let fresnelColor = $state(`#${fresnelColorUniform.value.getHexString()}`);
+	const getFresnelColor = () => fresnelColor;
+	const setFresnelColor = (value: string) => {
+		fresnelColorUniform.value.set((fresnelColor = value));
+	};
+
 	let power = $state(powerUniform.value);
+	const getPower = () => power;
+	const setPower = (value: number) => {
+		power = powerUniform.value = value;
+	};
 
 	const canvasSize = new Size();
 </script>
@@ -76,39 +87,21 @@
 			base color
 			<input
 				type="color"
-				bind:value={
-					() => baseColor,
-					(value) => {
-						baseColorUniform.value.set(value);
-						baseColor = value;
-					}
-				}
+				bind:value={getBaseColor, setBaseColor}
 			/>
 		</Label>
 		<Label>
 			fresnel color
 			<input
 				type="color"
-				bind:value={
-					() => fresnelColor,
-					(value) => {
-						fresnelColorUniform.value.set(value);
-						fresnelColor = value;
-					}
-				}
+				bind:value={getFresnelColor, setFresnelColor}
 			/>
 		</Label>
 		<Label>
 			power
 			<input
 				type="range"
-				bind:value={
-					() => power,
-					(value) => {
-						powerUniform.value = value;
-						power = value;
-					}
-				}
+				bind:value={getPower, setPower}
 				min={POWER_MIN}
 				max={POWER_MAX}
 				step={POWER_STEP}
@@ -135,12 +128,16 @@
 				updateCameraAspect(camera, canvasSize.ratio);
 			});
 
+			const controls = new OrbitControls(camera, renderer.domElement);
+			controls.autoRotate = true;
+
 			renderer.setAnimationLoop(() => {
-				mesh.rotateY(angle);
+				controls.update();
 				renderer.render(mesh, camera);
 			});
 
 			return () => {
+				controls.dispose();
 				renderer.setAnimationLoop(null);
 				renderer.dispose();
 			};

@@ -42,9 +42,6 @@
 		shininess: 0.5 * SHININESS_MAX,
 	});
 
-	let shininess = $state(material.shininess);
-	let color = $state(`#${material.color.getHexString()}`);
-
 	const flatShadingMaterial = material.clone();
 	flatShadingMaterial.flatShading = true;
 
@@ -69,7 +66,6 @@
 	mesh.visible = false;
 
 	const flatShadingMesh = new Mesh(geometry, flatShadingMaterial);
-	let flatShading = $state(flatShadingMesh.visible);
 
 	const group = new Group().add(mesh, flatShadingMesh);
 
@@ -78,7 +74,6 @@
 	directionalLight.lookAt(scene.position);
 
 	helper.update();
-	let directionalLightHelperVisible = $state((helper.visible = false));
 
 	const camera = new PerspectiveCamera().translateOnAxis(
 		cameraTranslationAxis,
@@ -87,6 +82,37 @@
 	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
+
+	let shininess = $state(material.shininess);
+	const getShininess = () => shininess;
+	const setShininess = (value: number) => {
+		material.shininess = value;
+		flatShadingMaterial.shininess = value;
+		shininess = value;
+	};
+
+	let color = $state(`#${material.color.getHexString()}`);
+	const getColor = () => color;
+	const setColor = (value: string) => {
+		material.color.set(value);
+		flatShadingMaterial.color.set(value);
+		color = value;
+	};
+
+	let flatShading = $state(flatShadingMesh.visible);
+	const getFlatShading = () => flatShading;
+	const setFlatShading = (value: boolean) => {
+		flatShadingMesh.visible = value;
+		mesh.visible = !flatShadingMesh.visible;
+		flatShading = value;
+	};
+
+	let directionalLightHelperVisible = $state((helper.visible = false));
+	const getDirectionalLightHelperVisible = () => directionalLightHelperVisible;
+	const setDirectionalLightHelperVisible = (value: boolean) => {
+		helper.visible = value;
+		directionalLightHelperVisible = value;
+	};
 </script>
 
 <div class="relative">
@@ -98,28 +124,14 @@
 				color
 				<input
 					type="color"
-					bind:value={
-						() => color,
-						(value) => {
-							material.color.set(value);
-							flatShadingMaterial.color.set(value);
-							color = value;
-						}
-					}
+					bind:value={getColor, setColor}
 				/>
 			</Label>
 			<Label>
 				shininess
 				<input
 					type="range"
-					bind:value={
-						() => shininess,
-						(value) => {
-							material.shininess = value;
-							flatShadingMaterial.shininess = value;
-							shininess = value;
-						}
-					}
+					bind:value={getShininess, setShininess}
 					min={0}
 					max={SHININESS_MAX}
 					step={1}
@@ -132,14 +144,7 @@
 				flat shading
 				<input
 					type="checkbox"
-					bind:checked={
-						() => flatShading,
-						(value) => {
-							flatShadingMesh.visible = value;
-							mesh.visible = !flatShadingMesh.visible;
-							flatShading = value;
-						}
-					}
+					bind:checked={getFlatShading, setFlatShading}
 				/>
 			</Label>
 			<Label>
@@ -147,11 +152,7 @@
 				<input
 					type="checkbox"
 					bind:checked={
-						() => directionalLightHelperVisible,
-						(value) => {
-							helper.visible = value;
-							directionalLightHelperVisible = value;
-						}
+						getDirectionalLightHelperVisible, setDirectionalLightHelperVisible
 					}
 				/>
 			</Label>

@@ -15,7 +15,7 @@
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
-	import { TransformControls } from "three/addons/controls/TransformControls.js";
+	import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 	import {
 		CircleGeometry,
 		EqualStencilFunc,
@@ -37,18 +37,16 @@
 
 	const meshGeometry = new TorusKnotGeometry();
 	const meshMaterial = new MeshNormalMaterial({
-		stencilRef,
 		stencilFunc: EqualStencilFunc,
+		stencilRef,
 		stencilWrite: true,
 	});
-
-	let invert = $state(false);
 
 	const maskGeometry = new CircleGeometry();
 
 	const maskMaterial = new MeshBasicMaterial({
-		depthWrite: false,
 		colorWrite: false,
+		depthWrite: false,
 		stencilRef,
 		stencilWrite: true,
 		stencilZPass: ReplaceStencilOp,
@@ -78,11 +76,18 @@
 	const canvasSize = new Size();
 
 	useCleanup(() => {
-		maskGeometry.dispose();
 		maskMaterial.dispose();
+		maskGeometry.dispose();
 		meshMaterial.dispose();
 		meshGeometry.dispose();
 	});
+
+	let invert = $state(false);
+	const getInvert = () => invert;
+	const setInvert = (value: boolean) => {
+		meshMaterial.stencilFunc = value ? NotEqualStencilFunc : EqualStencilFunc;
+		invert = value;
+	};
 </script>
 
 <div class="relative">
@@ -92,15 +97,7 @@
 			invert
 			<input
 				type="checkbox"
-				bind:checked={
-					() => invert,
-					(value) => {
-						meshMaterial.stencilFunc = value
-							? NotEqualStencilFunc
-							: EqualStencilFunc;
-						invert = value;
-					}
-				}
+				bind:checked={getInvert, setInvert}
 			/>
 		</Label>
 	</details>

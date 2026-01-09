@@ -51,7 +51,6 @@
 
 	const camera = createFullScreenCamera();
 
-	let useVertexColors = $state(true);
 	let useTexture = $state(true);
 
 	const butterfreeWingTexture = loader
@@ -76,6 +75,13 @@
 	$effect(() => {
 		material.map = map;
 	});
+
+	let useVertexColors = $state(true);
+	const getUseVertexColors = () => useVertexColors;
+	const setUseVertexColors = (value: boolean) => {
+		useVertexColors = material.vertexColors = value;
+		material.needsUpdate = true;
+	};
 </script>
 
 <svelte:boundary>
@@ -89,13 +95,7 @@
 				use vertex colors
 				<input
 					type="checkbox"
-					bind:checked={
-						() => useVertexColors,
-						(value) => {
-							useVertexColors = material.vertexColors = value;
-							material.needsUpdate = true;
-						}
-					}
+					bind:checked={getUseVertexColors, setUseVertexColors}
 				/>
 			</Label>
 			<Label>
