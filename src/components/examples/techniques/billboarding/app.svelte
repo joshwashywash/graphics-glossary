@@ -30,10 +30,10 @@
 	import booImageMetadata from "@assets/boo.png";
 
 	import { loadImage } from "@functions/loadImage";
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		BoxGeometry,
 		CanvasTexture,
@@ -136,9 +136,7 @@
 			canvas,
 		});
 
-		$effect(() => {
-			renderer.setPixelRatio(devicePixelRatio.current);
-		});
+		setPixelRatio(() => renderer);
 
 		renderer.setAnimationLoop(() => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;

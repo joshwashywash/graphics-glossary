@@ -13,10 +13,10 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
 		BoxGeometry,
@@ -71,9 +71,7 @@
 			updateCameraAspect(camera, canvasSize.ratio);
 		});
 
-		$effect(() => {
-			renderer.setPixelRatio(devicePixelRatio.current);
-		});
+		setPixelRatio(() => renderer);
 
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.autoRotate = true;

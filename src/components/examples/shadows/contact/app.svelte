@@ -4,6 +4,11 @@
 >
 	const cameraTranslationAxis = new Vector3(0, 1, 1).normalize();
 	const cameraTranslationAmount = 10;
+
+	const PLANE_SIZE = 5;
+
+	const HALF_PLANE_SIZE = 0.5 * PLANE_SIZE;
+	const SHADOW_CAMERA_FAR = 1;
 </script>
 
 <script lang="ts">
@@ -11,10 +16,10 @@
 
 	import { Label } from "@components/controls";
 
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { gaussianBlur } from "three/addons/tsl/display/GaussianBlurNode.js";
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -60,8 +65,6 @@
 		uBlur,
 	).a.mul(uShadowOpacity);
 
-	const PLANE_SIZE = 5;
-
 	const planeGeometry = new PlaneGeometry(PLANE_SIZE, PLANE_SIZE);
 
 	const shadowPlaneMesh = new Mesh(planeGeometry, shadowPlaneMaterial).rotateX(
@@ -72,8 +75,6 @@
 	const meshMaterial = new MeshNormalMaterial();
 	const mesh = new Mesh(meshGeometry, meshMaterial).translateY(2);
 
-	const HALF_PLANE_SIZE = 0.5 * PLANE_SIZE;
-	const SHADOW_CAMERA_FAR = 1;
 	const shadowCamera = new OrthographicCamera(
 		-1 * HALF_PLANE_SIZE,
 		HALF_PLANE_SIZE,
@@ -183,16 +184,18 @@
 				canvas,
 			});
 
-			$effect(() => {
-				renderer.setPixelRatio(devicePixelRatio.current);
-			});
+			setPixelRatio(renderer);
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
 				updateCameraAspect(camera, canvasSize.ratio);
 			});
 
-			const render = () => {
+			const controls = new OrbitControls(camera, renderer.domElement);
+
+			renderer.setAnimationLoop(() => {
+				mesh.rotateX(1 * DEG2RAD).rotateZ(0.5 * DEG2RAD);
+
 				const lastBackground = scene.background;
 				scene.background = null;
 
@@ -215,13 +218,6 @@
 				helper.visible = lastCameraHelperVisible;
 
 				renderer.render(scene, camera);
-			};
-
-			const controls = new OrbitControls(camera, renderer.domElement);
-
-			renderer.setAnimationLoop(() => {
-				mesh.rotateX(1 * DEG2RAD).rotateZ(0.5 * DEG2RAD);
-				render();
 			});
 
 			return () => {

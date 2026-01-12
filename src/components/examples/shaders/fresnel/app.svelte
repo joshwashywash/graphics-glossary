@@ -17,10 +17,10 @@
 
 	import { Label } from "@components/controls";
 
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { normalWorld, positionViewDirection, uniform } from "three/tsl";
 	import {
@@ -32,18 +32,15 @@
 		WebGPURenderer,
 	} from "three/webgpu";
 
-	const baseColorUniform = uniform(new Color("#583583")).setName("baseColor");
-	const fresnelColorUniform = uniform(new Color("#ccccaa")).setName(
-		"fresnelColor",
-	);
-	const powerUniform = uniform(POWER_DEFAULT).setName("power");
+	const baseColorUniform = uniform(new Color("#583583"));
+	const fresnelColorUniform = uniform(new Color("#ccccaa"));
+	const powerUniform = uniform(POWER_DEFAULT);
 
-	const fresnel = f.pow(powerUniform).mul(baseColorUniform).setName("fresnel");
+	const fresnel = f.pow(powerUniform).mul(baseColorUniform);
 	const inverseFresnel = f
 		.oneMinus()
 		.pow(powerUniform)
-		.mul(fresnelColorUniform)
-		.setName("inverseFresnel");
+		.mul(fresnelColorUniform);
 
 	const material = new MeshBasicNodeMaterial();
 	material.colorNode = fresnel.add(inverseFresnel);
@@ -119,9 +116,7 @@
 				canvas,
 			});
 
-			$effect(() => {
-				renderer.setPixelRatio(devicePixelRatio.current);
-			});
+			setPixelRatio(() => renderer);
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);

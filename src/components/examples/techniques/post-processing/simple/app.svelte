@@ -22,16 +22,11 @@
 		7.0,
 		13.0,
 		5.0,
-	)
-		.mul(1 / 16.0)
-		.setName("bayer4x4");
+	).mul(1 / 16.0);
 
-	const bayerIndex = uv().mul(screenSize).floor().mod(4).setName("bayerIndex");
+	const bayerIndex = uv().mul(screenSize).floor().mod(4);
 
-	const bayerValue = bayer4x4Matrix
-		.element(bayerIndex.y)
-		.element(bayerIndex.x)
-		.setName("bayerValue");
+	const bayerValue = bayer4x4Matrix.element(bayerIndex.y).element(bayerIndex.x);
 
 	const angle = 1 * DEG2RAD;
 </script>
@@ -39,10 +34,10 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -91,9 +86,7 @@
 			canvas,
 		});
 
-		$effect(() => {
-			renderer.setPixelRatio(devicePixelRatio.current);
-		});
+		setPixelRatio(() => renderer);
 
 		const postProcessing = new PostProcessing(renderer);
 		postProcessing.outputNode = vec4(

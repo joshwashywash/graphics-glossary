@@ -11,10 +11,10 @@
 
 	import { Label } from "@components/controls";
 
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 	import {
 		CircleGeometry,
@@ -113,9 +113,7 @@
 				stencil: true,
 			});
 
-			$effect(() => {
-				renderer.setPixelRatio(devicePixelRatio.current);
-			});
+			setPixelRatio(() => renderer);
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);

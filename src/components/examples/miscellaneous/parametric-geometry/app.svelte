@@ -11,10 +11,10 @@
 
 	import { pringle } from "@functions/parametric/functions/pringle";
 	import { createSphube } from "@functions/parametric/functions/sphube";
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
 	import {
@@ -71,9 +71,7 @@
 			updateCameraAspect(camera, canvasSize.ratio);
 		});
 
-		$effect(() => {
-			renderer.setPixelRatio(devicePixelRatio.current);
-		});
+		setPixelRatio(() => renderer);
 
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.autoRotate = true;

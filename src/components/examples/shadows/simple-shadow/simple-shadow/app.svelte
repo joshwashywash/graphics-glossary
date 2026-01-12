@@ -18,10 +18,10 @@
 
 	import { Label } from "@components/controls";
 
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { lerp } from "three/src/math/MathUtils.js";
 	import {
 		CanvasTexture,
@@ -141,9 +141,7 @@
 					canvas,
 				});
 
-				$effect(() => {
-					renderer.setPixelRatio(devicePixelRatio.current);
-				});
+				setPixelRatio(() => renderer);
 
 				renderer.setAnimationLoop((time) => {
 					const { clientHeight, clientWidth, height, width } =

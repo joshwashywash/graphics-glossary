@@ -15,10 +15,10 @@
 
 	import { Label } from "@components/controls";
 
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import {
@@ -169,9 +169,7 @@
 				canvas,
 			});
 
-			$effect(() => {
-				renderer.setPixelRatio(devicePixelRatio.current);
-			});
+			setPixelRatio(() => renderer);
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);

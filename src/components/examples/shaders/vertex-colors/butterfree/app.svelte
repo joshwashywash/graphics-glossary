@@ -14,9 +14,9 @@
 	import { Label } from "@components/controls";
 
 	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
 		CanvasTexture,
 		Float32BufferAttribute,
@@ -117,9 +117,7 @@
 					canvas,
 				});
 
-				$effect(() => {
-					renderer.setPixelRatio(devicePixelRatio.current);
-				});
+				setPixelRatio(() => renderer);
 
 				$effect(() => {
 					renderer.setSize(canvasSize.width, canvasSize.height, false);

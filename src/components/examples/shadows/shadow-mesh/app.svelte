@@ -5,8 +5,10 @@
 	const yHat = new Vector3(0, 1, 0);
 	const translationAxis = new Vector3();
 
-	const degrees = 1;
-	const angle = DEG2RAD * degrees;
+	const DEGREES = 1;
+	const ANGLE = DEG2RAD * DEGREES;
+
+	const FLOOR_SIZE = 15;
 </script>
 
 <script lang="ts">
@@ -53,15 +55,13 @@
 
 	const plane = new Plane(yHat, planeConstant);
 
-	const floorSize = 15;
-	const floorGeometry = new PlaneGeometry(floorSize, floorSize);
+	const floorGeometry = new PlaneGeometry(FLOOR_SIZE, FLOOR_SIZE);
 
 	const floorMaterial = new MeshBasicMaterial({
 		color: "#ccccaa",
 	});
 
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
-
 	floorMesh.lookAt(plane.normal);
 
 	const light = new DirectionalLight().translateOnAxis(
@@ -146,7 +146,7 @@
 
 				renderer.setAnimationLoop(
 					(animationLoop = () => {
-						mesh.rotateY(angle);
+						mesh.rotateY(ANGLE);
 						shadowMesh.update(plane, lightPosition4D);
 						renderer.render(scene, camera);
 

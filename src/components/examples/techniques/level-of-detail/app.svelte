@@ -16,10 +16,10 @@
 </script>
 
 <script lang="ts">
+	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
-	import { devicePixelRatio } from "svelte/reactivity/window";
 	import { lerp } from "three/src/math/MathUtils.js";
 	import type { BufferGeometry } from "three/webgpu";
 	import {
@@ -69,9 +69,7 @@
 			canvas,
 		});
 
-		$effect(() => {
-			renderer.setPixelRatio(devicePixelRatio.current);
-		});
+		setPixelRatio(() => renderer);
 
 		renderer.setAnimationLoop((time) => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
