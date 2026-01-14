@@ -13,6 +13,8 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
+	import { Label } from "@components/controls";
+
 	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
@@ -37,9 +39,7 @@
 			.applyMatrix4(colorAttributeTransformMatrix),
 	);
 
-	const material = new MeshBasicMaterial({
-		vertexColors: true,
-	});
+	const material = new MeshBasicMaterial();
 
 	useCleanup(() => {
 		geometry.dispose();
@@ -54,38 +54,58 @@
 	);
 
 	const canvasSize = new Size();
+
+	let useVertexColors = $state((material.vertexColors = true));
+	const getUseVertexColors = () => useVertexColors;
+	const setUseVertexColors = (value: boolean) => {
+		useVertexColors = material.vertexColors = value;
+		material.needsUpdate = true;
+	};
 </script>
 
-<canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
-	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
-			antialias: true,
-			canvas,
-		});
+<div class="relative">
+	<details class="example-pane">
+		<summary>vertex colors</summary>
+		<Label>
+			enabled
+			<input
+				type="checkbox"
+				bind:checked={getUseVertexColors, setUseVertexColors}
+			/>
+		</Label>
+	</details>
 
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			updateCameraAspect(camera, canvasSize.ratio);
-		});
+	<canvas
+		class="example-canvas"
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
+		{@attach (canvas) => {
+			const renderer = new WebGPURenderer({
+				antialias: true,
+				canvas,
+			});
 
-		setPixelRatio(() => renderer);
+			$effect(() => {
+				renderer.setSize(canvasSize.width, canvasSize.height, false);
+				updateCameraAspect(camera, canvasSize.ratio);
+			});
 
-		const controls = new OrbitControls(camera, renderer.domElement);
-		controls.autoRotate = true;
+			setPixelRatio(() => renderer);
 
-		renderer.setAnimationLoop(() => {
-			controls.update();
-			renderer.render(mesh, camera);
-		});
+			const controls = new OrbitControls(camera, renderer.domElement);
+			controls.autoRotate = true;
 
-		return () => {
-			controls.dispose();
-			renderer.setAnimationLoop(null);
-			renderer.dispose();
-		};
-	}}
->
-</canvas>
+			renderer.setAnimationLoop(() => {
+				controls.update();
+				renderer.render(mesh, camera);
+			});
+
+			return () => {
+				controls.dispose();
+				renderer.setAnimationLoop(null);
+				renderer.dispose();
+			};
+		}}
+	>
+	</canvas>
+</div>

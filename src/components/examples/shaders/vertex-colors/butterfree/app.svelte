@@ -51,9 +51,7 @@
 
 	const camera = createFullScreenCamera();
 
-	let useTexture = $state(true);
-
-	const butterfreeWingTexture = loader
+	const butterfreeWingTexture = await loader
 		.loadAsync(butterfreeImageMetadata.src)
 		.then((texture) => {
 			texture.generateMipmaps = false;
@@ -66,14 +64,14 @@
 	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
-		butterfreeWingTexture.then((t) => t.dispose());
+		butterfreeWingTexture.dispose();
 		whiteTexture.dispose();
 	});
 
-	const map = $derived(useTexture ? await butterfreeWingTexture : whiteTexture);
+	let useTexture = $state(true);
 
 	$effect(() => {
-		material.map = map;
+		material.map = useTexture ? butterfreeWingTexture : whiteTexture;
 	});
 
 	let useVertexColors = $state(true);
