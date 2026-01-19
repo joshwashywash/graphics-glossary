@@ -14,8 +14,9 @@
 	import { Label } from "@components/controls";
 
 	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
+	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import {
 		CanvasTexture,
@@ -24,7 +25,6 @@
 		MeshBasicMaterial,
 		SRGBColorSpace,
 		TextureLoader,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const oss = new OffscreenCanvas(1, 1);
@@ -110,16 +110,12 @@
 			bind:clientWidth={canvasSize.width}
 			bind:clientHeight={canvasSize.height}
 			{@attach (canvas) => {
-				const renderer = new WebGPURenderer({
+				const renderer = createRenderer({
 					antialias: true,
 					canvas,
 				});
 
-				setPixelRatio(() => renderer);
-
-				$effect(() => {
-					renderer.setSize(canvasSize.width, canvasSize.height, false);
-				});
+				useResizeRenderer(() => renderer, canvasSize);
 
 				renderer.setAnimationLoop(() => {
 					renderer.render(mesh, camera);

@@ -16,8 +16,8 @@
 </script>
 
 <script lang="ts">
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
@@ -28,7 +28,6 @@
 		Mesh,
 		MeshNormalMaterial,
 		PerspectiveCamera,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const lod = new LOD();
@@ -64,18 +63,20 @@
 <canvas
 	class="example-canvas"
 	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
+		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
-
-		setPixelRatio(() => renderer);
 
 		renderer.setAnimationLoop((time) => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
 				renderer.setSize(clientWidth, clientHeight, false);
-				updateCameraAspect(camera, clientWidth / clientHeight);
+				const aspect = clientWidth / clientHeight;
+				updateCameraAspect({
+					aspect,
+					camera,
+				});
 			}
 
 			time = 0.5 * (1 + Math.sin(time * speed));

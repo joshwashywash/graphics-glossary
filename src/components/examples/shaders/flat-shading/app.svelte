@@ -15,9 +15,10 @@
 
 	import { Label } from "@components/controls";
 
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -32,7 +33,6 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const geometry = new SphereGeometry();
@@ -83,6 +83,11 @@
 
 	const canvasSize = new Size();
 
+	useUpdateCameraAspect({
+		getAspect: () => canvasSize.ratio,
+		getCamera: () => camera,
+	});
+
 	let shininess = $state(material.shininess);
 	const getShininess = () => shininess;
 	const setShininess = (value: number) => {
@@ -110,8 +115,7 @@
 	let directionalLightHelperVisible = $state((helper.visible = false));
 	const getDirectionalLightHelperVisible = () => directionalLightHelperVisible;
 	const setDirectionalLightHelperVisible = (value: boolean) => {
-		helper.visible = value;
-		directionalLightHelperVisible = value;
+		directionalLightHelperVisible = helper.visible = value;
 	};
 </script>
 
@@ -164,17 +168,12 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = new WebGPURenderer({
+			const renderer = createRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			setPixelRatio(() => renderer);
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				updateCameraAspect(camera, canvasSize.ratio);
-			});
+			useResizeRenderer(() => renderer, canvasSize);
 
 			renderer.setAnimationLoop(() => {
 				group.rotateY(angle);

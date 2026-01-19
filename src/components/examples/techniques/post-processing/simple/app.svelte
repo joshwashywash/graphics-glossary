@@ -34,9 +34,10 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -51,7 +52,6 @@
 		Scene,
 		TorusKnotGeometry,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const geometry = new TorusKnotGeometry();
@@ -74,6 +74,11 @@
 	});
 
 	const canvasSize = new Size();
+
+	useUpdateCameraAspect({
+		getAspect: () => canvasSize.ratio,
+		getCamera: () => camera,
+	});
 </script>
 
 <canvas
@@ -81,12 +86,12 @@
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
+		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		setPixelRatio(() => renderer);
+		useResizeRenderer(() => renderer, canvasSize);
 
 		const postProcessing = new PostProcessing(renderer);
 		postProcessing.outputNode = vec4(
@@ -103,11 +108,6 @@
 			mesh.rotateX(angle);
 			controls.update();
 			postProcessing.render();
-		});
-
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			updateCameraAspect(camera, canvasSize.ratio);
 		});
 
 		return () => {

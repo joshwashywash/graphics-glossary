@@ -16,7 +16,7 @@
 
 	import { Label } from "@components/controls";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
@@ -96,6 +96,11 @@
 
 	const canvasSize = new Size();
 
+	useUpdateCameraAspect({
+		getAspect: () => canvasSize.ratio,
+		getCamera: () => camera,
+	});
+
 	let animationLoop: null | (() => void) = null;
 </script>
 
@@ -136,8 +141,6 @@
 
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				updateCameraAspect(camera, canvasSize.ratio);
-
 				renderIfNotAnimating();
 			});
 

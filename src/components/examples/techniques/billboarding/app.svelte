@@ -29,9 +29,9 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
+	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { updateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
@@ -46,7 +46,6 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const booCanvas = new OffscreenCanvas(
@@ -131,18 +130,16 @@
 <canvas
 	class="example-canvas"
 	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
+		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
-
-		setPixelRatio(() => renderer);
 
 		renderer.setAnimationLoop(() => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
 				renderer.setSize(clientWidth, clientHeight, false);
-				updateCameraAspect(camera, clientWidth / clientHeight);
+				updateCameraAspect({ camera, aspect: clientWidth / clientHeight });
 			}
 
 			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);

@@ -11,9 +11,10 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -27,7 +28,6 @@
 		RenderTarget,
 		Scene,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const scene = new Scene();
@@ -53,6 +53,11 @@
 	);
 	camera.lookAt(scene.position);
 
+	useUpdateCameraAspect({
+		getAspect: () => canvasSize.ratio,
+		getCamera: () => camera,
+	});
+
 	useCleanup(() => {
 		geometry.dispose();
 		material.dispose();
@@ -67,12 +72,12 @@
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
+		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		setPixelRatio(() => renderer);
+		useResizeRenderer(() => renderer, canvasSize);
 
 		const render = () => {
 			mesh.visible = false;
@@ -94,10 +99,7 @@
 		};
 
 		$effect(() => {
-			target.setSize(canvasSize.width, canvasSize.height);
-
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			updateCameraAspect(camera, canvasSize.ratio);
+			target.setSize(canvas.width, canvas.height);
 		});
 
 		renderer.setAnimationLoop(render);

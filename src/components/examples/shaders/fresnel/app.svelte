@@ -17,9 +17,10 @@
 
 	import { Label } from "@components/controls";
 
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { normalWorld, positionViewDirection, uniform } from "three/tsl";
@@ -29,7 +30,6 @@
 		MeshBasicNodeMaterial,
 		PerspectiveCamera,
 		TorusKnotGeometry,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const baseColorUniform = uniform(new Color("#583583"));
@@ -55,6 +55,11 @@
 	const mesh = new Mesh(geometry, material);
 
 	const camera = new PerspectiveCamera().translateZ(5);
+
+	useUpdateCameraAspect({
+		getAspect: () => canvasSize.ratio,
+		getCamera: () => camera,
+	});
 
 	let baseColor = $state(`#${baseColorUniform.value.getHexString()}`);
 	const getBaseColor = () => baseColor;
@@ -111,17 +116,12 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = new WebGPURenderer({
+			const renderer = createRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			setPixelRatio(() => renderer);
-
-			$effect(() => {
-				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				updateCameraAspect(camera, canvasSize.ratio);
-			});
+			useResizeRenderer(() => renderer, canvasSize);
 
 			const controls = new OrbitControls(camera, renderer.domElement);
 			controls.autoRotate = true;

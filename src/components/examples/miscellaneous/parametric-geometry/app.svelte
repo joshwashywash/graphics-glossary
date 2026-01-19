@@ -9,11 +9,12 @@
 <script lang="ts">
 	import { Size } from "@classes/size.svelte";
 
+	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { pringle } from "@functions/parametric/functions/pringle";
 	import { createSphube } from "@functions/parametric/functions/sphube";
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
@@ -24,7 +25,6 @@
 		MeshNormalMaterial,
 		PerspectiveCamera,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const material = new MeshNormalMaterial({
@@ -54,6 +54,11 @@
 	camera.lookAt(group.position);
 
 	const canvasSize = new Size();
+
+	useUpdateCameraAspect({
+		getCamera: () => camera,
+		getAspect: () => canvasSize.ratio,
+	});
 </script>
 
 <canvas
@@ -61,17 +66,12 @@
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
+		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		$effect(() => {
-			renderer.setSize(canvasSize.width, canvasSize.height, false);
-			updateCameraAspect(camera, canvasSize.ratio);
-		});
-
-		setPixelRatio(() => renderer);
+		useResizeRenderer(() => renderer, canvasSize);
 
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.autoRotate = true;

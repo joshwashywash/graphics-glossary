@@ -30,7 +30,7 @@
 				"./src/functions/*"
 			],
 			"@types": [
-				"./src/types"
+				"./src/types/*"
 			]
 		}
 	},

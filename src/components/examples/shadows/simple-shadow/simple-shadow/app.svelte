@@ -18,8 +18,8 @@
 
 	import { Label } from "@components/controls";
 
-	import { setPixelRatio } from "@functions/setPixelRatio.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
@@ -34,7 +34,6 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
-		WebGPURenderer,
 	} from "three/webgpu";
 
 	const textureCanvas = new OffscreenCanvas(
@@ -136,19 +135,22 @@
 		<canvas
 			class="example-canvas"
 			{@attach (canvas) => {
-				const renderer = new WebGPURenderer({
+				const renderer = createRenderer({
 					antialias: true,
 					canvas,
 				});
-
-				setPixelRatio(() => renderer);
 
 				renderer.setAnimationLoop((time) => {
 					const { clientHeight, clientWidth, height, width } =
 						renderer.domElement;
 					if (clientHeight !== height || clientWidth !== width) {
 						renderer.setSize(clientWidth, clientHeight, false);
-						updateCameraAspect(camera, clientWidth / clientHeight);
+						const aspect = clientWidth / clientHeight;
+
+						updateCameraAspect({
+							camera,
+							aspect,
+						});
 					}
 					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
 					const t = 0.5 * (1 + Math.sin(time * speed));
