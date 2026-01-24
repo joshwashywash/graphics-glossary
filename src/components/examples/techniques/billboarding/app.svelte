@@ -31,7 +31,7 @@
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
-	import { updateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import {
@@ -139,7 +139,7 @@
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
 				renderer.setSize(clientWidth, clientHeight, false);
-				updateCameraAspect({ camera, aspect: clientWidth / clientHeight });
+				updateCameraAspect(camera, clientWidth / clientHeight);
 			}
 
 			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);

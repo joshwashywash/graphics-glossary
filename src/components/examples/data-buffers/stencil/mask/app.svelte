@@ -12,9 +12,9 @@
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { resizeRenderer } from "@functions/resizeRenderer";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
-	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 	import {
@@ -89,9 +89,8 @@
 
 	const canvasSize = new Size();
 
-	useUpdateCameraAspect({
-		getCamera: () => camera,
-		getAspect: () => canvasSize.ratio,
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 
@@ -118,7 +117,9 @@
 				stencil: true,
 			});
 
-			useResizeRenderer(() => renderer, canvasSize);
+			$effect(() => {
+				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+			});
 
 			renderer.setAnimationLoop(() => {
 				renderer.render(scene, camera);

@@ -12,9 +12,9 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { pringle } from "@functions/parametric/functions/pringle";
 	import { createSphube } from "@functions/parametric/functions/sphube";
-	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { resizeRenderer } from "@functions/resizeRenderer";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
-	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
@@ -55,9 +55,8 @@
 
 	const canvasSize = new Size();
 
-	useUpdateCameraAspect({
-		getCamera: () => camera,
-		getAspect: () => canvasSize.ratio,
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 
@@ -71,7 +70,9 @@
 			canvas,
 		});
 
-		useResizeRenderer(() => renderer, canvasSize);
+		$effect(() => {
+			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+		});
 
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.autoRotate = true;

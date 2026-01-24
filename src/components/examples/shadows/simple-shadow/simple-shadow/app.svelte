@@ -19,7 +19,7 @@
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
@@ -145,12 +145,8 @@
 						renderer.domElement;
 					if (clientHeight !== height || clientWidth !== width) {
 						renderer.setSize(clientWidth, clientHeight, false);
-						const aspect = clientWidth / clientHeight;
 
-						updateCameraAspect({
-							camera,
-							aspect,
-						});
+						updateCameraAspect(camera, clientWidth / clientHeight);
 					}
 					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
 					const t = 0.5 * (1 + Math.sin(time * speed));

@@ -16,8 +16,10 @@
 </script>
 
 <script lang="ts">
+	import { Size } from "@classes/size.svelte";
+
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
@@ -61,6 +63,8 @@
 </script>
 
 <canvas
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
 	class="example-canvas"
 	{@attach (canvas) => {
 		const renderer = createRenderer({
@@ -72,11 +76,7 @@
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
 				renderer.setSize(clientWidth, clientHeight, false);
-				const aspect = clientWidth / clientHeight;
-				updateCameraAspect({
-					aspect,
-					camera,
-				});
+				updateCameraAspect(camera, clientWidth / clientHeight);
 			}
 
 			time = 0.5 * (1 + Math.sin(time * speed));

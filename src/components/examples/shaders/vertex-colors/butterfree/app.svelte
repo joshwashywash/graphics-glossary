@@ -15,8 +15,8 @@
 
 	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
 	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { useCleanup } from "@functions/useCleanup.svelte";
-	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import {
 		CanvasTexture,
@@ -115,7 +115,9 @@
 					canvas,
 				});
 
-				useResizeRenderer(() => renderer, canvasSize);
+				$effect(() => {
+					resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+				});
 
 				renderer.setAnimationLoop(() => {
 					renderer.render(mesh, camera);

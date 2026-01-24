@@ -17,9 +17,9 @@
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { resizeRenderer } from "@functions/resizeRenderer";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
-	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { gaussianBlur } from "three/addons/tsl/display/GaussianBlurNode.js";
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
@@ -96,9 +96,8 @@
 	);
 	camera.lookAt(mesh.position);
 
-	useUpdateCameraAspect({
-		getAspect: () => canvasSize.ratio,
-		getCamera: () => camera,
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
 	useCleanup(() => {
@@ -189,7 +188,9 @@
 				canvas,
 			});
 
-			useResizeRenderer(() => renderer, canvasSize);
+			$effect(() => {
+				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+			});
 
 			const controls = new OrbitControls(camera, renderer.domElement);
 

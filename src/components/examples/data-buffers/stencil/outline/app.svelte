@@ -16,9 +16,9 @@
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { resizeRenderer } from "@functions/resizeRenderer";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
-	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import {
@@ -117,9 +117,8 @@
 
 	const canvasSize = new Size();
 
-	useUpdateCameraAspect({
-		getAspect: () => canvasSize.ratio,
-		getCamera: () => camera,
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 
@@ -163,7 +162,9 @@
 				stencil: true,
 			});
 
-			useResizeRenderer(() => renderer, canvasSize);
+			$effect(() => {
+				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+			});
 
 			const controls = new OrbitControls(camera, renderer.domElement);
 			controls.autoRotate = true;

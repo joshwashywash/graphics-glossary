@@ -35,9 +35,9 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { useUpdateCameraAspect } from "@functions/updateCameraAspect.svelte";
+	import { resizeRenderer } from "@functions/resizeRenderer";
+	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
-	import { useResizeRenderer } from "@functions/useResizeRenderer.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -75,9 +75,8 @@
 
 	const canvasSize = new Size();
 
-	useUpdateCameraAspect({
-		getAspect: () => canvasSize.ratio,
-		getCamera: () => camera,
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 
@@ -91,7 +90,9 @@
 			canvas,
 		});
 
-		useResizeRenderer(() => renderer, canvasSize);
+		$effect(() => {
+			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+		});
 
 		const postProcessing = new PostProcessing(renderer);
 		postProcessing.outputNode = vec4(
