@@ -2,7 +2,9 @@
 	lang="ts"
 	module
 >
-	const axis = new Vector3(0, 0, 1);
+	const CAMERA_TRANSLATION_AXIS = new Vector3(0, 0, 1);
+	const CAMERA_TRANSLATION_AMOUNT = 5;
+
 	const hdrLoader = new HDRLoader();
 
 	const bayer4x4Matrix = mat4(
@@ -59,14 +61,16 @@
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
-	const camera = new PerspectiveCamera().translateOnAxis(axis, 5);
+	const camera = new PerspectiveCamera().translateOnAxis(
+		CAMERA_TRANSLATION_AXIS,
+		CAMERA_TRANSLATION_AMOUNT,
+	);
 	camera.lookAt(mesh.position);
 
-	hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr").then((hdr) => {
-		hdr.mapping = EquirectangularReflectionMapping;
-		scene.background = hdr;
-		scene.environment = hdr;
-	});
+	const hdr = await hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr");
+	hdr.mapping = EquirectangularReflectionMapping;
+	scene.background = hdr;
+	scene.environment = hdr;
 
 	useCleanup(() => {
 		geometry.dispose();
@@ -76,7 +80,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
 	});
 </script>
 

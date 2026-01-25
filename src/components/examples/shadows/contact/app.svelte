@@ -97,7 +97,7 @@
 	camera.lookAt(mesh.position);
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
 	});
 
 	useCleanup(() => {

@@ -57,7 +57,7 @@
 	const camera = new PerspectiveCamera().translateZ(5);
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
 	});
 
 	let baseColor = $state(`#${baseColorUniform.value.getHexString()}`);

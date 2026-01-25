@@ -118,7 +118,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
 	});
 </script>
 

@@ -51,15 +51,13 @@
 
 	const camera = createFullScreenCamera();
 
-	const butterfreeWingTexture = await loader
-		.loadAsync(butterfreeImageMetadata.src)
-		.then((texture) => {
-			texture.generateMipmaps = false;
-			texture.colorSpace = SRGBColorSpace;
-			texture.repeat.set(0.5, 1);
-			texture.offset.set(0.5, 0);
-			return texture;
-		});
+	const butterfreeWingTexture = await loader.loadAsync(
+		butterfreeImageMetadata.src,
+	);
+	butterfreeWingTexture.generateMipmaps = false;
+	butterfreeWingTexture.colorSpace = SRGBColorSpace;
+	butterfreeWingTexture.repeat.set(0.5, 1);
+	butterfreeWingTexture.offset.set(0.5, 0);
 
 	useCleanup(() => {
 		geometry.dispose();

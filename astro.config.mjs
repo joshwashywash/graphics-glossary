@@ -52,6 +52,12 @@ export default defineConfig({
 						directory: "miscellaneous",
 					},
 				},
+				{
+					label: "Environment Mapping",
+					autogenerate: {
+						directory: "environment-mapping",
+					},
+				},
 			],
 			social: [
 				{

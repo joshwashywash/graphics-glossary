@@ -3,8 +3,7 @@
  */
 export const loadImage = (
 	src: string,
-	width?: number,
-	height?: number,
+	...[width, height]: ConstructorParameters<typeof Image>
 ): Promise<HTMLImageElement> => {
 	const image = new Image(width, height);
 

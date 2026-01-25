@@ -31,11 +31,10 @@
 	} from "three/webgpu";
 
 	const scene = new Scene();
-	hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr").then((hdr) => {
-		hdr.mapping = EquirectangularReflectionMapping;
-		scene.background = hdr;
-		scene.environment = hdr;
-	});
+	const hdr = await hdrLoader.loadAsync("/hdrs/university_workshop_1k.hdr");
+	hdr.mapping = EquirectangularReflectionMapping;
+	scene.background = hdr;
+	scene.environment = hdr;
 
 	const geometry = new PlaneGeometry();
 	const target = new RenderTarget();
@@ -54,7 +53,7 @@
 	camera.lookAt(scene.position);
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
 	});
 
 	useCleanup(() => {
