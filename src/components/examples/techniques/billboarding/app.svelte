@@ -32,7 +32,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import {
 		BoxGeometry,
@@ -59,7 +59,7 @@
 		throw new Error("texture context is null");
 	}
 
-	const canvasTexture = new CanvasTexture(booCanvas);
+	const canvasTexture = useDisposable(CanvasTexture, booCanvas);
 	canvasTexture.minFilter = NearestFilter;
 	canvasTexture.magFilter = NearestFilter;
 
@@ -96,23 +96,14 @@
 		canvasTexture.needsUpdate = true;
 	});
 
-	const spriteMaterial = new SpriteMaterial({
+	const spriteMaterial = useDisposable(SpriteMaterial, {
 		map: canvasTexture,
 	});
 
 	const sprite = new Sprite(spriteMaterial).translateZ(1);
 
-	const material = new MeshNormalMaterial();
-	const geometry = new BoxGeometry();
-
-	useCleanup(() => {
-		canvasTexture.dispose();
-
-		spriteMaterial.dispose();
-
-		material.dispose();
-		geometry.dispose();
-	});
+	const material = useDisposable(MeshNormalMaterial);
+	const geometry = useDisposable(BoxGeometry);
 
 	const mesh = new Mesh(geometry, material).translateZ(-1);
 	mesh.scale.setScalar(0.5);

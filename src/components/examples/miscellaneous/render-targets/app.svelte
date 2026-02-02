@@ -15,6 +15,7 @@
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -36,9 +37,9 @@
 	scene.background = hdr;
 	scene.environment = hdr;
 
-	const geometry = new PlaneGeometry();
-	const target = new RenderTarget();
-	const material = new MeshBasicMaterial({
+	const geometry = useDisposable(PlaneGeometry);
+	const target = useDisposable(RenderTarget);
+	const material = useDisposable(MeshBasicMaterial, {
 		map: target.texture,
 		side: DoubleSide,
 	});
@@ -54,12 +55,6 @@
 
 	$effect(() => {
 		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
-	});
-
-	useCleanup(() => {
-		geometry.dispose();
-		material.dispose();
-		target.dispose();
 	});
 
 	const canvasSize = new Size();

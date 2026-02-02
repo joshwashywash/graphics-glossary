@@ -18,7 +18,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
@@ -30,7 +30,7 @@
 		Vector3,
 	} from "three/webgpu";
 
-	const geometry = new BoxGeometry();
+	const geometry = useDisposable(BoxGeometry);
 	geometry.setAttribute(
 		"color",
 		geometry
@@ -39,12 +39,7 @@
 			.applyMatrix4(colorAttributeTransformMatrix),
 	);
 
-	const material = new MeshBasicMaterial();
-
-	useCleanup(() => {
-		geometry.dispose();
-		material.dispose();
-	});
+	const material = useDisposable(MeshBasicMaterial);
 
 	const mesh = new Mesh(geometry, material);
 

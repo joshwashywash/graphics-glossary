@@ -19,6 +19,7 @@
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -35,32 +36,26 @@
 		Vector3,
 	} from "three/webgpu";
 
-	const geometry = new SphereGeometry();
+	const geometry = useDisposable(SphereGeometry);
 
-	const material = new MeshPhongMaterial({
+	const material = useDisposable(MeshPhongMaterial, {
 		color: "#770077",
 		shininess: 0.5 * SHININESS_MAX,
 	});
 
 	const flatShadingMaterial = material.clone();
 	flatShadingMaterial.flatShading = true;
+	useCleanup(() => {
+		flatShadingMaterial.dispose();
+	});
 
-	const ambientLight = new AmbientLight();
-	const directionalLight = new DirectionalLight().translateOnAxis(
+	const ambientLight = useDisposable(AmbientLight);
+	const directionalLight = useDisposable(DirectionalLight).translateOnAxis(
 		directionalLightAxis,
 		3,
 	);
 
-	const helper = new DirectionalLightHelper(directionalLight);
-
-	useCleanup(() => {
-		ambientLight.dispose();
-		directionalLight.dispose();
-		material.dispose();
-		flatShadingMaterial.dispose();
-		geometry.dispose();
-		helper.dispose();
-	});
+	const helper = useDisposable(DirectionalLightHelper, directionalLight);
 
 	const mesh = new Mesh(geometry, material);
 	mesh.visible = false;

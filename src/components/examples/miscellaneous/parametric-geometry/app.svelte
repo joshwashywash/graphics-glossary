@@ -14,7 +14,7 @@
 	import { createSphube } from "@functions/parametric/functions/sphube";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
@@ -27,20 +27,24 @@
 		Vector3,
 	} from "three/webgpu";
 
-	const material = new MeshNormalMaterial({
+	const material = useDisposable(MeshNormalMaterial, {
 		side: DoubleSide,
 	});
 
 	const detail = 1 << 8;
 
-	const sphubeGeometry = new ParametricGeometry(createSphube(), detail, detail);
-	const pringleGeometry = new ParametricGeometry(pringle, detail, detail);
-
-	useCleanup(() => {
-		sphubeGeometry.dispose();
-		pringleGeometry.dispose();
-		material.dispose();
-	});
+	const sphubeGeometry = useDisposable(
+		ParametricGeometry,
+		createSphube(),
+		detail,
+		detail,
+	);
+	const pringleGeometry = useDisposable(
+		ParametricGeometry,
+		pringle,
+		detail,
+		detail,
+	);
 
 	const sphubeMesh = new Mesh(sphubeGeometry, material).translateX(-1);
 	const pringleMesh = new Mesh(pringleGeometry, material).translateX(1);

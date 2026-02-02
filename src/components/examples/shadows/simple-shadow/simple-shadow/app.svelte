@@ -20,7 +20,7 @@
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
 	import {
@@ -51,9 +51,9 @@
 	context.fillStyle = gradient;
 	context.fillRect(0, 0, context.canvas.width, context.canvas.height);
 
-	const shadowTexture = new CanvasTexture(textureCanvas);
+	const shadowTexture = useDisposable(CanvasTexture, textureCanvas);
 
-	const shadowMaterial = new MeshBasicMaterial({
+	const shadowMaterial = useDisposable(MeshBasicMaterial, {
 		color: "#000000",
 		depthWrite: false,
 		map: shadowTexture,
@@ -63,44 +63,30 @@
 	const sphereRadius = 1;
 
 	const sphereDiameter = 2 * sphereRadius;
-	const shadowGeometry = new PlaneGeometry(sphereDiameter, sphereDiameter);
+	const shadowGeometry = useDisposable(
+		PlaneGeometry,
+		sphereDiameter,
+		sphereDiameter,
+	);
 	const shadowMesh = new Mesh(shadowGeometry, shadowMaterial).translateZ(0.01);
 
-	const floorGeometry = new PlaneGeometry(floorSize, floorSize);
+	const floorGeometry = useDisposable(PlaneGeometry, floorSize, floorSize);
 
-	const floorMaterial = new MeshBasicMaterial({
+	const floorMaterial = useDisposable(MeshBasicMaterial, {
 		color: "#ccccaa",
 	});
 
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
 
-	const disposeFloor = () => {
-		floorGeometry.dispose();
-		floorMaterial.dispose();
-	};
-
 	const group = new Group()
 		.add(shadowMesh, floorMesh)
 		.rotateX(-1 * 0.5 * Math.PI);
 
-	const sphereGeometry = new SphereGeometry();
-	const sphereMaterial = new MeshNormalMaterial();
+	const sphereGeometry = useDisposable(SphereGeometry);
+	const sphereMaterial = useDisposable(MeshNormalMaterial);
 	const sphereMesh = new Mesh(sphereGeometry, sphereMaterial);
 
-	const disposeSphere = () => {
-		sphereGeometry.dispose();
-		sphereMaterial.dispose();
-	};
-
 	const scene = new Scene().add(sphereMesh, group);
-
-	useCleanup(() => {
-		disposeSphere();
-		disposeFloor();
-		shadowGeometry.dispose();
-		shadowTexture.dispose();
-		shadowMaterial.dispose();
-	});
 
 	const camera = new PerspectiveCamera().translateOnAxis(
 		cameraTranslationAxis,

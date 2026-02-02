@@ -18,12 +18,11 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import {
 		BoxGeometry,
-		BufferGeometry,
 		Group,
 		Mesh,
 		MeshBasicMaterial,
@@ -38,13 +37,13 @@
 
 	const stencilRef = 1;
 
-	const material = new MeshNormalMaterial({
+	const material = useDisposable(MeshNormalMaterial, {
 		stencilRef,
 		stencilWrite: true,
 		stencilZPass: ReplaceStencilOp,
 	});
 
-	const outlineMaterial = new MeshBasicMaterial({
+	const outlineMaterial = useDisposable(MeshBasicMaterial, {
 		color: "#ffffff",
 		depthWrite: false,
 		stencilFunc: NotEqualStencilFunc,
@@ -52,17 +51,11 @@
 		stencilWrite: true,
 	});
 
-	const geometries: BufferGeometry[] = [
-		new BoxGeometry(),
-		new TorusKnotGeometry(),
-		new TorusGeometry(),
+	const geometries = [
+		useDisposable(BoxGeometry),
+		useDisposable(TorusKnotGeometry),
+		useDisposable(TorusGeometry),
 	];
-
-	useCleanup(() => {
-		material.dispose();
-		outlineMaterial.dispose();
-		for (const geometry of geometries) geometry.dispose();
-	});
 
 	const a = (2 * Math.PI) / geometries.length;
 

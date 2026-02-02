@@ -12,6 +12,7 @@
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
@@ -35,10 +36,14 @@
 		"posz.jpg",
 		"negz.jpg",
 	]);
+	useCleanup(() => {
+		texture.dispose();
+	});
+
 	scene.background = texture;
 
-	const geometry = new SphereGeometry();
-	const material = new MeshBasicMaterial({
+	const geometry = useDisposable(SphereGeometry);
+	const material = useDisposable(MeshBasicMaterial, {
 		envMap: texture,
 	});
 	const mesh = new Mesh(geometry, material);
@@ -49,12 +54,6 @@
 
 	$effect(() => {
 		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
-	});
-
-	useCleanup(() => {
-		texture.dispose();
-		geometry.dispose();
-		material.dispose();
 	});
 </script>
 

@@ -39,7 +39,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -56,8 +56,8 @@
 		Vector3,
 	} from "three/webgpu";
 
-	const geometry = new TorusKnotGeometry();
-	const material = new MeshStandardMaterial();
+	const geometry = useDisposable(TorusKnotGeometry);
+	const material = useDisposable(MeshStandardMaterial);
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
@@ -71,11 +71,6 @@
 	hdr.mapping = EquirectangularReflectionMapping;
 	scene.background = hdr;
 	scene.environment = hdr;
-
-	useCleanup(() => {
-		geometry.dispose();
-		material.dispose();
-	});
 
 	const canvasSize = new Size();
 

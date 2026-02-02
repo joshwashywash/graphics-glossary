@@ -20,7 +20,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { normalWorld, positionViewDirection, uniform } from "three/tsl";
@@ -42,15 +42,10 @@
 		.pow(powerUniform)
 		.mul(fresnelColorUniform);
 
-	const material = new MeshBasicNodeMaterial();
+	const material = useDisposable(MeshBasicNodeMaterial);
 	material.colorNode = fresnel.add(inverseFresnel);
 
-	const geometry = new TorusKnotGeometry();
-
-	useCleanup(() => {
-		material.dispose();
-		geometry.dispose();
-	});
+	const geometry = useDisposable(TorusKnotGeometry);
 
 	const mesh = new Mesh(geometry, material);
 

@@ -17,6 +17,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import {
 		CanvasTexture,
@@ -35,17 +36,17 @@
 
 	ossContext.fillStyle = "#ffffff";
 	ossContext.fillRect(0, 0, oss.width, oss.height);
-	const whiteTexture = new CanvasTexture(oss);
+	const whiteTexture = useDisposable(CanvasTexture, oss);
 
 	const canvasSize = new Size();
 
-	const geometry = new FullScreenTriangleGeometry().setAttribute(
+	const geometry = useDisposable(FullScreenTriangleGeometry).setAttribute(
 		"color",
 		// white, black, white
 		new Float32BufferAttribute([1, 1, 1, 0, 0, 0, 1, 1, 1], 3),
 	);
 
-	const material = new MeshBasicMaterial();
+	const material = useDisposable(MeshBasicMaterial);
 
 	const mesh = new Mesh(geometry, material);
 
@@ -58,12 +59,8 @@
 	butterfreeWingTexture.colorSpace = SRGBColorSpace;
 	butterfreeWingTexture.repeat.set(0.5, 1);
 	butterfreeWingTexture.offset.set(0.5, 0);
-
 	useCleanup(() => {
-		geometry.dispose();
-		material.dispose();
 		butterfreeWingTexture.dispose();
-		whiteTexture.dispose();
 	});
 
 	let useTexture = $state(true);

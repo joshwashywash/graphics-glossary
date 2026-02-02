@@ -19,7 +19,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { gaussianBlur } from "three/addons/tsl/display/GaussianBlurNode.js";
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
@@ -46,17 +46,21 @@
 	const uShadowOpacity = uniform(1);
 	const uBlur = uniform(3.5);
 
-	const depthMaterial = new NodeMaterial();
+	const depthMaterial = useDisposable(NodeMaterial);
 	depthMaterial.colorNode = vec3();
 	depthMaterial.opacityNode = depth.oneMinus().mul(uDarkness);
 	depthMaterial.depthTest = false;
 	depthMaterial.depthWrite = false;
 
 	const renderTargetSize = 1 << 8;
-	const renderTarget = new RenderTarget(renderTargetSize, renderTargetSize);
+	const renderTarget = useDisposable(
+		RenderTarget,
+		renderTargetSize,
+		renderTargetSize,
+	);
 	renderTarget.texture.generateMipmaps = false;
 
-	const shadowPlaneMaterial = new NodeMaterial();
+	const shadowPlaneMaterial = useDisposable(NodeMaterial);
 	shadowPlaneMaterial.transparent = true;
 	shadowPlaneMaterial.depthWrite = false;
 	shadowPlaneMaterial.colorNode = vec3();
@@ -65,14 +69,14 @@
 		uBlur,
 	).a.mul(uShadowOpacity);
 
-	const planeGeometry = new PlaneGeometry(PLANE_SIZE, PLANE_SIZE);
+	const planeGeometry = useDisposable(PlaneGeometry, PLANE_SIZE, PLANE_SIZE);
 
 	const shadowPlaneMesh = new Mesh(planeGeometry, shadowPlaneMaterial).rotateX(
 		-1 * 0.5 * Math.PI,
 	);
 
-	const meshGeometry = new TorusKnotGeometry(1, 0.4, 64, 8, 3, 1);
-	const meshMaterial = new MeshNormalMaterial();
+	const meshGeometry = useDisposable(TorusKnotGeometry, 1, 0.4, 64, 8, 3, 1);
+	const meshMaterial = useDisposable(MeshNormalMaterial);
 	const mesh = new Mesh(meshGeometry, meshMaterial).translateY(2);
 
 	const shadowCamera = new OrthographicCamera(
@@ -85,7 +89,7 @@
 	);
 	shadowCamera.lookAt(mesh.position);
 
-	const helper = new CameraHelper(shadowCamera);
+	const helper = useDisposable(CameraHelper, shadowCamera);
 
 	const scene = new Scene().add(shadowPlaneMesh, mesh, helper);
 	scene.background = new Color("#eeeeee");
@@ -98,16 +102,6 @@
 
 	$effect(() => {
 		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
-	});
-
-	useCleanup(() => {
-		depthMaterial.dispose();
-		shadowPlaneMaterial.dispose();
-		renderTarget.dispose();
-		planeGeometry.dispose();
-		meshGeometry.dispose();
-		meshMaterial.dispose();
-		helper.dispose();
 	});
 
 	let darkness = $state(uDarkness.value);

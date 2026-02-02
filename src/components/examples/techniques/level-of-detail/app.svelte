@@ -21,6 +21,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
 	import type { BufferGeometry } from "three/webgpu";
@@ -36,12 +37,12 @@
 
 	const geometries: BufferGeometry[] = [];
 
-	const material = new MeshNormalMaterial({
+	const material = useDisposable(MeshNormalMaterial, {
 		flatShading: true,
 	});
 
 	for (let i = 0, l = distances.length; i < l; i += 1) {
-		const geometry = new IcosahedronGeometry(radius, i);
+		const geometry = useDisposable(IcosahedronGeometry, radius, i);
 
 		geometries.push(geometry);
 		const object = new Mesh(geometry, material);
@@ -53,13 +54,13 @@
 
 	useCleanup(() => {
 		for (const distance of distances) lod.removeLevel(distance);
-		for (const geometry of geometries) geometry.dispose();
-		material.dispose();
 	});
 
 	const cameraPositionZEnd = 2 + lod.position.z + radius;
 
 	const camera = new PerspectiveCamera();
+
+	const canvasSize = new Size();
 </script>
 
 <canvas

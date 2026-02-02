@@ -14,7 +14,7 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 	import {
@@ -35,16 +35,16 @@
 
 	const stencilRef = 1;
 
-	const meshGeometry = new TorusKnotGeometry();
-	const meshMaterial = new MeshNormalMaterial({
+	const meshGeometry = useDisposable(TorusKnotGeometry);
+	const meshMaterial = useDisposable(MeshNormalMaterial, {
 		stencilFunc: EqualStencilFunc,
 		stencilRef,
 		stencilWrite: true,
 	});
 
-	const maskGeometry = new CircleGeometry();
+	const maskGeometry = useDisposable(CircleGeometry);
 
-	const maskMaterial = new MeshBasicMaterial({
+	const maskMaterial = useDisposable(MeshBasicMaterial, {
 		colorWrite: false,
 		depthWrite: false,
 		stencilRef,
@@ -72,13 +72,6 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
-
-	useCleanup(() => {
-		maskMaterial.dispose();
-		maskGeometry.dispose();
-		meshMaterial.dispose();
-		meshGeometry.dispose();
-	});
 
 	let invert = $state(false);
 	const getInvert = () => invert;

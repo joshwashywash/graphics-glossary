@@ -17,7 +17,7 @@
 	import { Label } from "@components/controls";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
+	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
@@ -41,10 +41,9 @@
 
 	let rotateMesh = $state(true);
 
-	const geometry = new TorusKnotGeometry();
-	const material = new MeshNormalMaterial();
-	const mesh = new Mesh(geometry, material);
-	mesh.translateY(2);
+	const geometry = useDisposable(TorusKnotGeometry);
+	const material = useDisposable(MeshNormalMaterial);
+	const mesh = new Mesh(geometry, material).translateY(2);
 
 	const shadowMesh = new ShadowMesh(mesh);
 
@@ -55,32 +54,23 @@
 
 	const plane = new Plane(yHat, planeConstant);
 
-	const floorGeometry = new PlaneGeometry(FLOOR_SIZE, FLOOR_SIZE);
+	const floorGeometry = useDisposable(PlaneGeometry, FLOOR_SIZE, FLOOR_SIZE);
 
-	const floorMaterial = new MeshBasicMaterial({
+	const floorMaterial = useDisposable(MeshBasicMaterial, {
 		color: "#ccccaa",
 	});
 
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
 	floorMesh.lookAt(plane.normal);
 
-	const light = new DirectionalLight().translateOnAxis(
+	const light = useDisposable(DirectionalLight).translateOnAxis(
 		translationAxis.set(1, 1, -1).normalize(),
 		7,
 	);
 
 	light.target = mesh;
 
-	const lightHelper = new DirectionalLightHelper(light);
-
-	useCleanup(() => {
-		geometry.dispose();
-		material.dispose();
-		floorGeometry.dispose();
-		floorMaterial.dispose();
-		lightHelper.dispose();
-		light.dispose();
-	});
+	const lightHelper = useDisposable(DirectionalLightHelper, light);
 
 	const lightPosition4D = new Vector4(...light.position, 0.01);
 
