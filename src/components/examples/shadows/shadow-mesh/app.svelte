@@ -150,10 +150,6 @@
 					renderer.setAnimationLoop((animationLoop = null));
 				};
 			});
-
-			return () => {
-				renderer.dispose();
-			};
 		}}
 	>
 	</canvas>

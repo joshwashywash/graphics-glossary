@@ -93,7 +93,7 @@
 			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
 		});
 
-		const postProcessing = new PostProcessing(renderer);
+		const postProcessing = useDisposable(PostProcessing, renderer);
 		postProcessing.outputNode = vec4(
 			dot(vec3(0.2126, 0.7152, 0.0722), pass(scene, camera).rgb)
 				.lessThan(bayerValue)
@@ -101,7 +101,7 @@
 			1.0,
 		);
 
-		const controls = new OrbitControls(camera, renderer.domElement);
+		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;
 
 		renderer.setAnimationLoop(() => {
@@ -111,10 +111,7 @@
 		});
 
 		return () => {
-			controls.dispose();
 			renderer.setAnimationLoop(null);
-			renderer.dispose();
-			postProcessing.dispose();
 		};
 	}}
 >

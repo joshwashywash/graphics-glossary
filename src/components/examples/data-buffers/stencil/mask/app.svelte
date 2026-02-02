@@ -118,7 +118,8 @@
 				renderer.render(scene, camera);
 			});
 
-			const controls = new TransformControls(
+			const controls = useDisposable(
+				TransformControls,
 				camera,
 				renderer.domElement,
 			).attach(maskGroup);
@@ -127,10 +128,7 @@
 			scene.add(controls.getHelper());
 
 			return () => {
-				controls.disconnect();
-				controls.dispose();
 				renderer.setAnimationLoop(null);
-				renderer.dispose();
 			};
 		}}
 	>

@@ -99,12 +99,10 @@
 
 		renderer.setAnimationLoop(render);
 
-		const controls = new OrbitControls(camera, renderer.domElement);
+		useDisposable(OrbitControls, camera, renderer.domElement);
 
 		return () => {
-			controls.disconnect();
 			renderer.setAnimationLoop(null);
-			renderer.dispose();
 		};
 	}}
 >

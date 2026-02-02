@@ -176,12 +176,10 @@
 				renderer.render(scene, camera);
 			});
 
-			const controls = new OrbitControls(camera, renderer.domElement);
+			useDisposable(OrbitControls, camera, renderer.domElement);
 
 			return () => {
-				controls.dispose();
 				renderer.setAnimationLoop(null);
-				renderer.dispose();
 			};
 		}}
 	>

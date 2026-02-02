@@ -88,7 +88,6 @@
 
 		return () => {
 			renderer.setAnimationLoop(null);
-			renderer.dispose();
 		};
 	}}
 >

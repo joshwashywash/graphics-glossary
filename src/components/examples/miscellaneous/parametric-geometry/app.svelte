@@ -78,7 +78,7 @@
 			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
 		});
 
-		const controls = new OrbitControls(camera, renderer.domElement);
+		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;
 
 		renderer.setAnimationLoop(() => {
@@ -87,9 +87,7 @@
 		});
 
 		return () => {
-			controls.dispose();
 			renderer.setAnimationLoop(null);
-			renderer.dispose();
 		};
 	}}
 >

@@ -186,7 +186,7 @@
 				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
 			});
 
-			const controls = new OrbitControls(camera, renderer.domElement);
+			useDisposable(OrbitControls, camera, renderer.domElement);
 
 			renderer.setAnimationLoop(() => {
 				mesh.rotateX(1 * DEG2RAD).rotateZ(0.5 * DEG2RAD);
@@ -216,10 +216,7 @@
 			});
 
 			return () => {
-				controls.dispose();
-
 				renderer.setAnimationLoop(null);
-				renderer.dispose();
 			};
 		}}
 	>

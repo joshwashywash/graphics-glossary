@@ -1,7 +1,7 @@
 import { useCleanup } from "./useCleanup.svelte";
 
 /**
- * must be called within a parent effect such as $effect.root or component initialization
+ * must be called within an effect such as $effect.root or component initialization
  * creates an instance of the disposable and calls its `dispose` method when the parent effect is destroyed
  */
 export const useDisposable = <

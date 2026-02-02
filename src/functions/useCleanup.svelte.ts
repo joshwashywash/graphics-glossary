@@ -1,5 +1,5 @@
 /**
- * must be called in a root effect such as a component or with $effect.root
+ * must be called within a effect such as $effect.root or during component initialization
  */
 export const useCleanup = (cleanup: () => void) => {
 	$effect(() => {
