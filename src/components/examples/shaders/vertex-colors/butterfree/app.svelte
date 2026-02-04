@@ -55,13 +55,15 @@
 	const butterfreeWingTexture = await loader.loadAsync(
 		butterfreeImageMetadata.src,
 	);
+
+	useCleanup(() => {
+		butterfreeWingTexture.dispose();
+	});
+
 	butterfreeWingTexture.generateMipmaps = false;
 	butterfreeWingTexture.colorSpace = SRGBColorSpace;
 	butterfreeWingTexture.repeat.set(0.5, 1);
 	butterfreeWingTexture.offset.set(0.5, 0);
-	useCleanup(() => {
-		butterfreeWingTexture.dispose();
-	});
 
 	let useTexture = $state(true);
 

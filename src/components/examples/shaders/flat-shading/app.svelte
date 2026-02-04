@@ -2,8 +2,15 @@
 	lang="ts"
 	module
 >
-	const directionalLightAxis = new Vector3(0.25, 0.25, 1).normalize();
+	const directionalLightTranslationAxis = new Vector3(
+		0.25,
+		0.25,
+		1,
+	).normalize();
+	const directionalLightTranslationAmount = 3;
+
 	const cameraTranslationAxis = new Vector3(0, 0, 1);
+	const cameraTranslationAmount = 3;
 	const degrees = 0.5;
 	const angle = DEG2RAD * degrees;
 
@@ -18,7 +25,6 @@
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -27,7 +33,6 @@
 		AmbientLight,
 		DirectionalLight,
 		DirectionalLightHelper,
-		Group,
 		Mesh,
 		MeshPhongMaterial,
 		PerspectiveCamera,
@@ -43,28 +48,28 @@
 		shininess: 0.5 * SHININESS_MAX,
 	});
 
-	const flatShadingMaterial = material.clone();
-	flatShadingMaterial.flatShading = true;
-	useCleanup(() => {
-		flatShadingMaterial.dispose();
-	});
-
 	const ambientLight = useDisposable(AmbientLight);
 	const directionalLight = useDisposable(DirectionalLight).translateOnAxis(
-		directionalLightAxis,
-		3,
+		directionalLightTranslationAxis,
+		directionalLightTranslationAmount,
 	);
 
 	const helper = useDisposable(DirectionalLightHelper, directionalLight);
 
 	const mesh = new Mesh(geometry, material);
 	mesh.visible = false;
+	const flatShadingMaterial = useDisposable(MeshPhongMaterial).copy(material);
+	flatShadingMaterial.flatShading = true;
 
 	const flatShadingMesh = new Mesh(geometry, flatShadingMaterial);
 
-	const group = new Group().add(mesh, flatShadingMesh);
-
-	const scene = new Scene().add(group, ambientLight, directionalLight, helper);
+	const scene = new Scene().add(
+		mesh,
+		flatShadingMesh,
+		ambientLight,
+		directionalLight,
+		helper,
+	);
 
 	directionalLight.lookAt(scene.position);
 
@@ -72,7 +77,7 @@
 
 	const camera = new PerspectiveCamera().translateOnAxis(
 		cameraTranslationAxis,
-		3,
+		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
 
@@ -171,12 +176,17 @@
 				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
 			});
 
+			const controls = useDisposable(
+				OrbitControls,
+				camera,
+				renderer.domElement,
+			);
+			controls.autoRotate = true;
+
 			renderer.setAnimationLoop(() => {
-				group.rotateY(angle);
+				controls.update();
 				renderer.render(scene, camera);
 			});
-
-			useDisposable(OrbitControls, camera, renderer.domElement);
 
 			return () => {
 				renderer.setAnimationLoop(null);
