@@ -9,7 +9,6 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
@@ -62,17 +61,16 @@
 	bind:clientHeight={canvasSize.height}
 	class="example-canvas"
 	{@attach (canvas) => {
-		const renderer = createRenderer({
-			antialias: true,
-			canvas,
-		});
+		const renderer = createRenderer(
+			{
+				antialias: true,
+				canvas,
+			},
+			canvasSize,
+		);
 
 		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;
-
-		$effect(() => {
-			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-		});
 
 		renderer.setAnimationLoop(() => {
 			controls.update();

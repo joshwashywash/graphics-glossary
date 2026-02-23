@@ -16,7 +16,6 @@
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
@@ -149,15 +148,14 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = createRenderer({
-				antialias: true,
-				canvas,
-				stencil: true,
-			});
-
-			$effect(() => {
-				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-			});
+			const renderer = createRenderer(
+				{
+					antialias: true,
+					canvas,
+					stencil: true,
+				},
+				canvasSize,
+			);
 
 			const controls = useDisposable(
 				OrbitControls,

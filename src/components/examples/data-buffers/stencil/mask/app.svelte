@@ -12,7 +12,6 @@
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
@@ -67,11 +66,17 @@
 
 	const scene = new Scene().add(mesh, maskGroup);
 
+	const canvasSize = new Size();
+
 	const camera = new PerspectiveCamera().translateOnAxis(
 		cameraTranslationAxis,
 		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
+
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+	});
 
 	let invert = $state(false);
 	const getInvert = () => invert;
@@ -79,12 +84,6 @@
 		meshMaterial.stencilFunc = value ? NotEqualStencilFunc : EqualStencilFunc;
 		invert = value;
 	};
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
-	});
 </script>
 
 <div class="relative">
@@ -104,15 +103,14 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = createRenderer({
-				antialias: true,
-				canvas,
-				stencil: true,
-			});
-
-			$effect(() => {
-				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-			});
+			const renderer = createRenderer(
+				{
+					antialias: true,
+					canvas,
+					stencil: true,
+				},
+				canvasSize,
+			);
 
 			renderer.setAnimationLoop(() => {
 				renderer.render(scene, camera);
@@ -125,9 +123,12 @@
 			).attach(maskGroup);
 			controls.showZ = false;
 
-			scene.add(controls.getHelper());
+			const helper = controls.getHelper();
+
+			scene.add(helper);
 
 			return () => {
+				scene.remove(helper);
 				renderer.setAnimationLoop(null);
 			};
 		}}

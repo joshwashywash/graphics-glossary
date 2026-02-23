@@ -11,8 +11,6 @@
 
 	const cameraTranslationAxis = new Vector3(0, 0, 1);
 	const cameraTranslationAmount = 3;
-	const degrees = 0.5;
-	const angle = DEG2RAD * degrees;
 
 	const SHININESS_MAX = 300;
 </script>
@@ -23,12 +21,10 @@
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import {
 		AmbientLight,
 		DirectionalLight,
@@ -167,14 +163,13 @@
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
-			const renderer = createRenderer({
-				antialias: true,
-				canvas,
-			});
-
-			$effect(() => {
-				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-			});
+			const renderer = createRenderer(
+				{
+					antialias: true,
+					canvas,
+				},
+				canvasSize,
+			);
 
 			const controls = useDisposable(
 				OrbitControls,

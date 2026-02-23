@@ -15,7 +15,6 @@
 
 	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
@@ -107,14 +106,13 @@
 			bind:clientWidth={canvasSize.width}
 			bind:clientHeight={canvasSize.height}
 			{@attach (canvas) => {
-				const renderer = createRenderer({
-					antialias: true,
-					canvas,
-				});
-
-				$effect(() => {
-					resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-				});
+				const renderer = createRenderer(
+					{
+						antialias: true,
+						canvas,
+					},
+					canvasSize,
+				);
 
 				renderer.setAnimationLoop(() => {
 					renderer.render(mesh, camera);

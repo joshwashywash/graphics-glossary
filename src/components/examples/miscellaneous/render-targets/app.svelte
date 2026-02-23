@@ -12,9 +12,7 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -65,14 +63,13 @@
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = createRenderer({
-			antialias: true,
-			canvas,
-		});
-
-		$effect(() => {
-			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-		});
+		const renderer = createRenderer(
+			{
+				antialias: true,
+				canvas,
+			},
+			canvasSize,
+		);
 
 		const render = () => {
 			mesh.visible = false;
