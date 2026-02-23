@@ -68,15 +68,18 @@
 	bind:clientHeight={canvasSize.height}
 	class="example-canvas"
 	{@attach (canvas) => {
-		const renderer = createRenderer({
-			antialias: true,
-			canvas,
-		});
+		const renderer = createRenderer(
+			{
+				antialias: true,
+				canvas,
+			},
+			() => canvasSize.width,
+			() => canvasSize.height,
+		);
 
 		renderer.setAnimationLoop((time) => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
-				renderer.setSize(clientWidth, clientHeight, false);
 				updateCameraAspect(camera, clientWidth / clientHeight);
 			}
 

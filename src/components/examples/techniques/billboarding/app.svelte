@@ -29,6 +29,8 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
+	import { Size } from "@classes/size.svelte";
+
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -116,20 +118,27 @@
 	);
 
 	let lastOffset: number;
+
+	const canvasSize = new Size();
 </script>
 
 <canvas
 	class="example-canvas"
+	bind:clientWidth={canvasSize.width}
+	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = createRenderer({
-			antialias: true,
-			canvas,
-		});
+		const renderer = createRenderer(
+			{
+				antialias: true,
+				canvas,
+			},
+			() => canvasSize.width,
+			() => canvasSize.height,
+		);
 
 		renderer.setAnimationLoop(() => {
 			const { clientHeight, clientWidth, height, width } = renderer.domElement;
 			if (clientHeight !== height || clientWidth !== width) {
-				renderer.setSize(clientWidth, clientHeight, false);
 				updateCameraAspect(camera, clientWidth / clientHeight);
 			}
 

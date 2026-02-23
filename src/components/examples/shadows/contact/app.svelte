@@ -181,7 +181,8 @@
 					antialias: true,
 					canvas,
 				},
-				canvasSize,
+				() => canvasSize.width,
+				() => canvasSize.height,
 			);
 
 			useDisposable(OrbitControls, camera, renderer.domElement);

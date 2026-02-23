@@ -8,23 +8,23 @@
 	const hdrLoader = new HDRLoader();
 
 	const bayer4x4Matrix = mat4(
-		0.0,
-		8.0,
-		2.0,
-		10.0,
-		12.0,
-		4.0,
-		14.0,
-		6.0,
-		3.0,
-		11.0,
-		1.0,
-		9.0,
-		15.0,
-		7.0,
-		13.0,
-		5.0,
-	).mul(1 / 16.0);
+		0 / 16,
+		8 / 16,
+		2 / 16,
+		10 / 16,
+		12 / 16,
+		4 / 16,
+		14 / 16,
+		6 / 16,
+		3 / 16,
+		11 / 16,
+		1 / 16,
+		9 / 16,
+		15 / 16,
+		7 / 16,
+		13 / 16,
+		5 / 16,
+	);
 
 	const bayerIndex = uv().mul(screenSize).floor().mod(4);
 
@@ -49,7 +49,7 @@
 		Mesh,
 		MeshStandardMaterial,
 		PerspectiveCamera,
-		PostProcessing,
+		RenderPipeline,
 		Scene,
 		TorusKnotGeometry,
 		Vector3,
@@ -88,10 +88,11 @@
 				antialias: true,
 				canvas,
 			},
-			canvasSize,
+			() => canvasSize.width,
+			() => canvasSize.height,
 		);
 
-		const postProcessing = useDisposable(PostProcessing, renderer);
+		const postProcessing = useDisposable(RenderPipeline, renderer);
 		postProcessing.outputNode = vec4(
 			dot(vec3(0.2126, 0.7152, 0.0722), pass(scene, camera).rgb)
 				.lessThan(bayerValue)

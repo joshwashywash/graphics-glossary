@@ -1,24 +1,25 @@
 import { useDisposable } from "./useDisposable.svelte";
 
-import type { Size } from "@classes/size.svelte";
-
 import { devicePixelRatio } from "svelte/reactivity/window";
 import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPURenderer.js";
 import { WebGPURenderer } from "three/webgpu";
 
 /**
- * creates a webgpu renderer that automatically sets its pixel ratio to match the device's.
+ * creates an automatically-disposed webgpu renderer.
  *
- * the created renderer is automatically disposed when the parent effect is destroyed
+ * resizes the renderer whenever `canvasSize.width` or `canvasSize.height` updates
+ *
+ * sets the pixel ratio to match the device's
  */
 export const createRenderer = (
 	params: WebGPURendererParameters,
-	canvasSize: Size,
+	width: () => number,
+	height: () => number,
 ) => {
 	const renderer = useDisposable(WebGPURenderer, params);
 
 	$effect(() => {
-		renderer.setSize(canvasSize.width, canvasSize.height, false);
+		renderer.setSize(width(), height(), false);
 	});
 
 	$effect(() => {

@@ -114,7 +114,8 @@
 					antialias: true,
 					canvas,
 				},
-				canvasSize,
+				() => canvasSize.width,
+				() => canvasSize.height,
 			);
 
 			const controls = useDisposable(

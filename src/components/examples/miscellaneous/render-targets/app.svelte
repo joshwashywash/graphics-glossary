@@ -68,7 +68,8 @@
 				antialias: true,
 				canvas,
 			},
-			canvasSize,
+			() => canvasSize.width,
+			() => canvasSize.height,
 		);
 
 		const render = () => {

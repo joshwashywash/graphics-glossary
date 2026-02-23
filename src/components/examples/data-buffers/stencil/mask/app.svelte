@@ -109,7 +109,8 @@
 					canvas,
 					stencil: true,
 				},
-				canvasSize,
+				() => canvasSize.width,
+				() => canvasSize.height,
 			);
 
 			renderer.setAnimationLoop(() => {

@@ -154,7 +154,8 @@
 					canvas,
 					stencil: true,
 				},
-				canvasSize,
+				() => canvasSize.width,
+				() => canvasSize.height,
 			);
 
 			const controls = useDisposable(

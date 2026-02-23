@@ -111,7 +111,8 @@
 						antialias: true,
 						canvas,
 					},
-					canvasSize,
+					() => canvasSize.width,
+					() => canvasSize.height,
 				);
 
 				renderer.setAnimationLoop(() => {
