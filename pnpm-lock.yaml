@@ -44,9 +44,6 @@ importers:
       three:
         specifier: ^0.183.1
         version: 0.183.1
-      threejs-glossary:
-        specifier: 'link:'
-        version: 'link:'
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
