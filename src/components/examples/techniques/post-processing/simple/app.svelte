@@ -28,7 +28,10 @@
 
 	const bayerIndex = uv().mul(screenSize).floor().mod(4);
 
-	const bayerValue = bayer4x4Matrix.element(bayerIndex.y).element(bayerIndex.x);
+	const bayerValue = bayer4x4Matrix
+		.element(bayerIndex.y)
+		.element(bayerIndex.x)
+		.toFloat();
 
 	const angle = 1 * DEG2RAD;
 </script>
