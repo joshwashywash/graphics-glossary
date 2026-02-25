@@ -4,6 +4,8 @@
 >
 	const cameraTranslationAxis = new Vector3(1, 1, 1).normalize();
 	const cameraTranslationAmount = 5;
+
+	const detail = 1 << 8;
 </script>
 
 <script lang="ts">
@@ -29,8 +31,6 @@
 	const material = useDisposable(MeshNormalMaterial, {
 		side: DoubleSide,
 	});
-
-	const detail = 1 << 8;
 
 	const sphubeGeometry = useDisposable(
 		ParametricGeometry,
@@ -59,7 +59,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 

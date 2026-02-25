@@ -3,6 +3,16 @@
 	lang="ts"
 >
 	const loader = new CubeTextureLoader().setPath("/cubemaps/Lycksele/");
+	const files = [
+		"posx.jpg",
+		"negx.jpg",
+		"posy.jpg",
+		"negy.jpg",
+		"posz.jpg",
+		"negz.jpg",
+	] as const;
+
+	const CAMERA_TRANSLATION_AMOUNT = 5;
 </script>
 
 <script lang="ts">
@@ -23,18 +33,9 @@
 		SphereGeometry,
 	} from "three/webgpu";
 
-	const canvasSize = new Size();
-
 	const scene = new Scene();
 
-	const texture = await loader.loadAsync([
-		"posx.jpg",
-		"negx.jpg",
-		"posy.jpg",
-		"negy.jpg",
-		"posz.jpg",
-		"negz.jpg",
-	]);
+	const texture = await loader.loadAsync(files);
 	useCleanup(() => {
 		texture.dispose();
 	});
@@ -49,10 +50,12 @@
 
 	scene.add(mesh);
 
-	const camera = new PerspectiveCamera().translateZ(5);
+	const camera = new PerspectiveCamera().translateZ(CAMERA_TRANSLATION_AMOUNT);
+
+	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 

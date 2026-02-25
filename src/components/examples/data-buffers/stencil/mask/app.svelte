@@ -66,16 +66,16 @@
 
 	const scene = new Scene().add(mesh, maskGroup);
 
-	const canvasSize = new Size();
-
 	const camera = new PerspectiveCamera().translateOnAxis(
 		cameraTranslationAxis,
 		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
 
+	const canvasSize = new Size();
+
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
 	let invert = $state(false);

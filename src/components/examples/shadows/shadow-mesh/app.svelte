@@ -3,12 +3,18 @@
 	module
 >
 	const yHat = new Vector3(0, 1, 0);
-	const translationAxis = new Vector3();
+
+	const DIRECTIONAL_LIGHT_TRANSLATION_AXIS = new Vector3(1, 1, -1).normalize();
+	const DIRECTIONAL_LIGHT_TRANSLATION_AMOUNT = 7;
 
 	const DEGREES = 1;
 	const ANGLE = DEG2RAD * DEGREES;
 
 	const FLOOR_SIZE = 15;
+	const FLOOR_COLOR = "#ccccaa";
+
+	const CAMERA_TRANSLATION_AXIS = new Vector3(1, 1, 1).normalize();
+	const CAMERA_TRANSLATION_AMOUNT = 20;
 </script>
 
 <script lang="ts">
@@ -57,15 +63,15 @@
 	const floorGeometry = useDisposable(PlaneGeometry, FLOOR_SIZE, FLOOR_SIZE);
 
 	const floorMaterial = useDisposable(MeshBasicMaterial, {
-		color: "#ccccaa",
+		color: FLOOR_COLOR,
 	});
 
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
 	floorMesh.lookAt(plane.normal);
 
 	const light = useDisposable(DirectionalLight).translateOnAxis(
-		translationAxis.set(1, 1, -1).normalize(),
-		7,
+		DIRECTIONAL_LIGHT_TRANSLATION_AXIS,
+		DIRECTIONAL_LIGHT_TRANSLATION_AMOUNT,
 	);
 
 	light.target = mesh;
@@ -79,15 +85,15 @@
 	const scene = new Scene().add(...objects);
 
 	const camera = new PerspectiveCamera().translateOnAxis(
-		translationAxis.set(1, 1, 1).normalize(),
-		20,
+		CAMERA_TRANSLATION_AXIS,
+		CAMERA_TRANSLATION_AMOUNT,
 	);
 	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
 	let animationLoop: null | (() => void) = null;
@@ -124,13 +130,9 @@
 				renderer.render(scene, camera);
 			};
 
-			const renderIfNotAnimating = () => {
-				if (animationLoop === null) render();
-			};
-
 			$effect(() => {
 				renderer.setSize(canvasSize.width, canvasSize.height, false);
-				renderIfNotAnimating();
+				if (animationLoop === null) render();
 			});
 
 			$effect(() => {

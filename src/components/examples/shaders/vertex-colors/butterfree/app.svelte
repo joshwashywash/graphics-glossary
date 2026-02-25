@@ -13,7 +13,7 @@
 
 	import { Label } from "@components/controls";
 
-	import { createFullScreenCamera } from "@functions/createFullScreenCamera";
+	import { createFullScreenOrthographicCamera } from "@functions/createFullScreenCamera";
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
@@ -37,8 +37,6 @@
 	ossContext.fillRect(0, 0, oss.width, oss.height);
 	const whiteTexture = useDisposable(CanvasTexture, oss);
 
-	const canvasSize = new Size();
-
 	const geometry = useDisposable(FullScreenTriangleGeometry).setAttribute(
 		"color",
 		// white, black, white
@@ -49,7 +47,7 @@
 
 	const mesh = new Mesh(geometry, material);
 
-	const camera = createFullScreenCamera();
+	const camera = createFullScreenOrthographicCamera();
 
 	const butterfreeWingTexture = await loader.loadAsync(
 		butterfreeImageMetadata.src,
@@ -76,6 +74,8 @@
 		useVertexColors = material.vertexColors = value;
 		material.needsUpdate = true;
 	};
+
+	const canvasSize = new Size();
 </script>
 
 <svelte:boundary>

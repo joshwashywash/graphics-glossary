@@ -61,6 +61,10 @@
 	const camera = new PerspectiveCamera();
 
 	const canvasSize = new Size();
+
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
+	});
 </script>
 
 <canvas
@@ -78,11 +82,6 @@
 		);
 
 		renderer.setAnimationLoop((time) => {
-			const { clientHeight, clientWidth, height, width } = renderer.domElement;
-			if (clientHeight !== height || clientWidth !== width) {
-				updateCameraAspect(camera, clientWidth / clientHeight);
-			}
-
 			time = 0.5 * (1 + Math.sin(time * speed));
 			camera.position.z = lerp(cameraPositionZStart, cameraPositionZEnd, time);
 

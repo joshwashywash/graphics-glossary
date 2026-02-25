@@ -51,11 +51,11 @@
 	);
 	camera.lookAt(scene.position);
 
-	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
-	});
-
 	const canvasSize = new Size();
+
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
+	});
 </script>
 
 <canvas

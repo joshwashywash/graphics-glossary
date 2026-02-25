@@ -5,11 +5,7 @@ import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPU
 import { WebGPURenderer } from "three/webgpu";
 
 /**
- * creates an automatically-disposed webgpu renderer.
- *
- * resizes the renderer whenever `canvasSize.width` or `canvasSize.height` updates
- *
- * sets the pixel ratio to match the device's
+ * creates an automatically-disposed webgpu renderer that is automatically resized whenever `width` or `height` updates and automatically sets its pixel ratio to match the device's
  */
 export const createRenderer = (
 	params: WebGPURendererParameters,

@@ -120,6 +120,10 @@
 	let lastOffset: number;
 
 	const canvasSize = new Size();
+
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
+	});
 </script>
 
 <canvas
@@ -137,11 +141,6 @@
 		);
 
 		renderer.setAnimationLoop(() => {
-			const { clientHeight, clientWidth, height, width } = renderer.domElement;
-			if (clientHeight !== height || clientWidth !== width) {
-				updateCameraAspect(camera, clientWidth / clientHeight);
-			}
-
 			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
 			camera.lookAt(scene.position);
 
