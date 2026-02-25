@@ -50,8 +50,9 @@
 
 	const camera = new PerspectiveCamera().translateZ(5);
 
+	const canvasSize = new Size();
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
 	let baseColor = $state(`#${baseColorUniform.value.getHexString()}`);
@@ -71,8 +72,6 @@
 	const setPower = (value: number) => {
 		power = powerUniform.value = value;
 	};
-
-	const canvasSize = new Size();
 </script>
 
 <div class="relative">

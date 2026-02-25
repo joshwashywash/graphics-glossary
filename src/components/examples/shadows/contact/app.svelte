@@ -39,8 +39,6 @@
 		Vector3,
 	} from "three/webgpu";
 
-	const canvasSize = new Size();
-
 	const uDarkness = uniform(1);
 	const uShadowOpacity = uniform(1);
 	const uBlur = uniform(3.5);
@@ -99,8 +97,9 @@
 	);
 	camera.lookAt(mesh.position);
 
+	const canvasSize = new Size();
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
 	let darkness = $state(uDarkness.value);

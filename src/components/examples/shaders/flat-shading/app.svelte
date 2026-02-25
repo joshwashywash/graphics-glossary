@@ -80,7 +80,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.width / canvasSize.height);
+		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
 	let shininess = $state(material.shininess);
