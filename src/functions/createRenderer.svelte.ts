@@ -1,5 +1,4 @@
 import { useCleanup } from "./useCleanup.svelte";
-import { useDisposable } from "./useDisposable.svelte";
 
 import { devicePixelRatio } from "svelte/reactivity/window";
 import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPURenderer.js";
