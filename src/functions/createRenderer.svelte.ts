@@ -1,3 +1,4 @@
+import { useCleanup } from "./useCleanup.svelte";
 import { useDisposable } from "./useDisposable.svelte";
 
 import { devicePixelRatio } from "svelte/reactivity/window";
@@ -12,7 +13,7 @@ export const createRenderer = (
 	width: () => number,
 	height: () => number,
 ) => {
-	const renderer = useDisposable(WebGPURenderer, params);
+	const renderer = new WebGPURenderer(params);
 
 	$effect(() => {
 		renderer.setSize(width(), height(), false);
@@ -20,6 +21,12 @@ export const createRenderer = (
 
 	$effect(() => {
 		renderer.setPixelRatio(devicePixelRatio.current);
+	});
+
+	useCleanup(() => {
+		renderer.init().then((renderer) => {
+			renderer.dispose();
+		});
 	});
 
 	return renderer;
