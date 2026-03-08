@@ -130,7 +130,7 @@
 
 			return () => {
 				scene.remove(helper);
-				renderer.setAnimationLoop(null);
+				helper.dispose();
 			};
 		}}
 	>

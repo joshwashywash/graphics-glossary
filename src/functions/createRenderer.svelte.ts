@@ -6,6 +6,7 @@ import { WebGPURenderer } from "three/webgpu";
 
 /**
  * creates an automatically-disposed webgpu renderer that is automatically resized whenever `width` or `height` updates and automatically sets its pixel ratio to match the device's
+ *
  */
 export const createRenderer = (
 	params: WebGPURendererParameters,
@@ -22,8 +23,9 @@ export const createRenderer = (
 		renderer.setPixelRatio(devicePixelRatio.current);
 	});
 
+	// `setAnimationLoop` waits for renderer.init()
 	useCleanup(() => {
-		renderer.init().then((renderer) => {
+		renderer.setAnimationLoop(null).then(() => {
 			renderer.dispose();
 		});
 	});

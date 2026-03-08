@@ -84,10 +84,6 @@
 			controls.update();
 			renderer.render(group, camera);
 		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
 	}}
 >
 </canvas>

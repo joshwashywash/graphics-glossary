@@ -98,10 +98,6 @@
 		renderer.setAnimationLoop(render);
 
 		useDisposable(OrbitControls, camera, renderer.domElement);
-
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
 	}}
 >
 </canvas>

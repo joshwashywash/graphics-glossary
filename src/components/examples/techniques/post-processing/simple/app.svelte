@@ -111,10 +111,6 @@
 			controls.update();
 			postProcessing.render();
 		});
-
-		return () => {
-			renderer.setAnimationLoop(null);
-		};
 	}}
 >
 </canvas>

@@ -148,10 +148,6 @@
 
 					renderer.render(scene, camera);
 				});
-
-				return () => {
-					renderer.setAnimationLoop(null);
-				};
 			}}
 		>
 		</canvas>

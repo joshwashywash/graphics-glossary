@@ -118,10 +118,6 @@
 				renderer.setAnimationLoop(() => {
 					renderer.render(mesh, camera);
 				});
-
-				return () => {
-					renderer.setAnimationLoop(null);
-				};
 			}}
 		>
 		</canvas>

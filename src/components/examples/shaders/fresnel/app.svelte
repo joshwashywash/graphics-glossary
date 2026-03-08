@@ -128,10 +128,6 @@
 				controls.update();
 				renderer.render(mesh, camera);
 			});
-
-			return () => {
-				renderer.setAnimationLoop(null);
-			};
 		}}
 	>
 	</canvas>
