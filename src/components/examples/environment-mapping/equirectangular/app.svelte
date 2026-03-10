@@ -2,17 +2,10 @@
 	module
 	lang="ts"
 >
-	const loader = new CubeTextureLoader().setPath("/cubemaps/Lycksele/");
-	const files = [
-		"posx.jpg",
-		"negx.jpg",
-		"posy.jpg",
-		"negy.jpg",
-		"posz.jpg",
-		"negz.jpg",
-	] as const;
+	const loader = new TextureLoader();
+	const CAMERA_TRANSLATION_AMOUNT = 1;
 
-	const CAMERA_TRANSLATION_AMOUNT = 5;
+	const textureUrl = "/equirect/suburban_garden.png";
 </script>
 
 <script lang="ts">
@@ -24,31 +17,18 @@
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-	import {
-		CubeTextureLoader,
-		IcosahedronGeometry,
-		Mesh,
-		MeshBasicMaterial,
-		PerspectiveCamera,
-		Scene,
-	} from "three/webgpu";
+	import { equirectUV, texture } from "three/tsl";
+	import { PerspectiveCamera, Scene, TextureLoader } from "three/webgpu";
+
+	const equirectTexture = await loader.loadAsync(
+		textureUrl
+	);
+	useCleanup(() => {
+		equirectTexture.dispose();
+	});
 
 	const scene = new Scene();
-
-	const texture = await loader.loadAsync(files);
-	useCleanup(() => {
-		texture.dispose();
-	});
-
-	scene.background = texture;
-
-	const geometry = useDisposable(IcosahedronGeometry, 1, 0);
-	const material = useDisposable(MeshBasicMaterial, {
-		envMap: texture,
-	});
-	const mesh = new Mesh(geometry, material);
-
-	scene.add(mesh);
+	scene.backgroundNode = texture(equirectTexture, equirectUV(), 0);
 
 	const camera = new PerspectiveCamera().translateZ(CAMERA_TRANSLATION_AMOUNT);
 
@@ -72,6 +52,8 @@
 			() => canvasSize.width,
 			() => canvasSize.height,
 		);
+
+		equirectTexture.colorSpace = renderer.currentColorSpace;
 
 		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;

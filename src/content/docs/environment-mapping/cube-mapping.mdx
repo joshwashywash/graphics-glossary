@@ -4,5 +4,15 @@ title: Cube
 ---
 
 import App from "@components/examples/environment-mapping/cube/app.svelte";
+import Net from "@components/examples/environment-mapping/cube/net.svelte";
 
-<App client:only />
+<App client:only="svelte" />
+<Net
+	client:visible
+	posx="/cubemaps/Lycksele/posx.jpg"
+	negx="/cubemaps/Lycksele/negx.jpg"
+	posy="/cubemaps/Lycksele/posy.jpg"
+	negy="/cubemaps/Lycksele/negy.jpg"
+	posz="/cubemaps/Lycksele/posz.jpg"
+	negz="/cubemaps/Lycksele/negz.jpg"
+/>
