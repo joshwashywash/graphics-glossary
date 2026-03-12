@@ -16,6 +16,8 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
+	import { Size } from "@classes/size.svelte";
+
 	import { Label } from "@components/controls";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
@@ -99,6 +101,12 @@
 	const setShadowColor = (value: string) => {
 		shadowMaterial.color.set((shadowColor = value));
 	};
+
+	const canvasSize = new Size();
+
+	$effect(() => {
+		updateCameraAspect(camera, canvasSize.ratio);
+	});
 </script>
 
 <svelte:boundary>
@@ -120,21 +128,19 @@
 
 		<canvas
 			class="example-canvas"
+			bind:clientWidth={canvasSize.width}
+			bind:clientHeight={canvasSize.height}
 			{@attach (canvas) => {
-				const renderer = createRenderer({
-					antialias: true,
-					canvas,
-				});
+				const renderer = createRenderer(
+					{
+						antialias: true,
+						canvas,
+					},
+					() => canvasSize.width,
+					() => canvasSize.height,
+				);
 
 				renderer.setAnimationLoop((time) => {
-					const { clientHeight, clientWidth, height, width } =
-						renderer.domElement;
-					if (clientHeight !== height || clientWidth !== width) {
-						renderer.setSize(clientWidth, clientHeight, false);
-
-						updateCameraAspect(camera, clientWidth / clientHeight);
-					}
-					// convert sin's -1 -> 1 interval to lerp's intervial of 0 -> 1
 					const t = 0.5 * (1 + Math.sin(time * speed));
 
 					sphereMesh.position.y = lerp(
