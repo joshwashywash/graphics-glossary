@@ -19,11 +19,9 @@
 
 <div class="grid grid-cols-4 grid-rows-3">
 	{#each faces as { name, longName, row, col }}
-		{@const alt = `cube map image for ${longName}`}
-		{@const src = props[name]}
 		<img
-			{src}
-			{alt}
+			src={props[name]}
+			alt={`cube map image for ${longName}`}
 			style:--row={row}
 			style:--col={col}
 			class="row-(--row) col-(--col) mt-0"

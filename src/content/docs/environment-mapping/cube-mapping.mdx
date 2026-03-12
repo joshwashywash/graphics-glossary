@@ -3,12 +3,11 @@ description: An explanation of the cube-mapping in 3D graphics
 title: Cube
 ---
 
-import App from "@components/examples/environment-mapping/cube/app.svelte";
-import Net from "@components/examples/environment-mapping/cube/net.svelte";
+import App from "@components/examples/environment-mapping/cube/basic/app.svelte";
+import Net from "@components/examples/environment-mapping/cube/net/app.svelte";
 
-<App client:only="svelte" />
 <Net
-	client:visible
+	client:visible="svelte"
 	posx="/cubemaps/Lycksele/posx.jpg"
 	negx="/cubemaps/Lycksele/negx.jpg"
 	posy="/cubemaps/Lycksele/posy.jpg"
@@ -16,3 +15,4 @@ import Net from "@components/examples/environment-mapping/cube/net.svelte";
 	posz="/cubemaps/Lycksele/posz.jpg"
 	negz="/cubemaps/Lycksele/negz.jpg"
 />
+<App client:only="svelte" />
