@@ -11,6 +11,10 @@
 	const textureCanvasSize = 128;
 
 	const floorSize = 7;
+
+	const sphereRadius = 1;
+
+	const sphereDiameter = 2 * sphereRadius;
 </script>
 
 <script lang="ts">
@@ -62,9 +66,6 @@
 		transparent: true,
 	});
 
-	const sphereRadius = 1;
-
-	const sphereDiameter = 2 * sphereRadius;
 	const shadowGeometry = useDisposable(
 		PlaneGeometry,
 		sphereDiameter,
