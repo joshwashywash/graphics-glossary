@@ -22,10 +22,12 @@
 		"svelte": "^5.53.8",
 		"tailwindcss": "^4.2.1",
 		"three": "^0.183.2",
+		"tweakpane": "^4.0.5",
 		"typescript": "^5.9.3"
 	},
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
+		"@tweakpane/core": "^2.0.5",
 		"prettier": "3.8.1",
 		"prettier-plugin-astro": "^0.14.1",
 		"prettier-plugin-svelte": "^3.5.1",

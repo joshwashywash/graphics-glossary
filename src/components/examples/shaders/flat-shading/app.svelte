@@ -10,15 +10,17 @@
 	const directionalLightTranslationAmount = 3;
 
 	const cameraTranslationAxis = new Vector3(0, 0, 1);
-	const cameraTranslationAmount = 3;
+	const cameraTranslationAmount = 5;
 
 	const SHININESS_MAX = 300;
 </script>
 
 <script lang="ts">
+	import createPaneAttachment from "@attachments/createPane";
+
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -83,81 +85,72 @@
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
-	let shininess = $state(material.shininess);
-	const getShininess = () => shininess;
-	const setShininess = (value: number) => {
-		material.shininess = value;
-		flatShadingMaterial.shininess = value;
-		shininess = value;
-	};
+	const pane = createPaneAttachment({
+		initialize: (pane) => {
+			const materialFolder = pane.addFolder({
+				title: "material",
+			});
 
-	let color = $state(`#${material.color.getHexString()}`);
-	const getColor = () => color;
-	const setColor = (value: string) => {
-		material.color.set(value);
-		flatShadingMaterial.color.set(value);
-		color = value;
-	};
+			materialFolder.addBinding(
+				{
+					get shininess() {
+						return material.shininess;
+					},
+					set shininess(value) {
+						flatShadingMaterial.shininess = material.shininess = value;
+					},
+				},
+				"shininess",
+				{
+					min: 0,
+					max: SHININESS_MAX,
+					step: 1,
+				},
+			);
 
-	let flatShading = $state(flatShadingMesh.visible);
-	const getFlatShading = () => flatShading;
-	const setFlatShading = (value: boolean) => {
-		flatShadingMesh.visible = value;
-		mesh.visible = !flatShadingMesh.visible;
-		flatShading = value;
-	};
+			materialFolder.addBinding(
+				{
+					get color() {
+						return `#${material.color.getHexString()}`;
+					},
+					set color(value) {
+						flatShadingMaterial.color.copy(material.color.set(value));
+					},
+				},
+				"color",
+			);
 
-	let directionalLightHelperVisible = $state((helper.visible = false));
-	const getDirectionalLightHelperVisible = () => directionalLightHelperVisible;
-	const setDirectionalLightHelperVisible = (value: boolean) => {
-		directionalLightHelperVisible = helper.visible = value;
-	};
+			const sceneFolder = pane.addFolder({
+				title: "scene",
+			});
+
+			sceneFolder.addBinding(helper, "visible", {
+				label: "light helper visible",
+			});
+
+			sceneFolder.addBinding(
+				{
+					get flatShading() {
+						return flatShadingMesh.visible;
+					},
+					set flatShading(value) {
+						mesh.visible = !(flatShadingMesh.visible = value);
+					},
+				},
+				"flatShading",
+				{
+					label: "flat shading",
+				},
+			);
+		},
+	});
 </script>
 
 <div class="relative">
-	<details class="example-pane">
-		<summary>controls</summary>
-		<fieldset>
-			<legend>material</legend>
-			<Label>
-				color
-				<input
-					type="color"
-					bind:value={getColor, setColor}
-				/>
-			</Label>
-			<Label>
-				shininess
-				<input
-					type="range"
-					bind:value={getShininess, setShininess}
-					min={0}
-					max={SHININESS_MAX}
-					step={1}
-				/>
-			</Label>
-		</fieldset>
-		<fieldset>
-			<legend>scene</legend>
-			<Label>
-				flat shading
-				<input
-					type="checkbox"
-					bind:checked={getFlatShading, setFlatShading}
-				/>
-			</Label>
-			<Label>
-				directional light helper visible
-				<input
-					type="checkbox"
-					bind:checked={
-						getDirectionalLightHelperVisible, setDirectionalLightHelperVisible
-					}
-				/>
-			</Label>
-		</fieldset>
-	</details>
-
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach pane}
+	/>
 	<canvas
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}

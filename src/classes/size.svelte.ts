@@ -1,5 +1,5 @@
 export class Size {
-	width = $state(0);
-	height = $state(0);
+	width = $state(1);
+	height = $state(1);
 	ratio = $derived(this.width / this.height);
 }

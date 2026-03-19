@@ -11,9 +11,11 @@
 </script>
 
 <script lang="ts">
+	import createPaneAttachment from "@attachments/createPane";
+
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -38,7 +40,9 @@
 			.applyMatrix4(colorAttributeTransformMatrix),
 	);
 
-	const material = useDisposable(MeshBasicMaterial);
+	const material = useDisposable(MeshBasicMaterial, {
+		vertexColors: true,
+	});
 
 	const mesh = new Mesh(geometry, material);
 
@@ -53,25 +57,32 @@
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
-	let useVertexColors = $state((material.vertexColors = true));
-	const getUseVertexColors = () => useVertexColors;
-	const setUseVertexColors = (value: boolean) => {
-		useVertexColors = material.vertexColors = value;
-		material.needsUpdate = true;
-	};
+	const pane = createPaneAttachment({
+		initialize: (pane) => {
+			pane.addBinding(
+				{
+					get useVertexColors() {
+						return material.vertexColors;
+					},
+					set useVertexColors(value) {
+						material.vertexColors = value;
+						material.needsUpdate = true;
+					},
+				},
+				"useVertexColors",
+				{
+					label: "use vertex colors",
+				},
+			);
+		},
+	});
 </script>
 
 <div class="relative">
-	<details class="example-pane">
-		<summary>vertex colors</summary>
-		<Label>
-			enabled
-			<input
-				type="checkbox"
-				bind:checked={getUseVertexColors, setUseVertexColors}
-			/>
-		</Label>
-	</details>
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach pane}
+	/>
 
 	<canvas
 		class="example-canvas"

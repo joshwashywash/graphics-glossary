@@ -8,10 +8,12 @@
 <script lang="ts">
 	import butterfreeImageMetadata from "@assets/pokemon-snap-butterfree-wings.png";
 
+	import createPaneAttachment from "@attachments/createPane";
+
 	import { FullScreenTriangleGeometry } from "@classes/FullScreenTriangleGeometry";
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createFullScreenOrthographicCamera } from "@functions/createFullScreenCamera";
 	import { createRenderer } from "@functions/createRenderer.svelte";
@@ -43,12 +45,6 @@
 		new Float32BufferAttribute([1, 1, 1, 0, 0, 0, 1, 1, 1], 3),
 	);
 
-	const material = useDisposable(MeshBasicMaterial);
-
-	const mesh = new Mesh(geometry, material);
-
-	const camera = createFullScreenOrthographicCamera();
-
 	const butterfreeWingTexture = await loader.loadAsync(
 		butterfreeImageMetadata.src,
 	);
@@ -56,70 +52,85 @@
 	useCleanup(() => {
 		butterfreeWingTexture.dispose();
 	});
-
 	butterfreeWingTexture.generateMipmaps = false;
 	butterfreeWingTexture.colorSpace = SRGBColorSpace;
 	butterfreeWingTexture.repeat.set(0.5, 1);
 	butterfreeWingTexture.offset.set(0.5, 0);
 
-	let useTexture = $state(true);
-
-	$effect(() => {
-		material.map = useTexture ? butterfreeWingTexture : whiteTexture;
+	const material = useDisposable(MeshBasicMaterial, {
+		map: butterfreeWingTexture,
 	});
 
-	let useVertexColors = $state(true);
-	const getUseVertexColors = () => useVertexColors;
-	const setUseVertexColors = (value: boolean) => {
-		useVertexColors = material.vertexColors = value;
-		material.needsUpdate = true;
-	};
+	const mesh = new Mesh(geometry, material);
+
+	const camera = createFullScreenOrthographicCamera();
+
+	const pane = createPaneAttachment({
+		initialize: (pane) => {
+			pane.addBinding(
+				{
+					get useVertexColors() {
+						return material.vertexColors;
+					},
+					set useVertexColors(value) {
+						material.vertexColors = value;
+						material.needsUpdate = true;
+					},
+				},
+				"useVertexColors",
+				{
+					label: "use vertex colors",
+				},
+			);
+			pane
+				.addBinding(
+					{
+						useTexture: true,
+					},
+					"useTexture",
+					{
+						label: "use texture",
+					},
+				)
+				.on("change", (e) => {
+					material.map = e.value ? butterfreeWingTexture : whiteTexture;
+				});
+		},
+	});
 
 	const canvasSize = new Size();
 </script>
 
-<svelte:boundary>
+<svelte:boundary onerror={console.trace}>
 	{#snippet failed(error)}
-		<p>{error}</p>
+		{error}
 	{/snippet}
-	<div class="relative">
-		<details class="example-pane">
-			<summary>butterfree wing</summary>
-			<Label>
-				use vertex colors
-				<input
-					type="checkbox"
-					bind:checked={getUseVertexColors, setUseVertexColors}
-				/>
-			</Label>
-			<Label>
-				use texture
-				<input
-					type="checkbox"
-					bind:checked={useTexture}
-				/>
-			</Label>
-		</details>
-
-		<canvas
-			class="example-canvas"
-			bind:clientWidth={canvasSize.width}
-			bind:clientHeight={canvasSize.height}
-			{@attach (canvas) => {
-				const renderer = createRenderer(
-					{
-						antialias: true,
-						canvas,
-					},
-					() => canvasSize.width,
-					() => canvasSize.height,
-				);
-
-				renderer.setAnimationLoop(() => {
-					renderer.render(mesh, camera);
-				});
-			}}
-		>
-		</canvas>
-	</div>
 </svelte:boundary>
+
+<div class="relative">
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach pane}
+	/>
+
+	<canvas
+		class="example-canvas"
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
+		{@attach (canvas) => {
+			const renderer = createRenderer(
+				{
+					antialias: true,
+					canvas,
+				},
+				() => canvasSize.width,
+				() => canvasSize.height,
+			);
+
+			renderer.setAnimationLoop(() => {
+				renderer.render(mesh, camera);
+			});
+		}}
+	>
+	</canvas>
+</div>

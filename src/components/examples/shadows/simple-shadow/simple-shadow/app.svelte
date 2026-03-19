@@ -20,9 +20,11 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
+	import createPaneAttachment from "@attachments/createPane";
+
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -108,55 +110,64 @@
 	$effect(() => {
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
+
+	const pane = createPaneAttachment({
+		initialize: (pane) => {
+			pane.addBinding(
+				{
+					get color() {
+						return `#${shadowMaterial.color.getHexString()}`;
+					},
+					set color(value) {
+						shadowMaterial.color.set(value);
+					},
+				},
+				"color",
+			);
+		},
+	});
 </script>
 
 <svelte:boundary>
 	{#snippet failed(error)}
 		<p>{error}</p>
 	{/snippet}
-
-	<div class="relative">
-		<details class="example-pane">
-			<summary>controls</summary>
-			<Label>
-				shadow color
-				<input
-					type="color"
-					bind:value={getShadowColor, setShadowColor}
-				/>
-			</Label>
-		</details>
-
-		<canvas
-			class="example-canvas"
-			bind:clientWidth={canvasSize.width}
-			bind:clientHeight={canvasSize.height}
-			{@attach (canvas) => {
-				const renderer = createRenderer(
-					{
-						antialias: true,
-						canvas,
-					},
-					() => canvasSize.width,
-					() => canvasSize.height,
-				);
-
-				renderer.setAnimationLoop((time) => {
-					const t = 0.5 * (1 + Math.sin(time * speed));
-
-					sphereMesh.position.y = lerp(
-						positionYInitial - 1,
-						positionYInitial + 1,
-						t,
-					);
-					shadowMesh.scale.setScalar(1 + t);
-
-					shadowMaterial.opacity = lerp(1, 0, t);
-
-					renderer.render(scene, camera);
-				});
-			}}
-		>
-		</canvas>
-	</div>
 </svelte:boundary>
+<div class="relative">
+	<PaneContainer
+		{@attach pane}
+		class="absolute top-2 right-2"
+	/>
+
+	<canvas
+		class="example-canvas"
+		bind:clientWidth={canvasSize.width}
+		bind:clientHeight={canvasSize.height}
+		{@attach (canvas) => {
+			const renderer = createRenderer(
+				{
+					antialias: true,
+					canvas,
+				},
+				() => canvasSize.width,
+				() => canvasSize.height,
+			);
+
+			renderer.setAnimationLoop((time) => {
+				const t = 0.5 * (1 + Math.sin(time * speed));
+
+				sphereMesh.position.y = lerp(
+					positionYInitial - 1,
+					positionYInitial + 1,
+					t,
+				);
+				shadowMesh.scale.setScalar(1 + t);
+
+				shadowMaterial.opacity = lerp(1, 0, t);
+
+				renderer.render(scene, camera);
+			});
+		}}
+	>
+	</canvas>
+</div>

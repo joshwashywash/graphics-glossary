@@ -18,9 +18,11 @@
 </script>
 
 <script lang="ts">
+	import createPane from "@attachments/createPane";
+
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useDisposable } from "@functions/useDisposable.svelte";
@@ -97,20 +99,25 @@
 	});
 
 	let animationLoop: null | (() => void) = null;
+
+	const pane = createPane({
+		initialize: (pane) => {
+			pane
+				.addBinding({ rotateMesh: true }, "rotateMesh", {
+					label: "rotate mesh",
+				})
+				.on("change", (e) => {
+					rotateMesh = e.value;
+				});
+		},
+	});
 </script>
 
 <div class="relative">
-	<details class="example-pane">
-		<summary>controls</summary>
-		<Label>
-			rotate mesh
-			<input
-				type="checkbox"
-				bind:checked={rotateMesh}
-			/>
-		</Label>
-	</details>
-
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach pane}
+	/>
 	<canvas
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}

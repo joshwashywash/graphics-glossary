@@ -1,25 +1,29 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import { Label } from "@components/controls";
+	import createPaneAttachment from "@attachments/createPane";
+
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	let width = $state(1);
 	let height = $state(1);
 
 	let shadowColor = $state("#ffffff");
+
+	const pane = createPaneAttachment({
+		initialize: (pane) => {
+			pane.addBinding({ color: "#ffffff" }, "color").on("change", (e) => {
+				shadowColor = e.value;
+			});
+		},
+	});
 </script>
 
 <div class="relative">
-	<details class="example-pane">
-		<summary>controls</summary>
-		<Label>
-			shadow color
-			<input
-				type="color"
-				bind:value={shadowColor}
-			/>
-		</Label>
-	</details>
+	<PaneContainer
+		{@attach pane}
+		class="absolute top-2 right-2"
+	/>
 
 	<canvas
 		bind:clientWidth={width}

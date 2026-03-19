@@ -12,9 +12,11 @@
 </script>
 
 <script lang="ts">
+	import createPaneAttachment from "@attachments/createPane";
+
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -102,74 +104,48 @@
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
-	let darkness = $state(uDarkness.value);
-	let shadowOpacity = $state(uShadowOpacity.value);
-	let blur = $state(uBlur.value);
-	let shadowCameraHelperVisible = $state((helper.visible = false));
+	const pane = createPaneAttachment({
+		initialize: (pane) => {
+			const uniformFolder = pane.addFolder({
+				title: "uniforms",
+			});
+			pane.addBinding(uDarkness, "value", {
+				label: "darkness",
+				min: 0,
+				max: 1,
+				step: 0.1,
+			});
+
+			uniformFolder.addBinding(uShadowOpacity, "value", {
+				label: "opacity",
+				min: 0,
+				max: 1,
+				step: 0.1,
+			});
+
+			uniformFolder.addBinding(uBlur, "value", {
+				label: "blur",
+				min: 0,
+				max: 5,
+				step: 0.5,
+			});
+
+			const sceneFolder = pane.addFolder({
+				title: "scene",
+			});
+
+			sceneFolder.addBinding(helper, "visible", {
+				label: "shadow camera helper visible",
+			});
+		},
+	});
 </script>
 
 <div class="relative">
-	<details class="example-pane">
-		<summary>controls</summary>
-		<Label>
-			darkness
-			<input
-				bind:value={
-					() => darkness,
-					(value) => {
-						darkness = uDarkness.value = value;
-					}
-				}
-				type="range"
-				min={0}
-				max={1}
-				step={0.1}
-			/>
-		</Label>
-		<Label>
-			shadow opacity
-			<input
-				bind:value={
-					() => shadowOpacity,
-					(value) => {
-						shadowOpacity = uShadowOpacity.value = value;
-					}
-				}
-				type="range"
-				min={0}
-				max={1}
-				step={0.1}
-			/>
-		</Label>
-		<Label>
-			blur
-			<input
-				bind:value={
-					() => blur,
-					(value) => {
-						blur = uBlur.value = value;
-					}
-				}
-				type="range"
-				min={0}
-				max={5}
-				step={0.5}
-			/>
-		</Label>
-		<Label>
-			shadow camera helper visible
-			<input
-				type="checkbox"
-				bind:checked={
-					() => shadowCameraHelperVisible,
-					(value) => {
-						helper.visible = shadowCameraHelperVisible = value;
-					}
-				}
-			/>
-		</Label>
-	</details>
-
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach pane}
+	/>
 	<canvas
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}

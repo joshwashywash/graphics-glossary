@@ -13,9 +13,11 @@
 </script>
 
 <script lang="ts">
+	import createPaneAttachment from "@attachments/createPane";
+
 	import { Size } from "@classes/size.svelte";
 
-	import { Label } from "@components/controls";
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
@@ -55,54 +57,46 @@
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
 
-	let baseColor = $state(`#${baseColorUniform.value.getHexString()}`);
-	const getBaseColor = () => baseColor;
-	const setBaseColor = (value: string) => {
-		baseColorUniform.value.set((baseColor = value));
+	const colors = {
+		get base() {
+			return `#${baseColorUniform.value.getHexString()}`;
+		},
+		set base(value) {
+			baseColorUniform.value.set(value);
+		},
+		get fresnel() {
+			return `#${fresnelColorUniform.value.getHexString()}`;
+		},
+		set fresnel(value) {
+			fresnelColorUniform.value.set(value);
+		},
 	};
 
-	let fresnelColor = $state(`#${fresnelColorUniform.value.getHexString()}`);
-	const getFresnelColor = () => fresnelColor;
-	const setFresnelColor = (value: string) => {
-		fresnelColorUniform.value.set((fresnelColor = value));
-	};
+	const pane = createPaneAttachment({
+		initialize: (pane) => {
+			pane.addBinding(colors, "base", {
+				label: "base color",
+			});
 
-	let power = $state(powerUniform.value);
-	const getPower = () => power;
-	const setPower = (value: number) => {
-		power = powerUniform.value = value;
-	};
+			pane.addBinding(colors, "fresnel", {
+				label: "fresnel color",
+			});
+
+			pane.addBinding(powerUniform, "value", {
+				label: "power",
+				min: POWER_MIN,
+				max: POWER_MAX,
+				step: POWER_STEP,
+			});
+		},
+	});
 </script>
 
 <div class="relative">
-	<details class="example-pane">
-		<summary>controls</summary>
-		<Label>
-			base color
-			<input
-				type="color"
-				bind:value={getBaseColor, setBaseColor}
-			/>
-		</Label>
-		<Label>
-			fresnel color
-			<input
-				type="color"
-				bind:value={getFresnelColor, setFresnelColor}
-			/>
-		</Label>
-		<Label>
-			power
-			<input
-				type="range"
-				bind:value={getPower, setPower}
-				min={POWER_MIN}
-				max={POWER_MAX}
-				step={POWER_STEP}
-			/>
-		</Label>
-	</details>
-
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach pane}
+	/>
 	<canvas
 		class="example-canvas"
 		bind:clientWidth={canvasSize.width}
