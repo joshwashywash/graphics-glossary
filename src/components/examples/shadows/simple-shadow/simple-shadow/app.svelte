@@ -20,8 +20,6 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import createPaneAttachment from "@attachments/createPane";
-
 	import { Size } from "@classes/size.svelte";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
@@ -43,6 +41,7 @@
 		SphereGeometry,
 		Vector3,
 	} from "three/webgpu";
+	import { Pane } from "tweakpane";
 
 	const textureCanvas = new OffscreenCanvas(
 		textureCanvasSize,
@@ -99,20 +98,26 @@
 	);
 	camera.lookAt(sphereMesh.position);
 
-	let shadowColor = $state(`#${shadowMaterial.color.getHexString()}`);
-	const getShadowColor = () => shadowColor;
-	const setShadowColor = (value: string) => {
-		shadowMaterial.color.set((shadowColor = value));
-	};
-
 	const canvasSize = new Size();
 
 	$effect(() => {
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
+</script>
 
-	const pane = createPaneAttachment({
-		initialize: (pane) => {
+<svelte:boundary>
+	{#snippet failed(error)}
+		<p>{error}</p>
+	{/snippet}
+</svelte:boundary>
+<div class="relative">
+	<PaneContainer
+		{@attach (container) => {
+			const pane = useDisposable(Pane, {
+				container,
+				expanded: false,
+				title: "controls",
+			});
 			pane.addBinding(
 				{
 					get color() {
@@ -124,18 +129,7 @@
 				},
 				"color",
 			);
-		},
-	});
-</script>
-
-<svelte:boundary>
-	{#snippet failed(error)}
-		<p>{error}</p>
-	{/snippet}
-</svelte:boundary>
-<div class="relative">
-	<PaneContainer
-		{@attach pane}
+		}}
 		class="absolute top-2 right-2"
 	/>
 

@@ -13,8 +13,6 @@
 </script>
 
 <script lang="ts">
-	import createPaneAttachment from "@attachments/createPane";
-
 	import { Size } from "@classes/size.svelte";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
@@ -32,6 +30,7 @@
 		PerspectiveCamera,
 		TorusKnotGeometry,
 	} from "three/webgpu";
+	import { Pane } from "tweakpane";
 
 	const baseColorUniform = uniform(new Color("#583583"));
 	const fresnelColorUniform = uniform(new Color("#ccccaa"));
@@ -71,9 +70,18 @@
 			fresnelColorUniform.value.set(value);
 		},
 	};
+</script>
 
-	const pane = createPaneAttachment({
-		initialize: (pane) => {
+<div class="relative">
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach (container) => {
+			const pane = useDisposable(Pane, {
+				container,
+				expanded: false,
+				title: "controls",
+			});
+
 			pane.addBinding(colors, "base", {
 				label: "base color",
 			});
@@ -88,14 +96,7 @@
 				max: POWER_MAX,
 				step: POWER_STEP,
 			});
-		},
-	});
-</script>
-
-<div class="relative">
-	<PaneContainer
-		class="absolute top-2 right-2"
-		{@attach pane}
+		}}
 	/>
 	<canvas
 		class="example-canvas"

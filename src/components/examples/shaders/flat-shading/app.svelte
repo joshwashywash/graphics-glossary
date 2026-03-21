@@ -16,8 +16,6 @@
 </script>
 
 <script lang="ts">
-	import createPaneAttachment from "@attachments/createPane";
-
 	import { Size } from "@classes/size.svelte";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
@@ -38,6 +36,7 @@
 		SphereGeometry,
 		Vector3,
 	} from "three/webgpu";
+	import { Pane } from "tweakpane";
 
 	const geometry = useDisposable(SphereGeometry);
 
@@ -84,9 +83,17 @@
 	$effect(() => {
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
+</script>
 
-	const pane = createPaneAttachment({
-		initialize: (pane) => {
+<div class="relative">
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach (container) => {
+			const pane = useDisposable(Pane, {
+				container,
+				expanded: false,
+				title: "controls",
+			});
 			const materialFolder = pane.addFolder({
 				title: "material",
 			});
@@ -142,14 +149,7 @@
 					label: "flat shading",
 				},
 			);
-		},
-	});
-</script>
-
-<div class="relative">
-	<PaneContainer
-		class="absolute top-2 right-2"
-		{@attach pane}
+		}}
 	/>
 	<canvas
 		class="example-canvas"

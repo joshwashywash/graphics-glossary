@@ -8,8 +8,6 @@
 <script lang="ts">
 	import butterfreeImageMetadata from "@assets/pokemon-snap-butterfree-wings.png";
 
-	import createPaneAttachment from "@attachments/createPane";
-
 	import { FullScreenTriangleGeometry } from "@classes/FullScreenTriangleGeometry";
 	import { Size } from "@classes/size.svelte";
 
@@ -28,6 +26,7 @@
 		SRGBColorSpace,
 		TextureLoader,
 	} from "three/webgpu";
+	import { Pane } from "tweakpane";
 
 	const oss = new OffscreenCanvas(1, 1);
 	const ossContext = oss.getContext("2d");
@@ -65,8 +64,25 @@
 
 	const camera = createFullScreenOrthographicCamera();
 
-	const pane = createPaneAttachment({
-		initialize: (pane) => {
+	const canvasSize = new Size();
+</script>
+
+<svelte:boundary onerror={console.trace}>
+	{#snippet failed(error)}
+		{error}
+	{/snippet}
+</svelte:boundary>
+
+<div class="relative">
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach (container) => {
+			const pane = useDisposable(Pane, {
+				container,
+				expanded: false,
+				title: "controls",
+			});
+
 			pane.addBinding(
 				{
 					get useVertexColors() {
@@ -95,22 +111,7 @@
 				.on("change", (e) => {
 					material.map = e.value ? butterfreeWingTexture : whiteTexture;
 				});
-		},
-	});
-
-	const canvasSize = new Size();
-</script>
-
-<svelte:boundary onerror={console.trace}>
-	{#snippet failed(error)}
-		{error}
-	{/snippet}
-</svelte:boundary>
-
-<div class="relative">
-	<PaneContainer
-		class="absolute top-2 right-2"
-		{@attach pane}
+		}}
 	/>
 
 	<canvas

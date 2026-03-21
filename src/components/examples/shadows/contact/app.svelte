@@ -12,8 +12,6 @@
 </script>
 
 <script lang="ts">
-	import createPaneAttachment from "@attachments/createPane";
-
 	import { Size } from "@classes/size.svelte";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
@@ -40,6 +38,7 @@
 		TorusKnotGeometry,
 		Vector3,
 	} from "three/webgpu";
+	import { Pane } from "tweakpane";
 
 	const uDarkness = uniform(1);
 	const uShadowOpacity = uniform(1);
@@ -103,9 +102,18 @@
 	$effect(() => {
 		updateCameraAspect(camera, canvasSize.ratio);
 	});
+</script>
 
-	const pane = createPaneAttachment({
-		initialize: (pane) => {
+<div class="relative">
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach (container) => {
+			const pane = useDisposable(Pane, {
+				container,
+				expanded: false,
+				title: "controls",
+			});
+
 			const uniformFolder = pane.addFolder({
 				title: "uniforms",
 			});
@@ -137,14 +145,7 @@
 			sceneFolder.addBinding(helper, "visible", {
 				label: "shadow camera helper visible",
 			});
-		},
-	});
-</script>
-
-<div class="relative">
-	<PaneContainer
-		class="absolute top-2 right-2"
-		{@attach pane}
+		}}
 	/>
 	<canvas
 		class="example-canvas"

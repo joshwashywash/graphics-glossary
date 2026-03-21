@@ -18,8 +18,6 @@
 </script>
 
 <script lang="ts">
-	import createPane from "@attachments/createPane";
-
 	import { Size } from "@classes/size.svelte";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
@@ -46,6 +44,7 @@
 	} from "three";
 	import { ShadowMesh } from "three/examples/jsm/objects/ShadowMesh.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
+	import { Pane } from "tweakpane";
 
 	let rotateMesh = $state(true);
 
@@ -99,9 +98,17 @@
 	});
 
 	let animationLoop: null | (() => void) = null;
+</script>
 
-	const pane = createPane({
-		initialize: (pane) => {
+<div class="relative">
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach (container) => {
+			const pane = useDisposable(Pane, {
+				container,
+				expanded: false,
+				title: "controls",
+			});
 			pane
 				.addBinding({ rotateMesh: true }, "rotateMesh", {
 					label: "rotate mesh",
@@ -109,14 +116,7 @@
 				.on("change", (e) => {
 					rotateMesh = e.value;
 				});
-		},
-	});
-</script>
-
-<div class="relative">
-	<PaneContainer
-		class="absolute top-2 right-2"
-		{@attach pane}
+		}}
 	/>
 	<canvas
 		class="example-canvas"

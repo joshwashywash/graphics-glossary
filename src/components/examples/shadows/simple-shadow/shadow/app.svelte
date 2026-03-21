@@ -1,27 +1,31 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import createPaneAttachment from "@attachments/createPane";
-
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
+
+	import { useDisposable } from "@functions/useDisposable.svelte";
+
+	import { Pane } from "tweakpane";
 
 	let width = $state(1);
 	let height = $state(1);
 
 	let shadowColor = $state("#ffffff");
-
-	const pane = createPaneAttachment({
-		initialize: (pane) => {
-			pane.addBinding({ color: "#ffffff" }, "color").on("change", (e) => {
-				shadowColor = e.value;
-			});
-		},
-	});
 </script>
 
 <div class="relative">
 	<PaneContainer
-		{@attach pane}
+		{@attach (container) => {
+			const pane = useDisposable(Pane, {
+				container,
+				expanded: false,
+				title: "controls",
+			});
+
+			pane.addBinding({ color: "#ffffff" }, "color").on("change", (e) => {
+				shadowColor = e.value;
+			});
+		}}
 		class="absolute top-2 right-2"
 	/>
 
