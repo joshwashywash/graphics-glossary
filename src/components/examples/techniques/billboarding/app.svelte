@@ -33,6 +33,7 @@
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
+	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
@@ -131,14 +132,14 @@
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = createRenderer(
-			{
-				antialias: true,
-				canvas,
-			},
-			() => canvasSize.width,
-			() => canvasSize.height,
-		);
+		const renderer = createRenderer({
+			antialias: true,
+			canvas,
+		});
+
+		$effect(() => {
+			resizeRenderer(renderer, canvas.width, canvas.height);
+		});
 
 		renderer.setAnimationLoop(() => {
 			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);

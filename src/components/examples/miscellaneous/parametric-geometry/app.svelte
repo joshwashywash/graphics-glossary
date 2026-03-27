@@ -12,8 +12,9 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { pringle } from "@functions/parametric/functions/pringle";
-	import { createSphube } from "@functions/parametric/functions/sphube";
+	import { pringle } from "@functions/parametric/pringle";
+	import { createSphube } from "@functions/parametric/sphube";
+	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
@@ -68,14 +69,14 @@
 	bind:clientWidth={canvasSize.width}
 	bind:clientHeight={canvasSize.height}
 	{@attach (canvas) => {
-		const renderer = createRenderer(
-			{
-				antialias: true,
-				canvas,
-			},
-			() => canvasSize.width,
-			() => canvasSize.height,
-		);
+		const renderer = createRenderer({
+			antialias: true,
+			canvas,
+		});
+
+		$effect(() => {
+			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+		});
 
 		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;

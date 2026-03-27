@@ -12,6 +12,7 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
 	import { updateCameraAspect } from "@functions/updateCameraAspect";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
@@ -20,9 +21,7 @@
 	import { equirectUV, texture } from "three/tsl";
 	import { PerspectiveCamera, Scene, TextureLoader } from "three/webgpu";
 
-	const equirectTexture = await loader.loadAsync(
-		textureUrl
-	);
+	const equirectTexture = await loader.loadAsync(textureUrl);
 	useCleanup(() => {
 		equirectTexture.dispose();
 	});
@@ -44,14 +43,14 @@
 	bind:clientHeight={canvasSize.height}
 	class="example-canvas"
 	{@attach (canvas) => {
-		const renderer = createRenderer(
-			{
-				antialias: true,
-				canvas,
-			},
-			() => canvasSize.width,
-			() => canvasSize.height,
-		);
+		const renderer = createRenderer({
+			antialias: true,
+			canvas,
+		});
+
+		$effect(() => {
+			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+		});
 
 		equirectTexture.colorSpace = renderer.currentColorSpace;
 
