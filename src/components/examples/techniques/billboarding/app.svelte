@@ -33,8 +33,8 @@
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { setCameraAspect } from "@functions/setCameraAspect";
+	import { setRendererSize } from "@functions/setRendererSize.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import {
@@ -123,7 +123,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		setCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 
@@ -138,7 +138,7 @@
 		});
 
 		$effect(() => {
-			resizeRenderer(renderer, canvas.width, canvas.height);
+			setRendererSize(renderer, canvas.width, canvas.height);
 		});
 
 		renderer.setAnimationLoop(() => {

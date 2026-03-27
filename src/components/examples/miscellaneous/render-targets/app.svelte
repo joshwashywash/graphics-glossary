@@ -12,8 +12,8 @@
 	import { Size } from "@classes/size.svelte";
 
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { setCameraAspect } from "@functions/setCameraAspect";
+	import { setRendererSize } from "@functions/setRendererSize.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -55,7 +55,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		setCameraAspect(camera, canvasSize.ratio);
 	});
 </script>
 
@@ -70,7 +70,7 @@
 		});
 
 		$effect(() => {
-			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+			setRendererSize(renderer, canvasSize.width, canvasSize.height);
 		});
 
 		const render = () => {

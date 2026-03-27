@@ -22,7 +22,7 @@
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
+	import { setCameraAspect } from "@functions/setCameraAspect";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
@@ -94,7 +94,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		setCameraAspect(camera, canvasSize.ratio);
 	});
 
 	let animationLoop: null | (() => void) = null;

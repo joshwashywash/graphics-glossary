@@ -15,7 +15,7 @@
 
 	import { createFullScreenOrthographicCamera } from "@functions/createFullScreenCamera";
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
+	import { setRendererSize } from "@functions/setRendererSize.svelte";
 	import { useCleanup } from "@functions/useCleanup.svelte";
 	import { useDisposable } from "@functions/useDisposable.svelte";
 
@@ -126,7 +126,7 @@
 			});
 
 			$effect(() => {
-				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
+				setRendererSize(renderer, canvasSize.width, canvasSize.height);
 			});
 
 			renderer.setAnimationLoop(() => {
