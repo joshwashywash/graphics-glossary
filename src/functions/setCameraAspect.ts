@@ -1,4 +1,4 @@
-import type { PerspectiveCamera } from "three";
+import type { PerspectiveCamera } from "three/webgpu";
 
 export const setCameraAspect = (
 	camera: PerspectiveCamera,
