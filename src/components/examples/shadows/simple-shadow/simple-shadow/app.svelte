@@ -20,14 +20,12 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import { Size } from "@classes/size.svelte";
-
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { resize } from "@functions/resize.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
-	import { setRendererSize } from "@functions/setRendererSize.svelte";
-	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { lerp } from "three/src/math/MathUtils.js";
 	import {
@@ -59,25 +57,25 @@
 	context.fillStyle = gradient;
 	context.fillRect(0, 0, context.canvas.width, context.canvas.height);
 
-	const shadowTexture = useDisposable(CanvasTexture, textureCanvas);
+	const shadowTexture = createDisposed(CanvasTexture, textureCanvas);
 
-	const shadowMaterial = useDisposable(MeshBasicMaterial, {
+	const shadowMaterial = createDisposed(MeshBasicMaterial, {
 		color: "#000000",
 		depthWrite: false,
 		map: shadowTexture,
 		transparent: true,
 	});
 
-	const shadowGeometry = useDisposable(
+	const shadowGeometry = createDisposed(
 		PlaneGeometry,
 		sphereDiameter,
 		sphereDiameter,
 	);
 	const shadowMesh = new Mesh(shadowGeometry, shadowMaterial).translateZ(0.01);
 
-	const floorGeometry = useDisposable(PlaneGeometry, floorSize, floorSize);
+	const floorGeometry = createDisposed(PlaneGeometry, floorSize, floorSize);
 
-	const floorMaterial = useDisposable(MeshBasicMaterial, {
+	const floorMaterial = createDisposed(MeshBasicMaterial, {
 		color: "#ccccaa",
 	});
 
@@ -87,8 +85,8 @@
 		.add(shadowMesh, floorMesh)
 		.rotateX(-1 * 0.5 * Math.PI);
 
-	const sphereGeometry = useDisposable(SphereGeometry);
-	const sphereMaterial = useDisposable(MeshNormalMaterial);
+	const sphereGeometry = createDisposed(SphereGeometry);
+	const sphereMaterial = createDisposed(MeshNormalMaterial);
 	const sphereMesh = new Mesh(sphereGeometry, sphereMaterial);
 
 	const scene = new Scene().add(sphereMesh, group);
@@ -98,12 +96,6 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(sphereMesh.position);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		setCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <svelte:boundary>
@@ -114,7 +106,7 @@
 <div class="relative">
 	<PaneContainer
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
 				expanded: false,
 				title: "controls",
@@ -135,20 +127,20 @@
 	/>
 
 	<canvas
-		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
+		class="aspect-video"
 		{@attach (canvas) => {
 			const renderer = createRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			$effect(() => {
-				setRendererSize(renderer, canvasSize.width, canvasSize.height);
-			});
-
 			renderer.setAnimationLoop((time) => {
+				const canvas = renderer.domElement;
+				if (resize(renderer)) {
+					const aspect = canvas.clientWidth / canvas.clientHeight;
+					setCameraAspect(camera, aspect);
+				}
+
 				const t = 0.5 * (1 + Math.sin(time * speed));
 
 				sphereMesh.position.y = lerp(

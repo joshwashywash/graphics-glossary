@@ -22,8 +22,8 @@
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
-	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
@@ -48,8 +48,8 @@
 
 	let rotateMesh = $state(true);
 
-	const geometry = useDisposable(TorusKnotGeometry);
-	const material = useDisposable(MeshNormalMaterial);
+	const geometry = createDisposed(TorusKnotGeometry);
+	const material = createDisposed(MeshNormalMaterial);
 	const mesh = new Mesh(geometry, material).translateY(2);
 
 	const shadowMesh = new ShadowMesh(mesh);
@@ -61,23 +61,23 @@
 
 	const plane = new Plane(yHat, planeConstant);
 
-	const floorGeometry = useDisposable(PlaneGeometry, FLOOR_SIZE, FLOOR_SIZE);
+	const floorGeometry = createDisposed(PlaneGeometry, FLOOR_SIZE, FLOOR_SIZE);
 
-	const floorMaterial = useDisposable(MeshBasicMaterial, {
+	const floorMaterial = createDisposed(MeshBasicMaterial, {
 		color: FLOOR_COLOR,
 	});
 
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
 	floorMesh.lookAt(plane.normal);
 
-	const light = useDisposable(DirectionalLight).translateOnAxis(
+	const light = createDisposed(DirectionalLight).translateOnAxis(
 		DIRECTIONAL_LIGHT_TRANSLATION_AXIS,
 		DIRECTIONAL_LIGHT_TRANSLATION_AMOUNT,
 	);
 
 	light.target = mesh;
 
-	const lightHelper = useDisposable(DirectionalLightHelper, light);
+	const lightHelper = createDisposed(DirectionalLightHelper, light);
 
 	const lightPosition4D = new Vector4(...light.position, 0.01);
 
@@ -104,7 +104,7 @@
 	<PaneContainer
 		class="absolute top-2 right-2"
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
 				expanded: false,
 				title: "controls",
@@ -119,7 +119,7 @@
 		}}
 	/>
 	<canvas
-		class="example-canvas"
+		class="aspect-video"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {

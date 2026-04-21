@@ -11,14 +11,12 @@
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { resize } from "@functions/resize.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
-	import { setRendererSize } from "@functions/setRendererSize.svelte";
-	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
@@ -31,7 +29,7 @@
 	} from "three/webgpu";
 	import { Pane } from "tweakpane";
 
-	const geometry = useDisposable(BoxGeometry);
+	const geometry = createDisposed(BoxGeometry);
 	geometry.setAttribute(
 		"color",
 		geometry
@@ -40,7 +38,7 @@
 			.applyMatrix4(colorAttributeTransformMatrix),
 	);
 
-	const material = useDisposable(MeshBasicMaterial, {
+	const material = createDisposed(MeshBasicMaterial, {
 		vertexColors: true,
 	});
 
@@ -50,19 +48,13 @@
 		cameraTranslationAxis,
 		cameraTranslationAmount,
 	);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		setCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
 				expanded: false,
 				title: "controls",
@@ -86,20 +78,14 @@
 	/>
 
 	<canvas
-		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
+		class="aspect-video"
 		{@attach (canvas) => {
 			const renderer = createRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			$effect(() => {
-				setRendererSize(renderer, canvasSize.width, canvasSize.height);
-			});
-
-			const controls = useDisposable(
+			const controls = createDisposed(
 				OrbitControls,
 				camera,
 				renderer.domElement,
@@ -107,6 +93,12 @@
 			controls.autoRotate = true;
 
 			renderer.setAnimationLoop(() => {
+				const canvas = renderer.domElement;
+				if (resize(renderer)) {
+					const aspect = canvas.clientWidth / canvas.clientHeight;
+					setCameraAspect(camera, aspect);
+				}
+
 				controls.update();
 				renderer.render(mesh, camera);
 			});

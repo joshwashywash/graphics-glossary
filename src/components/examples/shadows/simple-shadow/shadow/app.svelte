@@ -3,7 +3,7 @@
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
-	import { useDisposable } from "@functions/useDisposable.svelte";
+	import { createDisposed } from "@functions/createDisposed.svelte";
 
 	import { Pane } from "tweakpane";
 
@@ -16,7 +16,7 @@
 <div class="relative">
 	<PaneContainer
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
 				expanded: false,
 				title: "controls",
@@ -32,7 +32,7 @@
 	<canvas
 		bind:clientWidth={width}
 		bind:clientHeight={height}
-		class="example-canvas"
+		class="aspect-video"
 		{width}
 		{height}
 		{@attach (canvas) => {

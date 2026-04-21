@@ -9,14 +9,12 @@
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { pringle } from "@functions/parametric/pringle";
 	import { createSphube } from "@functions/parametric/sphube";
+	import { resize } from "@functions/resize.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
-	import { setRendererSize } from "@functions/setRendererSize.svelte";
-	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
@@ -29,17 +27,17 @@
 		Vector3,
 	} from "three/webgpu";
 
-	const material = useDisposable(MeshNormalMaterial, {
+	const material = createDisposed(MeshNormalMaterial, {
 		side: DoubleSide,
 	});
 
-	const sphubeGeometry = useDisposable(
+	const sphubeGeometry = createDisposed(
 		ParametricGeometry,
 		createSphube(),
 		detail,
 		detail,
 	);
-	const pringleGeometry = useDisposable(
+	const pringleGeometry = createDisposed(
 		ParametricGeometry,
 		pringle,
 		detail,
@@ -56,32 +54,26 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(group.position);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		setCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
+	class="aspect-video"
 	{@attach (canvas) => {
 		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		$effect(() => {
-			setRendererSize(renderer, canvasSize.width, canvasSize.height);
-		});
-
-		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
+		const controls = createDisposed(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;
 
 		renderer.setAnimationLoop(() => {
+			const canvas = renderer.domElement;
+			if (resize(renderer)) {
+				const aspect = canvas.clientWidth / canvas.clientHeight;
+				setCameraAspect(camera, aspect);
+			}
+
 			controls.update();
 			renderer.render(group, camera);
 		});

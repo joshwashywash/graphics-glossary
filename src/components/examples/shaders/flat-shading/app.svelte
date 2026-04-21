@@ -16,14 +16,12 @@
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { resize } from "@functions/resize.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
-	import { setRendererSize } from "@functions/setRendererSize.svelte";
-	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
@@ -39,24 +37,24 @@
 	} from "three/webgpu";
 	import { Pane } from "tweakpane";
 
-	const geometry = useDisposable(SphereGeometry);
+	const geometry = createDisposed(SphereGeometry);
 
-	const material = useDisposable(MeshPhongMaterial, {
+	const material = createDisposed(MeshPhongMaterial, {
 		color: "#770077",
 		shininess: 0.5 * SHININESS_MAX,
 	});
 
-	const ambientLight = useDisposable(AmbientLight);
-	const directionalLight = useDisposable(DirectionalLight).translateOnAxis(
+	const ambientLight = createDisposed(AmbientLight);
+	const directionalLight = createDisposed(DirectionalLight).translateOnAxis(
 		directionalLightTranslationAxis,
 		directionalLightTranslationAmount,
 	);
 
-	const helper = useDisposable(DirectionalLightHelper, directionalLight);
+	const helper = createDisposed(DirectionalLightHelper, directionalLight);
 
 	const mesh = new Mesh(geometry, material);
 	mesh.visible = false;
-	const flatShadingMaterial = useDisposable(MeshPhongMaterial).copy(material);
+	const flatShadingMaterial = createDisposed(MeshPhongMaterial).copy(material);
 	flatShadingMaterial.flatShading = true;
 
 	const flatShadingMesh = new Mesh(geometry, flatShadingMaterial);
@@ -78,23 +76,18 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		setCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
 				expanded: false,
 				title: "controls",
 			});
+
 			const materialFolder = pane.addFolder({
 				title: "material",
 			});
@@ -133,7 +126,7 @@
 			});
 
 			sceneFolder.addBinding(helper, "visible", {
-				label: "light helper visible",
+				label: "show light helper",
 			});
 
 			sceneFolder.addBinding(
@@ -153,20 +146,14 @@
 		}}
 	/>
 	<canvas
-		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
+		class="aspect-video"
 		{@attach (canvas) => {
 			const renderer = createRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			$effect(() => {
-				setRendererSize(renderer, canvasSize.width, canvasSize.height);
-			});
-
-			const controls = useDisposable(
+			const controls = createDisposed(
 				OrbitControls,
 				camera,
 				renderer.domElement,
@@ -174,6 +161,12 @@
 			controls.autoRotate = true;
 
 			renderer.setAnimationLoop(() => {
+				const canvas = renderer.domElement;
+				if (resize(renderer)) {
+					const aspect = canvas.clientWidth / canvas.clientHeight;
+					setCameraAspect(camera, aspect);
+				}
+
 				controls.update();
 				renderer.render(scene, camera);
 			});

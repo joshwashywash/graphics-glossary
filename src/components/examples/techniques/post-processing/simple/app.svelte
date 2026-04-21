@@ -37,12 +37,10 @@
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
+	import { resize } from "@functions/resize.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
-	import { setRendererSize } from "@functions/setRendererSize.svelte";
-	import { useDisposable } from "@functions/useDisposable.svelte";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -59,8 +57,8 @@
 		Vector3,
 	} from "three/webgpu";
 
-	const geometry = useDisposable(TorusKnotGeometry);
-	const material = useDisposable(MeshStandardMaterial);
+	const geometry = createDisposed(TorusKnotGeometry);
+	const material = createDisposed(MeshStandardMaterial);
 	const mesh = new Mesh(geometry, material);
 	const scene = new Scene().add(mesh);
 
@@ -74,29 +72,17 @@
 	hdr.mapping = EquirectangularReflectionMapping;
 	scene.background = hdr;
 	scene.environment = hdr;
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		setCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
+	class="aspect-video"
 	{@attach (canvas) => {
 		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		$effect(() => {
-			setRendererSize(renderer, canvasSize.width, canvasSize.height);
-		});
-
-		const postProcessing = useDisposable(RenderPipeline, renderer);
+		const postProcessing = createDisposed(RenderPipeline, renderer);
 		postProcessing.outputNode = vec4(
 			dot(vec3(0.2126, 0.7152, 0.0722), pass(scene, camera).rgb)
 				.lessThan(bayerValue)
@@ -104,10 +90,16 @@
 			1.0,
 		);
 
-		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
+		const controls = createDisposed(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;
 
 		renderer.setAnimationLoop(() => {
+			const canvas = renderer.domElement;
+			if (resize(renderer)) {
+				const aspect = canvas.clientWidth / canvas.clientHeight;
+				setCameraAspect(camera, aspect);
+			}
+
 			mesh.rotateX(angle);
 			controls.update();
 			postProcessing.render();

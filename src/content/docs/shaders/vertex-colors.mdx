@@ -5,10 +5,9 @@ sidebar:
 title: Vertex Colors
 ---
 
-import ButterfreeApp from "@components/examples/shaders/vertex-colors/butterfree/app.svelte";
 import SimpleApp from "@components/examples/shaders/vertex-colors/simple/app.svelte";
 
-import { Steps, TabItem, Tabs } from "@astrojs/starlight/components";
+import { TabItem, Tabs } from "@astrojs/starlight/components";
 
 Assigns a color to each vertex of a geometry. Colors are interpolated just like any other buffer attribute.
 
@@ -38,8 +37,6 @@ Before PBR graphics, vertex coloring was often used to add depth to a scene's co
 Notice that the vertex color data is used to add a bit of darkness to the corners of the scene, for example around the surfboard, butterfree's wings, and the flowers. Because vertex colors are a buffer attributes they are interpolated. This is why they appear as gradients.
 
 Interestingly, the water's vertex color is used to give a sense of where the water isn't as deep such as along the shoreline.
-
-<ButterfreeApp client:only="svelte" />
 
 ### Representing Data Through Coloring
 
