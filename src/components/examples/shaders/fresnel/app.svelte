@@ -51,18 +51,8 @@
 	const camera = new PerspectiveCamera().translateZ(5);
 
 	const colors = {
-		get base() {
-			return `#${baseColorUniform.value.getHexString()}`;
-		},
-		set base(value) {
-			baseColorUniform.value.set(value);
-		},
-		get fresnel() {
-			return `#${fresnelColorUniform.value.getHexString()}`;
-		},
-		set fresnel(value) {
-			fresnelColorUniform.value.set(value);
-		},
+		base: `#${baseColorUniform.value.getHexString()}`,
+		fresnel: `#${fresnelColorUniform.value.getHexString()}`,
 	};
 </script>
 
@@ -72,17 +62,24 @@
 		{@attach (container) => {
 			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
 				title: "controls",
 			});
 
-			pane.addBinding(colors, "base", {
-				label: "base color",
-			});
+			pane
+				.addBinding(colors, "base", {
+					label: "base color",
+				})
+				.on("change", (e) => {
+					baseColorUniform.value.set(e.value);
+				});
 
-			pane.addBinding(colors, "fresnel", {
-				label: "fresnel color",
-			});
+			pane
+				.addBinding(colors, "fresnel", {
+					label: "fresnel color",
+				})
+				.on("change", (e) => {
+					fresnelColorUniform.value.set(e.value);
+				});
 
 			pane.addBinding(powerUniform, "value", {
 				label: "power",

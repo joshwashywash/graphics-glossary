@@ -2,8 +2,8 @@
 	lang="ts"
 	module
 >
-	const cameraTranslationAxis = new Vector3(0, 1, 1).normalize();
-	const cameraTranslationAmount = 10;
+	const CAMERA_TRANSLATION_AXIS = new Vector3(0, 1, 1).normalize();
+	const CAMERA_TRANSLATION_AMOUNT = 10;
 
 	const PLANE_SIZE = 5;
 
@@ -19,6 +19,7 @@
 	import { resize } from "@functions/resize.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
+	import { untrack } from "svelte";
 	import { gaussianBlur } from "three/addons/tsl/display/GaussianBlurNode.js";
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
@@ -86,14 +87,12 @@
 	);
 	shadowCamera.lookAt(mesh.position);
 
-	const helper = createDisposed(CameraHelper, shadowCamera);
-
-	const scene = new Scene().add(shadowPlaneMesh, mesh, helper);
+	const scene = new Scene().add(shadowPlaneMesh, mesh);
 	scene.background = new Color("#eeeeee");
 
 	const camera = new PerspectiveCamera().translateOnAxis(
-		cameraTranslationAxis,
-		cameraTranslationAmount,
+		CAMERA_TRANSLATION_AXIS,
+		CAMERA_TRANSLATION_AMOUNT,
 	);
 	camera.lookAt(mesh.position);
 </script>
@@ -104,13 +103,9 @@
 		{@attach (container) => {
 			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
-				title: "controls",
-			});
-
-			const uniformFolder = pane.addFolder({
 				title: "uniforms",
 			});
+
 			pane.addBinding(uDarkness, "value", {
 				label: "darkness",
 				min: 0,
@@ -118,26 +113,18 @@
 				step: 0.1,
 			});
 
-			uniformFolder.addBinding(uShadowOpacity, "value", {
+			pane.addBinding(uShadowOpacity, "value", {
 				label: "opacity",
 				min: 0,
 				max: 1,
 				step: 0.1,
 			});
 
-			uniformFolder.addBinding(uBlur, "value", {
+			pane.addBinding(uBlur, "value", {
 				label: "blur",
 				min: 0,
 				max: 5,
 				step: 0.5,
-			});
-
-			const sceneFolder = pane.addFolder({
-				title: "scene",
-			});
-
-			sceneFolder.addBinding(helper, "visible", {
-				label: "shadow camera helper visible",
 			});
 		}}
 	/>
@@ -169,17 +156,11 @@
 				const lastRenderTarget = renderer.getRenderTarget();
 				renderer.setRenderTarget(renderTarget);
 
-				const lastCameraHelperVisible = helper.visible;
-
-				helper.visible = false;
-
 				renderer.render(scene, shadowCamera);
 
 				scene.background = lastBackground;
 				scene.overrideMaterial = lastOverrideMaterial;
 				renderer.setRenderTarget(lastRenderTarget);
-
-				helper.visible = lastCameraHelperVisible;
 
 				renderer.render(scene, camera);
 			});

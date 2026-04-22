@@ -6,8 +6,8 @@
 		new Vector3().setScalar(0.5),
 	);
 
-	const cameraTranslationAxis = new Vector3(1, 1, 1).normalize();
-	const cameraTranslationAmount = 3;
+	const CAMERA_TRANSLATION_AXIS = new Vector3(1, 1, 1).normalize();
+	const CAMERA_TRANSLATION_AMOUNT = 3;
 </script>
 
 <script lang="ts">
@@ -45,8 +45,8 @@
 	const mesh = new Mesh(geometry, material);
 
 	const camera = new PerspectiveCamera().translateOnAxis(
-		cameraTranslationAxis,
-		cameraTranslationAmount,
+		CAMERA_TRANSLATION_AXIS,
+		CAMERA_TRANSLATION_AMOUNT,
 	);
 </script>
 
@@ -56,24 +56,16 @@
 		{@attach (container) => {
 			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
 				title: "controls",
 			});
-			pane.addBinding(
-				{
-					get useVertexColors() {
-						return material.vertexColors;
-					},
-					set useVertexColors(value) {
-						material.vertexColors = value;
-						material.needsUpdate = true;
-					},
-				},
-				"useVertexColors",
-				{
-					label: "use vertex colors",
-				},
-			);
+
+			pane
+				.addBinding(material, "vertexColors", {
+					label: "vertex colors",
+				})
+				.on("change", () => {
+					material.needsUpdate = true;
+				});
 		}}
 	/>
 

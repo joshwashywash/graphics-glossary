@@ -84,7 +84,6 @@
 		{@attach (container) => {
 			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
 				title: "controls",
 			});
 
@@ -92,34 +91,26 @@
 				title: "material",
 			});
 
-			materialFolder.addBinding(
-				{
-					get shininess() {
-						return material.shininess;
-					},
-					set shininess(value) {
-						flatShadingMaterial.shininess = material.shininess = value;
-					},
-				},
-				"shininess",
-				{
+			materialFolder
+				.addBinding(material, "shininess", {
 					min: 0,
 					max: SHININESS_MAX,
 					step: 1,
-				},
-			);
+				})
+				.on("change", (e) => {
+					flatShadingMaterial.shininess = e.value;
+				});
 
-			materialFolder.addBinding(
-				{
-					get color() {
-						return `#${material.color.getHexString()}`;
+			materialFolder
+				.addBinding(
+					{
+						color: `#${material.color.getHexString()}`,
 					},
-					set color(value) {
-						flatShadingMaterial.color.copy(material.color.set(value));
-					},
-				},
-				"color",
-			);
+					"color",
+				)
+				.on("change", (e) => {
+					flatShadingMaterial.color.copy(material.color.set(e.value));
+				});
 
 			const sceneFolder = pane.addFolder({
 				title: "scene",
@@ -129,20 +120,13 @@
 				label: "show light helper",
 			});
 
-			sceneFolder.addBinding(
-				{
-					get flatShading() {
-						return flatShadingMesh.visible;
-					},
-					set flatShading(value) {
-						mesh.visible = !(flatShadingMesh.visible = value);
-					},
-				},
-				"flatShading",
-				{
+			sceneFolder
+				.addBinding(flatShadingMesh, "visible", {
 					label: "flat shading",
-				},
-			);
+				})
+				.on("change", (e) => {
+					mesh.visible = !e.value;
+				});
 		}}
 	/>
 	<canvas

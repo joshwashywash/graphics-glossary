@@ -84,19 +84,16 @@
 				title: "controls",
 			});
 
-			pane.addBinding(
-				{
-					get invert() {
-						return knotMaterial.stencilFunc === NotEqualStencilFunc;
-					},
-					set invert(value) {
-						knotMaterial.stencilFunc = value
-							? NotEqualStencilFunc
-							: EqualStencilFunc;
-					},
-				},
-				"invert",
-			);
+			pane
+				.addBinding(
+					{ invert: knotMaterial.stencilFunc === NotEqualStencilFunc },
+					"invert",
+				)
+				.on("change", (e) => {
+					knotMaterial.stencilFunc = e.value
+						? NotEqualStencilFunc
+						: EqualStencilFunc;
+				});
 		}}
 	/>
 	<canvas

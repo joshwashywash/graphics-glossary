@@ -106,13 +106,19 @@
 		{@attach (container) => {
 			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
 				title: "controls",
 			});
+
 			pane
-				.addBinding({ rotateMesh: true }, "rotateMesh", {
-					label: "rotate mesh",
-				})
+				.addBinding(
+					{
+						rotateMesh: true,
+					},
+					"rotateMesh",
+					{
+						label: "rotate",
+					},
+				)
 				.on("change", (e) => {
 					rotateMesh = e.value;
 				});
@@ -149,7 +155,6 @@
 					(animationLoop = () => {
 						mesh.rotateY(ANGLE);
 						shadowMesh.update(plane, lightPosition4D);
-						renderer.render(scene, camera);
 
 						render();
 					}),
@@ -159,6 +164,10 @@
 					renderer.setAnimationLoop((animationLoop = null));
 				};
 			});
+
+			return () => {
+				renderer.dispose();
+			};
 		}}
 	>
 	</canvas>

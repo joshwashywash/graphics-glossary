@@ -70,18 +70,7 @@
 	const scene = new Scene().add(cube, helper);
 	spyCamera.lookAt(scene.position);
 
-	const context = {
-		_camera: sceneCamera,
-		get showAll() {
-			return this._camera === spyCamera;
-		},
-		set showAll(value) {
-			this._camera = value ? spyCamera : sceneCamera;
-			helper.visible = value;
-			controls.enabled = value;
-		},
-	};
-
+	let camera = sceneCamera;
 	const controls = createDisposed(OrbitControls, spyCamera);
 </script>
 
@@ -92,9 +81,20 @@
 			createDisposed(Pane, {
 				container,
 				title: "controls",
-			}).addBinding(context, "showAll", {
-				label: "show all",
-			});
+			})
+				.addBinding(
+					{
+						showAll: camera === spyCamera,
+					},
+					"showAll",
+					{
+						label: "show all",
+					},
+				)
+				.on("change", (e) => {
+					camera = e.value ? spyCamera : sceneCamera;
+					controls.enabled = helper.visible = e.value;
+				});
 		}}
 	/>
 	<canvas
@@ -118,7 +118,7 @@
 				sceneCamera.lookAt(c, amplitudeY * c, Math.sin(time));
 				if (helper.visible) helper.update();
 
-				renderer.render(scene, context._camera);
+				renderer.render(scene, camera);
 			});
 
 			controls.connect(renderer.domElement);

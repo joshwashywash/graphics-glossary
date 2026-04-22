@@ -20,8 +20,6 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
-	import PaneContainer from "@components/controls/PaneContainer.svelte";
-
 	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { resize } from "@functions/resize.svelte";
@@ -40,7 +38,6 @@
 		SphereGeometry,
 		Vector3,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const textureCanvas = new OffscreenCanvas(
 		textureCanvasSize,
@@ -103,58 +100,35 @@
 		<p>{error}</p>
 	{/snippet}
 </svelte:boundary>
-<div class="relative">
-	<PaneContainer
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
-				expanded: false,
-				title: "controls",
-			});
-			pane.addBinding(
-				{
-					get color() {
-						return `#${shadowMaterial.color.getHexString()}`;
-					},
-					set color(value) {
-						shadowMaterial.color.set(value);
-					},
-				},
-				"color",
+
+<canvas
+	class="aspect-video"
+	{@attach (canvas) => {
+		const renderer = createRenderer({
+			antialias: true,
+			canvas,
+		});
+
+		renderer.setAnimationLoop((time) => {
+			const canvas = renderer.domElement;
+			if (resize(renderer)) {
+				const aspect = canvas.clientWidth / canvas.clientHeight;
+				setCameraAspect(camera, aspect);
+			}
+
+			const t = 0.5 * (1 + Math.sin(time * speed));
+
+			sphereMesh.position.y = lerp(
+				positionYInitial - 1,
+				positionYInitial + 1,
+				t,
 			);
-		}}
-		class="absolute top-2 right-2"
-	/>
+			shadowMesh.scale.setScalar(1 + t);
 
-	<canvas
-		class="aspect-video"
-		{@attach (canvas) => {
-			const renderer = createRenderer({
-				antialias: true,
-				canvas,
-			});
+			shadowMaterial.opacity = lerp(1, 0, t);
 
-			renderer.setAnimationLoop((time) => {
-				const canvas = renderer.domElement;
-				if (resize(renderer)) {
-					const aspect = canvas.clientWidth / canvas.clientHeight;
-					setCameraAspect(camera, aspect);
-				}
-
-				const t = 0.5 * (1 + Math.sin(time * speed));
-
-				sphereMesh.position.y = lerp(
-					positionYInitial - 1,
-					positionYInitial + 1,
-					t,
-				);
-				shadowMesh.scale.setScalar(1 + t);
-
-				shadowMaterial.opacity = lerp(1, 0, t);
-
-				renderer.render(scene, camera);
-			});
-		}}
-	>
-	</canvas>
-</div>
+			renderer.render(scene, camera);
+		});
+	}}
+>
+</canvas>
