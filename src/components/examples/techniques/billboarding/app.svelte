@@ -29,13 +29,11 @@
 <script lang="ts">
 	import booImageMetadata from "@assets/boo.png";
 
-	import { Size } from "@classes/size.svelte";
-
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useDisposable } from "@functions/useDisposable.svelte";
+	import { resize } from "@functions/resize.svelte";
+	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import {
 		BoxGeometry,
@@ -62,7 +60,7 @@
 		throw new Error("texture context is null");
 	}
 
-	const canvasTexture = useDisposable(CanvasTexture, booCanvas);
+	const canvasTexture = createDisposed(CanvasTexture, booCanvas);
 	canvasTexture.minFilter = NearestFilter;
 	canvasTexture.magFilter = NearestFilter;
 
@@ -99,14 +97,14 @@
 		canvasTexture.needsUpdate = true;
 	});
 
-	const spriteMaterial = useDisposable(SpriteMaterial, {
+	const spriteMaterial = createDisposed(SpriteMaterial, {
 		map: canvasTexture,
 	});
 
 	const sprite = new Sprite(spriteMaterial).translateZ(1);
 
-	const material = useDisposable(MeshNormalMaterial);
-	const geometry = useDisposable(BoxGeometry);
+	const material = createDisposed(MeshNormalMaterial);
+	const geometry = createDisposed(BoxGeometry);
 
 	const mesh = new Mesh(geometry, material).translateZ(-1);
 	mesh.scale.setScalar(0.5);
@@ -119,29 +117,23 @@
 	);
 
 	let lastOffset: number;
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
+	class="aspect-video"
 	{@attach (canvas) => {
 		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		$effect(() => {
-			resizeRenderer(renderer, canvas.width, canvas.height);
-		});
-
 		renderer.setAnimationLoop(() => {
+			const canvas = renderer.domElement;
+			if (resize(renderer)) {
+				const aspect = canvas.clientWidth / canvas.clientHeight;
+				setCameraAspect(camera, aspect);
+			}
+
 			camera.position.applyAxisAngle(yHat, cameraRotationSpeed);
 			camera.lookAt(scene.position);
 

@@ -5,7 +5,9 @@ title: Cube
 
 import App from "@components/examples/environment-mapping/cube/basic/app.svelte";
 import Net from "@components/examples/environment-mapping/cube/net/app.svelte";
+import Skybox from "@components/examples/environment-mapping/cube/skybox/app.svelte";
 
+<Skybox client:only="svelte" />
 <Net
 	client:visible="svelte"
 	posx="/cubemaps/Lycksele/posx.jpg"

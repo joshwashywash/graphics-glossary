@@ -1,10 +1,14 @@
-import { useCleanup } from "./useCleanup.svelte";
+import { onCleanup } from "./onCleanup.svelte";
 
 /**
+ * things which require disposal in three.js have a `dispose` method on them.
+ *
+ * this function automatically calls `.dispose` on cleanup.
+ *
  * must be called within an effect such as $effect.root or component initialization
- * creates an instance `constructor` and calls its `dispose` method when the parent effect is destroyed
+ * creates an instance of `constructor` and calls its `dispose` method when the parent effect is destroyed
  */
-export const useDisposable = <
+export const createDisposed = <
 	Disposable extends {
 		dispose(): void;
 	},
@@ -15,7 +19,7 @@ export const useDisposable = <
 ): Disposable => {
 	const disposable = new constructor(...args);
 
-	useCleanup(() => {
+	onCleanup(() => {
 		disposable.dispose();
 	});
 

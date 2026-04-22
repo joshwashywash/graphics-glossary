@@ -23,6 +23,12 @@ export default defineConfig({
 			},
 			sidebar: [
 				{
+					label: "Data Buffers",
+					autogenerate: {
+						directory: "data-buffers",
+					},
+				},
+				{
 					label: "Shaders",
 					autogenerate: {
 						directory: "shaders",
@@ -74,3 +80,4 @@ export default defineConfig({
 
 	adapter: cloudflare(),
 });
+

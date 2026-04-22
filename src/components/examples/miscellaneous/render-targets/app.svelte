@@ -9,12 +9,10 @@
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useDisposable } from "@functions/useDisposable.svelte";
+	import { resize } from "@functions/resize.svelte";
+	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -27,6 +25,7 @@
 		PlaneGeometry,
 		RenderTarget,
 		Scene,
+		Vector2,
 		Vector3,
 	} from "three/webgpu";
 
@@ -36,9 +35,9 @@
 	scene.background = hdr;
 	scene.environment = hdr;
 
-	const geometry = useDisposable(PlaneGeometry);
-	const target = useDisposable(RenderTarget);
-	const material = useDisposable(MeshBasicMaterial, {
+	const geometry = createDisposed(PlaneGeometry);
+	const target = createDisposed(RenderTarget);
+	const material = createDisposed(MeshBasicMaterial, {
 		map: target.texture,
 		side: DoubleSide,
 	});
@@ -51,29 +50,27 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <canvas
-	class="example-canvas"
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
+	class="aspect-video"
 	{@attach (canvas) => {
 		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		$effect(() => {
-			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-		});
+		const size = new Vector2();
 
 		const render = () => {
+			const canvas = renderer.domElement;
+			if (resize(renderer)) {
+				const aspect = canvas.clientWidth / canvas.clientHeight;
+				setCameraAspect(camera, aspect);
+				renderer.getSize(size);
+				target.setSize(size.width, size.height);
+			}
+
 			mesh.visible = false;
 
 			const last = renderer.getRenderTarget();
@@ -92,13 +89,9 @@
 			scene.backgroundBlurriness = lastBlurriness;
 		};
 
-		$effect(() => {
-			target.setSize(canvas.width, canvas.height);
-		});
-
 		renderer.setAnimationLoop(render);
 
-		useDisposable(OrbitControls, camera, renderer.domElement);
+		createDisposed(OrbitControls, camera, renderer.domElement);
 	}}
 >
 </canvas>

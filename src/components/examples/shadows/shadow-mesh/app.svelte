@@ -22,8 +22,8 @@
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useDisposable } from "@functions/useDisposable.svelte";
+	import { createDisposed } from "@functions/createDisposed.svelte";
+	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { devicePixelRatio } from "svelte/reactivity/window";
 	import {
@@ -48,8 +48,8 @@
 
 	let rotateMesh = $state(true);
 
-	const geometry = useDisposable(TorusKnotGeometry);
-	const material = useDisposable(MeshNormalMaterial);
+	const geometry = createDisposed(TorusKnotGeometry);
+	const material = createDisposed(MeshNormalMaterial);
 	const mesh = new Mesh(geometry, material).translateY(2);
 
 	const shadowMesh = new ShadowMesh(mesh);
@@ -61,23 +61,23 @@
 
 	const plane = new Plane(yHat, planeConstant);
 
-	const floorGeometry = useDisposable(PlaneGeometry, FLOOR_SIZE, FLOOR_SIZE);
+	const floorGeometry = createDisposed(PlaneGeometry, FLOOR_SIZE, FLOOR_SIZE);
 
-	const floorMaterial = useDisposable(MeshBasicMaterial, {
+	const floorMaterial = createDisposed(MeshBasicMaterial, {
 		color: FLOOR_COLOR,
 	});
 
 	const floorMesh = new Mesh(floorGeometry, floorMaterial);
 	floorMesh.lookAt(plane.normal);
 
-	const light = useDisposable(DirectionalLight).translateOnAxis(
+	const light = createDisposed(DirectionalLight).translateOnAxis(
 		DIRECTIONAL_LIGHT_TRANSLATION_AXIS,
 		DIRECTIONAL_LIGHT_TRANSLATION_AMOUNT,
 	);
 
 	light.target = mesh;
 
-	const lightHelper = useDisposable(DirectionalLightHelper, light);
+	const lightHelper = createDisposed(DirectionalLightHelper, light);
 
 	const lightPosition4D = new Vector4(...light.position, 0.01);
 
@@ -94,7 +94,7 @@
 	const canvasSize = new Size();
 
 	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
+		setCameraAspect(camera, canvasSize.ratio);
 	});
 
 	let animationLoop: null | (() => void) = null;
@@ -104,22 +104,28 @@
 	<PaneContainer
 		class="absolute top-2 right-2"
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
 				title: "controls",
 			});
+
 			pane
-				.addBinding({ rotateMesh: true }, "rotateMesh", {
-					label: "rotate mesh",
-				})
+				.addBinding(
+					{
+						rotateMesh: true,
+					},
+					"rotateMesh",
+					{
+						label: "rotate",
+					},
+				)
 				.on("change", (e) => {
 					rotateMesh = e.value;
 				});
 		}}
 	/>
 	<canvas
-		class="example-canvas"
+		class="aspect-video"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {
@@ -149,7 +155,6 @@
 					(animationLoop = () => {
 						mesh.rotateY(ANGLE);
 						shadowMesh.update(plane, lightPosition4D);
-						renderer.render(scene, camera);
 
 						render();
 					}),
@@ -159,6 +164,10 @@
 					renderer.setAnimationLoop((animationLoop = null));
 				};
 			});
+
+			return () => {
+				renderer.dispose();
+			};
 		}}
 	>
 	</canvas>

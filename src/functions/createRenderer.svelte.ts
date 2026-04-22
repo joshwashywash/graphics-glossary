@@ -1,4 +1,4 @@
-import { useCleanup } from "./useCleanup.svelte";
+import { onCleanup } from "./onCleanup.svelte";
 
 import { devicePixelRatio } from "svelte/reactivity/window";
 import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPURenderer.js";
@@ -14,7 +14,7 @@ export const createRenderer = (params: WebGPURendererParameters) => {
 		renderer.setPixelRatio(devicePixelRatio.current);
 	});
 
-	useCleanup(() => {
+	onCleanup(() => {
 		// `setAnimationLoop` waits for renderer.init()
 		renderer.setAnimationLoop(null).then(() => {
 			renderer.dispose();

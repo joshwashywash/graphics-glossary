@@ -3,13 +3,3 @@
 @import '@astrojs/starlight-tailwind';
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
-
-@layer components {
-	.example-canvas {
-		@apply aspect-square w-full;
-	}
-
-	.example-pane {
-		@apply absolute top-2 right-2 py-1 bg-black/90 px-4 rounded-lg min-w-3xs sm:min-w-2xs md:min-w-xs;
-	}
-}

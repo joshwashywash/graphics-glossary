@@ -6,19 +6,17 @@
 		new Vector3().setScalar(0.5),
 	);
 
-	const cameraTranslationAxis = new Vector3(1, 1, 1).normalize();
-	const cameraTranslationAmount = 3;
+	const CAMERA_TRANSLATION_AXIS = new Vector3(1, 1, 1).normalize();
+	const CAMERA_TRANSLATION_AMOUNT = 3;
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useDisposable } from "@functions/useDisposable.svelte";
+	import { resize } from "@functions/resize.svelte";
+	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
@@ -31,7 +29,7 @@
 	} from "three/webgpu";
 	import { Pane } from "tweakpane";
 
-	const geometry = useDisposable(BoxGeometry);
+	const geometry = createDisposed(BoxGeometry);
 	geometry.setAttribute(
 		"color",
 		geometry
@@ -40,66 +38,46 @@
 			.applyMatrix4(colorAttributeTransformMatrix),
 	);
 
-	const material = useDisposable(MeshBasicMaterial, {
+	const material = createDisposed(MeshBasicMaterial, {
 		vertexColors: true,
 	});
 
 	const mesh = new Mesh(geometry, material);
 
 	const camera = new PerspectiveCamera().translateOnAxis(
-		cameraTranslationAxis,
-		cameraTranslationAmount,
+		CAMERA_TRANSLATION_AXIS,
+		CAMERA_TRANSLATION_AMOUNT,
 	);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
 				title: "controls",
 			});
-			pane.addBinding(
-				{
-					get useVertexColors() {
-						return material.vertexColors;
-					},
-					set useVertexColors(value) {
-						material.vertexColors = value;
-						material.needsUpdate = true;
-					},
-				},
-				"useVertexColors",
-				{
-					label: "use vertex colors",
-				},
-			);
+
+			pane
+				.addBinding(material, "vertexColors", {
+					label: "vertex colors",
+				})
+				.on("change", () => {
+					material.needsUpdate = true;
+				});
 		}}
 	/>
 
 	<canvas
-		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
+		class="aspect-video"
 		{@attach (canvas) => {
 			const renderer = createRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			$effect(() => {
-				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-			});
-
-			const controls = useDisposable(
+			const controls = createDisposed(
 				OrbitControls,
 				camera,
 				renderer.domElement,
@@ -107,6 +85,12 @@
 			controls.autoRotate = true;
 
 			renderer.setAnimationLoop(() => {
+				const canvas = renderer.domElement;
+				if (resize(renderer)) {
+					const aspect = canvas.clientWidth / canvas.clientHeight;
+					setCameraAspect(camera, aspect);
+				}
+
 				controls.update();
 				renderer.render(mesh, camera);
 			});

@@ -9,20 +9,18 @@
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useCleanup } from "@functions/useCleanup.svelte";
-	import { useDisposable } from "@functions/useDisposable.svelte";
+	import { onCleanup } from "@functions/onCleanup.svelte";
+	import { resize } from "@functions/resize.svelte";
+	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { equirectUV, texture } from "three/tsl";
 	import { PerspectiveCamera, Scene, TextureLoader } from "three/webgpu";
 
 	const equirectTexture = await loader.loadAsync(textureUrl);
-	useCleanup(() => {
+	onCleanup(() => {
 		equirectTexture.dispose();
 	});
 
@@ -30,34 +28,28 @@
 	scene.backgroundNode = texture(equirectTexture, equirectUV(), 0);
 
 	const camera = new PerspectiveCamera().translateZ(CAMERA_TRANSLATION_AMOUNT);
-
-	const canvasSize = new Size();
-
-	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
-	});
 </script>
 
 <canvas
-	bind:clientWidth={canvasSize.width}
-	bind:clientHeight={canvasSize.height}
-	class="example-canvas"
+	class="aspect-video"
 	{@attach (canvas) => {
 		const renderer = createRenderer({
 			antialias: true,
 			canvas,
 		});
 
-		$effect(() => {
-			resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-		});
-
 		equirectTexture.colorSpace = renderer.currentColorSpace;
 
-		const controls = useDisposable(OrbitControls, camera, renderer.domElement);
+		const controls = createDisposed(OrbitControls, camera, renderer.domElement);
 		controls.autoRotate = true;
 
 		renderer.setAnimationLoop(() => {
+			const canvas = renderer.domElement;
+			if (resize(renderer)) {
+				const aspect = canvas.clientWidth / canvas.clientHeight;
+				setCameraAspect(camera, aspect);
+			}
+
 			controls.update();
 			renderer.render(scene, camera);
 		});

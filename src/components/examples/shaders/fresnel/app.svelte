@@ -13,14 +13,12 @@
 </script>
 
 <script lang="ts">
-	import { Size } from "@classes/size.svelte";
-
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resizeRenderer } from "@functions/resizeRenderer.svelte";
-	import { updateCameraAspect } from "@functions/updateCameraAspect";
-	import { useDisposable } from "@functions/useDisposable.svelte";
+	import { resize } from "@functions/resize.svelte";
+	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { normalWorld, positionViewDirection, uniform } from "three/tsl";
@@ -43,33 +41,18 @@
 		.pow(powerUniform)
 		.mul(fresnelColorUniform);
 
-	const material = useDisposable(MeshBasicNodeMaterial);
+	const material = createDisposed(MeshBasicNodeMaterial);
 	material.colorNode = fresnel.add(inverseFresnel);
 
-	const geometry = useDisposable(TorusKnotGeometry);
+	const geometry = createDisposed(TorusKnotGeometry);
 
 	const mesh = new Mesh(geometry, material);
 
 	const camera = new PerspectiveCamera().translateZ(5);
 
-	const canvasSize = new Size();
-	$effect(() => {
-		updateCameraAspect(camera, canvasSize.ratio);
-	});
-
 	const colors = {
-		get base() {
-			return `#${baseColorUniform.value.getHexString()}`;
-		},
-		set base(value) {
-			baseColorUniform.value.set(value);
-		},
-		get fresnel() {
-			return `#${fresnelColorUniform.value.getHexString()}`;
-		},
-		set fresnel(value) {
-			fresnelColorUniform.value.set(value);
-		},
+		base: `#${baseColorUniform.value.getHexString()}`,
+		fresnel: `#${fresnelColorUniform.value.getHexString()}`,
 	};
 </script>
 
@@ -77,19 +60,26 @@
 	<PaneContainer
 		class="absolute top-2 right-2"
 		{@attach (container) => {
-			const pane = useDisposable(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
-				expanded: false,
 				title: "controls",
 			});
 
-			pane.addBinding(colors, "base", {
-				label: "base color",
-			});
+			pane
+				.addBinding(colors, "base", {
+					label: "base color",
+				})
+				.on("change", (e) => {
+					baseColorUniform.value.set(e.value);
+				});
 
-			pane.addBinding(colors, "fresnel", {
-				label: "fresnel color",
-			});
+			pane
+				.addBinding(colors, "fresnel", {
+					label: "fresnel color",
+				})
+				.on("change", (e) => {
+					fresnelColorUniform.value.set(e.value);
+				});
 
 			pane.addBinding(powerUniform, "value", {
 				label: "power",
@@ -100,20 +90,14 @@
 		}}
 	/>
 	<canvas
-		class="example-canvas"
-		bind:clientWidth={canvasSize.width}
-		bind:clientHeight={canvasSize.height}
+		class="aspect-video"
 		{@attach (canvas) => {
 			const renderer = createRenderer({
 				antialias: true,
 				canvas,
 			});
 
-			$effect(() => {
-				resizeRenderer(renderer, canvasSize.width, canvasSize.height);
-			});
-
-			const controls = useDisposable(
+			const controls = createDisposed(
 				OrbitControls,
 				camera,
 				renderer.domElement,
@@ -121,6 +105,12 @@
 			controls.autoRotate = true;
 
 			renderer.setAnimationLoop(() => {
+				const canvas = renderer.domElement;
+				if (resize(renderer)) {
+					const aspect = canvas.clientWidth / canvas.clientHeight;
+					setCameraAspect(camera, aspect);
+				}
+
 				controls.update();
 				renderer.render(mesh, camera);
 			});
