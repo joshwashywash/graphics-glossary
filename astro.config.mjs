@@ -5,9 +5,9 @@ import svelte from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 
-const site = "https://joshwashywash.github.io";
+const site = "https://let-josh.github.io";
 
-const repoURL = "https://github.com/joshwashywash/graphics-glossary";
+const repoURL = "https://github.com/let-josh/graphics-glossary";
 
 // https://astro.build/config
 export default defineConfig({
