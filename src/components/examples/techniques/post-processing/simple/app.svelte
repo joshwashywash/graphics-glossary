@@ -31,7 +31,7 @@
 	const bayerValue = bayer4x4Matrix
 		.element(bayerIndex.y)
 		.element(bayerIndex.x)
-		.toFloat();
+		.toInt();
 
 	const angle = 1 * DEG2RAD;
 </script>
@@ -45,7 +45,7 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
-	import { dot, mat4, pass, screenSize, uv, vec3, vec4 } from "three/tsl";
+	import { dot, mat4, pass, screenSize, uv, vec4 } from "three/tsl";
 	import {
 		EquirectangularReflectionMapping,
 		Mesh,
@@ -84,10 +84,9 @@
 
 		const postProcessing = createDisposed(RenderPipeline, renderer);
 		postProcessing.outputNode = vec4(
-			dot(vec3(0.2126, 0.7152, 0.0722), pass(scene, camera).rgb)
-				.lessThan(bayerValue)
-				.toVec3(),
-			1.0,
+			dot(vec4(0.2126, 0.7152, 0.0722, 1.0), pass(scene, camera).rgb).lessThan(
+				bayerValue,
+			),
 		);
 
 		const controls = createDisposed(OrbitControls, camera, renderer.domElement);

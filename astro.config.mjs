@@ -1,5 +1,4 @@
 // @ts-check
-import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import svelte from "@astrojs/svelte";
@@ -12,6 +11,7 @@ const repoURL = "https://github.com/joshwashywash/graphics-glossary";
 
 // https://astro.build/config
 export default defineConfig({
+	base: "/graphics-glossary",
 	integrations: [
 		starlight({
 			customCss: ["./src/styles/global.css"],
@@ -71,13 +71,8 @@ export default defineConfig({
 		svelte(),
 		sitemap(),
 	],
-
 	site,
-
 	vite: {
 		plugins: [tailwindcss()],
 	},
-
-	adapter: cloudflare(),
 });
-

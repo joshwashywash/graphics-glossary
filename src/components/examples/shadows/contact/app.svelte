@@ -19,13 +19,11 @@
 	import { resize } from "@functions/resize.svelte";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
-	import { untrack } from "svelte";
 	import { gaussianBlur } from "three/addons/tsl/display/GaussianBlurNode.js";
 	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import { depth, texture, uniform, vec3 } from "three/tsl";
 	import {
-		CameraHelper,
 		Color,
 		Mesh,
 		MeshNormalMaterial,
