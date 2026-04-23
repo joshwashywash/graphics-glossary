@@ -7,11 +7,13 @@ import { defineConfig } from "astro/config";
 
 const site = "https://let-josh.github.io";
 
-const repoURL = "https://github.com/let-josh/graphics-glossary";
+const base = "/graphics-glossary";
+
+const repoURL = "https://github.com/let-josh" + base;
 
 // https://astro.build/config
 export default defineConfig({
-	base: "/graphics-glossary",
+	base,
 	integrations: [
 		starlight({
 			customCss: ["./src/styles/global.css"],
