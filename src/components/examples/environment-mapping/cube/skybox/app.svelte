@@ -2,7 +2,9 @@
 	module
 	lang="ts"
 >
-	const loader = new TextureLoader().setPath("/cubemaps/Lycksele/");
+	const loader = new TextureLoader().setPath(
+		import.meta.env.BASE_URL + "/cubemaps/Lycksele/",
+	);
 	const files = [
 		"posx.jpg",
 		"negx.jpg",

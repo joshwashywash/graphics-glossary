@@ -3,7 +3,7 @@
 	lang="ts"
 >
 	const loader = new TextureLoader();
-	const textureUrl = "/equirect/suburban_garden.png";
+	const textureUrl = import.meta.env.BASE_URL + "/equirect/suburban_garden.png";
 </script>
 
 <script lang="ts">
