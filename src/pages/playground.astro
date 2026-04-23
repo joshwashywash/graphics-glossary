@@ -1,0 +1,14 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import App from "@components/examples/data-buffers/stencil/outlines/app.svelte";
+---
+
+<StarlightPage
+	frontmatter={{
+		title: "playground",
+		draft: true,
+		template: "splash",
+	}}
+>
+	<App client:only="svelte" />
+</StarlightPage>

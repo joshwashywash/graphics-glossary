@@ -10,8 +10,7 @@
 
 <script lang="ts">
 	import { createDisposed } from "@functions/createDisposed.svelte";
-	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resize } from "@functions/resize.svelte";
+	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -27,6 +26,7 @@
 		Scene,
 		Vector2,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const scene = new Scene();
@@ -52,20 +52,23 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
+
+	const controls = createDisposed(OrbitControls, camera);
 </script>
 
 <canvas
-	class="aspect-video"
+	class="aspect-square"
 	{@attach (canvas) => {
-		const renderer = createRenderer({
+		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
 
+		controls.connect(renderer.domElement);
+
 		const size = new Vector2();
 
 		const render = () => {
-			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
 				setCameraAspect(camera, aspect);
@@ -91,9 +94,18 @@
 			scene.backgroundBlurriness = lastBlurriness;
 		};
 
-		renderer.setAnimationLoop(render);
+		const promise = renderer.setAnimationLoop(render);
 
-		createDisposed(OrbitControls, camera, renderer.domElement);
+		return () => {
+			controls.disconnect();
+			promise
+				.then(() => {
+					return renderer.setAnimationLoop(null);
+				})
+				.then(() => {
+					renderer.dispose();
+				});
+		};
 	}}
 >
 </canvas>

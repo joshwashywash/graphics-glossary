@@ -30,9 +30,8 @@
 	import booImageMetadata from "@assets/boo.png";
 
 	import { createDisposed } from "@functions/createDisposed.svelte";
-	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { loadImage } from "@functions/loadImage";
-	import { resize } from "@functions/resize.svelte";
+	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import {
@@ -47,6 +46,7 @@
 		Sprite,
 		SpriteMaterial,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const booCanvas = new OffscreenCanvas(
@@ -120,14 +120,14 @@
 </script>
 
 <canvas
-	class="aspect-video"
+	class="aspect-square"
 	{@attach (canvas) => {
-		const renderer = createRenderer({
+		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
 
-		renderer.setAnimationLoop(() => {
+		const promise = renderer.setAnimationLoop(() => {
 			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
@@ -154,6 +154,16 @@
 
 			renderer.render(scene, camera);
 		});
+
+		return () => {
+			promise
+				.then(() => {
+					return renderer.setAnimationLoop(null);
+				})
+				.then(() => {
+					renderer.dispose();
+				});
+		};
 	}}
 >
 </canvas>

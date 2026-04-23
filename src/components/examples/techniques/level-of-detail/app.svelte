@@ -17,9 +17,8 @@
 
 <script lang="ts">
 	import { createDisposed } from "@functions/createDisposed.svelte";
-	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { onCleanup } from "@functions/onCleanup.svelte";
-	import { resize } from "@functions/resize.svelte";
+	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { lerp } from "three/src/math/MathUtils.js";
@@ -30,6 +29,7 @@
 		Mesh,
 		MeshNormalMaterial,
 		PerspectiveCamera,
+		WebGPURenderer,
 	} from "three/webgpu";
 
 	const lod = new LOD();
@@ -61,14 +61,14 @@
 </script>
 
 <canvas
-	class="aspect-video"
+	class="aspect-square"
 	{@attach (canvas) => {
-		const renderer = createRenderer({
+		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
 
-		renderer.setAnimationLoop((time) => {
+		const promise = renderer.setAnimationLoop((time) => {
 			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
@@ -79,6 +79,16 @@
 
 			renderer.render(lod, camera);
 		});
+
+		return () => {
+			promise
+				.then(() => {
+					return renderer.setAnimationLoop(null);
+				})
+				.then(() => {
+					renderer.dispose();
+				});
+		};
 	}}
 >
 </canvas>

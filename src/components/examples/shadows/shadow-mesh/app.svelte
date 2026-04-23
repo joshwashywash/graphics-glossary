@@ -125,7 +125,7 @@
 		}}
 	/>
 	<canvas
-		class="aspect-video"
+		class="aspect-square"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
 		{@attach (canvas) => {

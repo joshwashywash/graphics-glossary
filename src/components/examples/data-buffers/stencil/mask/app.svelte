@@ -12,9 +12,8 @@
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createDisposed } from "@functions/createDisposed.svelte";
-	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { onCleanup } from "@functions/onCleanup.svelte";
-	import { resize } from "@functions/resize.svelte";
+	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -32,6 +31,7 @@
 		TextureLoader,
 		TorusKnotGeometry,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 	import { Pane } from "tweakpane";
 
@@ -73,6 +73,7 @@
 
 	const scene = new Scene().add(knot, mask);
 	scene.background = scene.environment = equirectTexture;
+	const controls = createDisposed(OrbitControls, camera);
 </script>
 
 <div class="relative">
@@ -97,18 +98,20 @@
 		}}
 	/>
 	<canvas
-		class="aspect-video"
+		class="aspect-square"
 		{@attach (canvas) => {
-			const renderer = createRenderer({
+			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
 				forceWebGL: true,
 				stencil: true,
 			});
 
+			controls.connect(renderer.domElement);
+
 			createDisposed(OrbitControls, camera, renderer.domElement);
 
-			renderer.setAnimationLoop((time) => {
+			const promise = renderer.setAnimationLoop((time) => {
 				const t = time / 1000;
 				const x = Math.cos(t);
 				const y = Math.sin(t);
@@ -119,6 +122,17 @@
 				}
 				renderer.render(scene, camera);
 			});
+
+			return () => {
+				controls.disconnect();
+				promise
+					.then(() => {
+						return renderer.setAnimationLoop(null);
+					})
+					.then(() => {
+						renderer.dispose();
+					});
+			};
 		}}
 	>
 	</canvas>

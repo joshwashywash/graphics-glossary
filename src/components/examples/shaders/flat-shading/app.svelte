@@ -19,8 +19,7 @@
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createDisposed } from "@functions/createDisposed.svelte";
-	import { createRenderer } from "@functions/createRenderer.svelte";
-	import { resize } from "@functions/resize.svelte";
+	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -34,6 +33,7 @@
 		Scene,
 		SphereGeometry,
 		Vector3,
+		WebGPURenderer,
 	} from "three/webgpu";
 	import { Pane } from "tweakpane";
 
@@ -76,6 +76,9 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(scene.position);
+
+	const controls = createDisposed(OrbitControls, camera);
+	controls.autoRotate = true;
 </script>
 
 <div class="relative">
@@ -130,21 +133,16 @@
 		}}
 	/>
 	<canvas
-		class="aspect-video"
+		class="aspect-square"
 		{@attach (canvas) => {
-			const renderer = createRenderer({
+			const renderer = new WebGPURenderer({
 				antialias: true,
 				canvas,
 			});
 
-			const controls = createDisposed(
-				OrbitControls,
-				camera,
-				renderer.domElement,
-			);
-			controls.autoRotate = true;
+			controls.connect(renderer.domElement);
 
-			renderer.setAnimationLoop(() => {
+			const promise = renderer.setAnimationLoop(() => {
 				const canvas = renderer.domElement;
 				if (resize(renderer)) {
 					const aspect = canvas.clientWidth / canvas.clientHeight;
@@ -154,6 +152,17 @@
 				controls.update();
 				renderer.render(scene, camera);
 			});
+
+			return () => {
+				controls.disconnect();
+				promise
+					.then(() => {
+						return renderer.setAnimationLoop(null);
+					})
+					.then(() => {
+						renderer.dispose();
+					});
+			};
 		}}
 	>
 	</canvas>

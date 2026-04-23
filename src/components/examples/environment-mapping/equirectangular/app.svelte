@@ -10,14 +10,18 @@
 
 <script lang="ts">
 	import { createDisposed } from "@functions/createDisposed.svelte";
-	import { createRenderer } from "@functions/createRenderer.svelte";
 	import { onCleanup } from "@functions/onCleanup.svelte";
-	import { resize } from "@functions/resize.svelte";
+	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import { equirectUV, texture } from "three/tsl";
-	import { PerspectiveCamera, Scene, TextureLoader } from "three/webgpu";
+	import {
+		PerspectiveCamera,
+		Scene,
+		TextureLoader,
+		WebGPURenderer,
+	} from "three/webgpu";
 
 	const equirectTexture = await loader.loadAsync(textureUrl);
 	onCleanup(() => {
@@ -28,22 +32,24 @@
 	scene.backgroundNode = texture(equirectTexture, equirectUV(), 0);
 
 	const camera = new PerspectiveCamera().translateZ(CAMERA_TRANSLATION_AMOUNT);
+
+	const controls = createDisposed(OrbitControls, camera);
+	controls.autoRotate = true;
 </script>
 
 <canvas
-	class="aspect-video"
+	class="aspect-square"
 	{@attach (canvas) => {
-		const renderer = createRenderer({
+		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
 
+		controls.connect(renderer.domElement);
+
 		equirectTexture.colorSpace = renderer.currentColorSpace;
 
-		const controls = createDisposed(OrbitControls, camera, renderer.domElement);
-		controls.autoRotate = true;
-
-		renderer.setAnimationLoop(() => {
+		const promise = renderer.setAnimationLoop(() => {
 			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
@@ -53,6 +59,17 @@
 			controls.update();
 			renderer.render(scene, camera);
 		});
+
+		return () => {
+			controls.disconnect();
+			promise
+				.then(() => {
+					return renderer.setAnimationLoop(null);
+				})
+				.then(() => {
+					renderer.dispose();
+				});
+		};
 	}}
 >
 </canvas>
