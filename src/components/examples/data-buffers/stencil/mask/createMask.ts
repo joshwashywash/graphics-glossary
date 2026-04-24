@@ -8,8 +8,6 @@ import type { MaterialParameters } from "three/webgpu";
 
 type MaskMaterialParameters = Pick<
 	MaterialParameters,
-	| "colorWrite"
-	| "depthWrite"
 	| "stencilFail"
 	| "stencilFunc"
 	| "stencilRef"
@@ -30,8 +28,6 @@ type MaskedMaterialParameters = Pick<
 
 export const createMask = (stencilRef = 1) => {
 	const maskMaterialParameters: MaskMaterialParameters = {
-		colorWrite: false,
-		depthWrite: false,
 		stencilFail: ReplaceStencilOp,
 		stencilFunc: AlwaysStencilFunc,
 		stencilRef,

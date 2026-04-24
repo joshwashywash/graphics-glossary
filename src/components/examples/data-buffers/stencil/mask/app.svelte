@@ -49,6 +49,8 @@
 
 	const maskGeometry = createDisposed(CircleGeometry);
 	const maskMaterial = createDisposed(MeshBasicMaterial, {
+		colorWrite: false,
+		depthTest: false,
 		side: DoubleSide,
 		...maskMaterialParameters,
 	});

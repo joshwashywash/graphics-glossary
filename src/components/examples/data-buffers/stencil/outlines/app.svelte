@@ -18,7 +18,6 @@
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { HDRLoader, OrbitControls } from "three/examples/jsm/Addons.js";
-	import type { Intersection } from "three/webgpu";
 	import {
 		EquirectangularReflectionMapping,
 		Group,
@@ -48,7 +47,7 @@
 
 	const outlineMaterial = createDisposed(MeshBasicMaterial, {
 		color: "black",
-		depthWrite: false,
+		depthTest: false,
 		...outlineMaterialParameters,
 	});
 
