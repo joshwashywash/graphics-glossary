@@ -10,6 +10,8 @@
 <script lang="ts">
 	import { createOutline } from "./createOutline";
 
+	import PaneContainer from "@components/controls/PaneContainer.svelte";
+
 	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { resize } from "@functions/resize";
@@ -24,12 +26,11 @@
 		MeshBasicMaterial,
 		MeshStandardMaterial,
 		PerspectiveCamera,
-		Raycaster,
 		Scene,
 		TorusKnotGeometry,
-		Vector2,
 		WebGPURenderer,
 	} from "three/webgpu";
+	import { Pane } from "tweakpane";
 
 	const equirectTexture = await loader.loadAsync(textureUrl);
 	equirectTexture.mapping = EquirectangularReflectionMapping;
@@ -52,7 +53,6 @@
 	});
 
 	const outline = new Mesh(geometry, outlineMaterial);
-	outline.visible = false;
 	outline.scale.setScalar(1.05);
 
 	const group = new Group().add(mesh, outline);
@@ -62,62 +62,57 @@
 	const camera = new PerspectiveCamera().translateZ(5);
 
 	const controls = new OrbitControls(camera);
-
-	const raycaster = new Raycaster();
-	const coords = new Vector2();
-
-	let intersections: Intersection[] = [];
 </script>
 
-<canvas
-	class="aspect-square"
-	onmousemove={(e) => {
-		const rect = e.currentTarget.getBoundingClientRect();
-		coords.set(
-			2 * ((e.clientX - rect.left) / (rect.right - rect.left)) - 1,
-			-1 * 2 * ((e.clientY - rect.top) / (rect.bottom - rect.top)) + 1,
-		);
+<div class="relative">
+	<PaneContainer
+		class="absolute top-2 right-2"
+		{@attach (container) => {
+			const pane = createDisposed(Pane, {
+				container,
+				title: "outline",
+			});
+			pane.addBinding(outline, "visible");
+		}}
+	/>
+	<canvas
+		class="aspect-square"
+		{@attach (canvas) => {
+			const renderer = new WebGPURenderer({
+				antialias: true,
+				canvas,
+				forceWebGL: true,
+				stencil: true,
+			});
 
-		raycaster.setFromCamera(coords, camera);
-		raycaster.intersectObject(mesh, false, intersections);
-		outline.visible = intersections.length > 0;
+			controls.connect(canvas);
 
-		intersections = [];
-	}}
-	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
-			antialias: true,
-			canvas,
-			forceWebGL: true,
-			stencil: true,
-		});
+			let lastTime = 0;
+			const promise = renderer.setAnimationLoop((time) => {
+				const dt = time - lastTime;
+				group.rotateY(dt / 1000);
 
-		controls.connect(canvas);
+				if (resize(renderer)) {
+					const aspect = canvas.clientWidth / canvas.clientHeight;
+					setCameraAspect(camera, aspect);
+				}
 
-		let lastTime = 0;
-		const promise = renderer.setAnimationLoop((time) => {
-			const dt = time - lastTime;
-			group.rotateY(dt / 1000);
+				renderer.render(scene, camera);
 
-			if (resize(renderer)) {
-				const aspect = canvas.clientWidth / canvas.clientHeight;
-				setCameraAspect(camera, aspect);
-			}
+				lastTime = time;
+			});
 
-			renderer.render(scene, camera);
-			lastTime = time;
-		});
-
-		return () => {
-			controls.dispose();
-			promise
-				.then(() => {
-					return renderer.setAnimationLoop(null);
-				})
-				.then(() => {
-					renderer.dispose();
-				});
-		};
-	}}
->
-</canvas>
+			return () => {
+				controls.dispose();
+				promise
+					.then(() => {
+						return renderer.setAnimationLoop(null);
+					})
+					.then(() => {
+						renderer.dispose();
+					});
+			};
+		}}
+	>
+	</canvas>
+</div>
