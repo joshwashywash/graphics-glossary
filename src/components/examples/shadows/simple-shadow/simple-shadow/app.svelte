@@ -20,10 +20,13 @@
 <script lang="ts">
 	import { createShadowGradient } from "../createShadowGradient";
 
+	import { controls } from "@attachments/controls";
+
 	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
+	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import { lerp } from "three/src/math/MathUtils.js";
 	import {
 		CanvasTexture,
@@ -93,6 +96,8 @@
 		cameraTranslationAmount,
 	);
 	camera.lookAt(sphereMesh.position);
+
+	const orbit = new OrbitControls(camera);
 </script>
 
 <svelte:boundary>
@@ -103,6 +108,7 @@
 
 <canvas
 	class="aspect-square"
+	{@attach controls(orbit)}
 	{@attach (canvas) => {
 		const renderer = new WebGPURenderer({
 			antialias: true,
@@ -110,7 +116,6 @@
 		});
 
 		const promise = renderer.setAnimationLoop((time) => {
-			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
 				setCameraAspect(camera, aspect);

@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts">
+	import { controls } from "@attachments/controls";
+
 	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { pringle } from "@functions/parametric/pringle";
 	import { createSphube } from "@functions/parametric/sphube";
@@ -55,33 +57,30 @@
 	);
 	camera.lookAt(group.position);
 
-	const controls = createDisposed(OrbitControls, camera);
-	controls.autoRotate = true;
+	const orbit = new OrbitControls(camera);
+	orbit.autoRotate = true;
 </script>
 
 <canvas
 	class="aspect-square"
+	{@attach controls(orbit)}
 	{@attach (canvas) => {
 		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
 
-		controls.connect(renderer.domElement);
-
 		const promise = renderer.setAnimationLoop(() => {
-			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
 				setCameraAspect(camera, aspect);
 			}
 
-			controls.update();
+			orbit.update();
 			renderer.render(group, camera);
 		});
 
 		return () => {
-			controls.disconnect();
 			promise
 				.then(() => {
 					return renderer.setAnimationLoop(null);

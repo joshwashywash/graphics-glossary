@@ -18,6 +18,8 @@
 </script>
 
 <script lang="ts">
+	import { controls } from "@attachments/controls";
+
 	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { resize } from "@functions/resize";
@@ -53,27 +55,25 @@
 
 	const camera = new PerspectiveCamera().translateZ(CAMERA_TRANSLATION_AMOUNT);
 
-	const controls = createDisposed(OrbitControls, camera);
-	controls.autoRotate = true;
+	const orbit = new OrbitControls(camera);
+	orbit.autoRotate = true;
 </script>
 
 <canvas
+	{@attach controls(orbit)}
 	{@attach (canvas) => {
 		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
 
-		controls.connect(renderer.domElement);
-
 		const promise = renderer.setAnimationLoop(() => {
-			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
 				setCameraAspect(camera, aspect);
 			}
 
-			controls.update();
+			orbit.update();
 			renderer.render(scene, camera);
 		});
 

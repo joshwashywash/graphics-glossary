@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts">
+	import { controls } from "@attachments/controls";
+
 	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
@@ -53,20 +55,19 @@
 	);
 	camera.lookAt(scene.position);
 
-	const controls = createDisposed(OrbitControls, camera);
+	const orbit = new OrbitControls(camera);
+
+	const size = new Vector2();
 </script>
 
 <canvas
 	class="aspect-square"
+	{@attach controls(orbit)}
 	{@attach (canvas) => {
 		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
-
-		controls.connect(renderer.domElement);
-
-		const size = new Vector2();
 
 		const render = () => {
 			if (resize(renderer)) {
@@ -97,7 +98,6 @@
 		const promise = renderer.setAnimationLoop(render);
 
 		return () => {
-			controls.disconnect();
 			promise
 				.then(() => {
 					return renderer.setAnimationLoop(null);

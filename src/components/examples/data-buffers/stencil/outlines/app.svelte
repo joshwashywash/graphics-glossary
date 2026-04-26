@@ -10,6 +10,8 @@
 <script lang="ts">
 	import { createOutline } from "./createOutline";
 
+	import { controls } from "@attachments/controls";
+
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createDisposed } from "@functions/createDisposed.svelte";
@@ -60,7 +62,9 @@
 
 	const camera = new PerspectiveCamera().translateZ(5);
 
-	const controls = new OrbitControls(camera);
+	const orbit = new OrbitControls(camera);
+
+	let lastTime = 0;
 </script>
 
 <div class="relative">
@@ -76,6 +80,7 @@
 	/>
 	<canvas
 		class="aspect-square"
+		{@attach controls(orbit)}
 		{@attach (canvas) => {
 			const renderer = new WebGPURenderer({
 				antialias: true,
@@ -84,9 +89,6 @@
 				stencil: true,
 			});
 
-			controls.connect(canvas);
-
-			let lastTime = 0;
 			const promise = renderer.setAnimationLoop((time) => {
 				const dt = time - lastTime;
 				group.rotateY(dt / 1000);
@@ -102,7 +104,6 @@
 			});
 
 			return () => {
-				controls.dispose();
 				promise
 					.then(() => {
 						return renderer.setAnimationLoop(null);

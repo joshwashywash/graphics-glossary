@@ -69,7 +69,6 @@
 		});
 
 		const promise = renderer.setAnimationLoop((time) => {
-			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
 				setCameraAspect(camera, aspect);

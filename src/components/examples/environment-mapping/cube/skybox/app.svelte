@@ -21,6 +21,8 @@
 </script>
 
 <script lang="ts">
+	import { controls } from "@attachments/controls";
+
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createDisposed } from "@functions/createDisposed.svelte";
@@ -73,17 +75,19 @@
 	spyCamera.lookAt(scene.position);
 
 	let camera = sceneCamera;
-	const controls = createDisposed(OrbitControls, spyCamera);
+	const orbit = new OrbitControls(spyCamera);
 </script>
 
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
 		{@attach (container) => {
-			createDisposed(Pane, {
+			const pane = createDisposed(Pane, {
 				container,
 				title: "controls",
-			})
+			});
+
+			pane
 				.addBinding(
 					{
 						showAll: camera === spyCamera,
@@ -95,12 +99,13 @@
 				)
 				.on("change", (e) => {
 					camera = e.value ? spyCamera : sceneCamera;
-					controls.enabled = helper.visible = e.value;
+					orbit.enabled = helper.visible = e.value;
 				});
 		}}
 	/>
 	<canvas
 		class="aspect-square"
+		{@attach controls(orbit)}
 		{@attach (canvas) => {
 			const renderer = new WebGPURenderer({
 				antialias: true,
@@ -108,7 +113,6 @@
 			});
 
 			const promise = renderer.setAnimationLoop((time) => {
-				const canvas = renderer.domElement;
 				if (resize(renderer)) {
 					const aspect = canvas.clientWidth / canvas.clientHeight;
 					setCameraAspect(spyCamera, aspect);
@@ -123,9 +127,7 @@
 				renderer.render(scene, camera);
 			});
 
-			controls.connect(renderer.domElement);
 			return () => {
-				controls.disconnect();
 				promise
 					.then(() => {
 						return renderer.setAnimationLoop(null);

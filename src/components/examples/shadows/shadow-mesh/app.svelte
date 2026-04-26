@@ -18,6 +18,8 @@
 </script>
 
 <script lang="ts">
+	import { controls } from "@attachments/controls";
+
 	import { Size } from "@classes/size.svelte";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
@@ -42,6 +44,7 @@
 		Vector4,
 		WebGLRenderer,
 	} from "three";
+	import { OrbitControls } from "three/examples/jsm/Addons.js";
 	import { ShadowMesh } from "three/examples/jsm/objects/ShadowMesh.js";
 	import { DEG2RAD } from "three/src/math/MathUtils.js";
 	import { Pane } from "tweakpane";
@@ -98,6 +101,8 @@
 	});
 
 	let animationLoop: null | (() => void) = null;
+
+	const orbit = new OrbitControls(camera);
 </script>
 
 <div class="relative">
@@ -128,6 +133,7 @@
 		class="aspect-square"
 		bind:clientWidth={canvasSize.width}
 		bind:clientHeight={canvasSize.height}
+		{@attach controls(orbit)}
 		{@attach (canvas) => {
 			const renderer = new WebGLRenderer({
 				antialias: true,

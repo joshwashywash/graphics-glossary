@@ -9,7 +9,8 @@
 </script>
 
 <script lang="ts">
-	import { createDisposed } from "@functions/createDisposed.svelte";
+	import { controls } from "@attachments/controls";
+
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
@@ -33,35 +34,32 @@
 
 	const camera = new PerspectiveCamera().translateZ(CAMERA_TRANSLATION_AMOUNT);
 
-	const controls = createDisposed(OrbitControls, camera);
-	controls.autoRotate = true;
+	const orbit = new OrbitControls(camera);
+	orbit.autoRotate = true;
 </script>
 
 <canvas
 	class="aspect-square"
+	{@attach controls(orbit)}
 	{@attach (canvas) => {
 		const renderer = new WebGPURenderer({
 			antialias: true,
 			canvas,
 		});
 
-		controls.connect(renderer.domElement);
-
 		equirectTexture.colorSpace = renderer.currentColorSpace;
 
 		const promise = renderer.setAnimationLoop(() => {
-			const canvas = renderer.domElement;
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
 				setCameraAspect(camera, aspect);
 			}
 
-			controls.update();
+			orbit.update();
 			renderer.render(scene, camera);
 		});
 
 		return () => {
-			controls.disconnect();
 			promise
 				.then(() => {
 					return renderer.setAnimationLoop(null);

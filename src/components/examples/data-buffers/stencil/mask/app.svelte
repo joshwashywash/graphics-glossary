@@ -9,6 +9,8 @@
 <script lang="ts">
 	import { createMask } from "./createMask";
 
+	import { controls } from "@attachments/controls";
+
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
 	import { createDisposed } from "@functions/createDisposed.svelte";
@@ -75,7 +77,8 @@
 
 	const scene = new Scene().add(knot, mask);
 	scene.background = scene.environment = equirectTexture;
-	const controls = createDisposed(OrbitControls, camera);
+
+	const orbit = new OrbitControls(camera);
 </script>
 
 <div class="relative">
@@ -89,7 +92,9 @@
 
 			pane
 				.addBinding(
-					{ invert: knotMaterial.stencilFunc === NotEqualStencilFunc },
+					{
+						invert: knotMaterial.stencilFunc === NotEqualStencilFunc,
+					},
 					"invert",
 				)
 				.on("change", (e) => {
@@ -101,6 +106,7 @@
 	/>
 	<canvas
 		class="aspect-square"
+		{@attach controls(orbit)}
 		{@attach (canvas) => {
 			const renderer = new WebGPURenderer({
 				antialias: true,
@@ -108,10 +114,6 @@
 				forceWebGL: true,
 				stencil: true,
 			});
-
-			controls.connect(renderer.domElement);
-
-			createDisposed(OrbitControls, camera, renderer.domElement);
 
 			const promise = renderer.setAnimationLoop((time) => {
 				const t = time / 1000;
@@ -126,7 +128,6 @@
 			});
 
 			return () => {
-				controls.disconnect();
 				promise
 					.then(() => {
 						return renderer.setAnimationLoop(null);
