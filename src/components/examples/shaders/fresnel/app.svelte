@@ -14,6 +14,7 @@
 
 <script lang="ts">
 	import { controls } from "@attachments/controls";
+	import { pane } from "@attachments/pane";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
@@ -31,7 +32,6 @@
 		TorusKnotGeometry,
 		WebGPURenderer,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const baseColorUniform = uniform(new Color("#583583"));
 	const fresnelColorUniform = uniform(new Color("#ccccaa"));
@@ -64,35 +64,35 @@
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
+		{@attach pane(
+			{
 				title: "controls",
-			});
+			},
+			(pane) => {
+				pane
+					.addBinding(colors, "base", {
+						label: "base color",
+					})
+					.on("change", (e) => {
+						baseColorUniform.value.set(e.value);
+					});
 
-			pane
-				.addBinding(colors, "base", {
-					label: "base color",
-				})
-				.on("change", (e) => {
-					baseColorUniform.value.set(e.value);
+				pane
+					.addBinding(colors, "fresnel", {
+						label: "fresnel color",
+					})
+					.on("change", (e) => {
+						fresnelColorUniform.value.set(e.value);
+					});
+
+				pane.addBinding(powerUniform, "value", {
+					label: "power",
+					min: POWER_MIN,
+					max: POWER_MAX,
+					step: POWER_STEP,
 				});
-
-			pane
-				.addBinding(colors, "fresnel", {
-					label: "fresnel color",
-				})
-				.on("change", (e) => {
-					fresnelColorUniform.value.set(e.value);
-				});
-
-			pane.addBinding(powerUniform, "value", {
-				label: "power",
-				min: POWER_MIN,
-				max: POWER_MAX,
-				step: POWER_STEP,
-			});
-		}}
+			},
+		)}
 	/>
 	<canvas
 		class="aspect-square"

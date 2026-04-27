@@ -12,6 +12,7 @@
 
 <script lang="ts">
 	import { controls } from "@attachments/controls";
+	import { pane } from "@attachments/pane";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
@@ -29,7 +30,6 @@
 		Vector3,
 		WebGPURenderer,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const geometry = createDisposed(BoxGeometry);
 	geometry.setAttribute(
@@ -58,12 +58,7 @@
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
-				title: "controls",
-			});
-
+		{@attach pane({ title: "controls" }, (pane) => {
 			pane
 				.addBinding(material, "vertexColors", {
 					label: "vertex colors",
@@ -71,7 +66,7 @@
 				.on("change", () => {
 					material.needsUpdate = true;
 				});
-		}}
+		})}
 	/>
 
 	<canvas

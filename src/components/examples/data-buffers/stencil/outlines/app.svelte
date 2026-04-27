@@ -11,6 +11,7 @@
 	import { createOutline } from "./createOutline";
 
 	import { controls } from "@attachments/controls";
+	import { pane } from "@attachments/pane";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
@@ -31,7 +32,6 @@
 		TorusKnotGeometry,
 		WebGPURenderer,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const equirectTexture = await loader.loadAsync(textureUrl);
 	equirectTexture.mapping = EquirectangularReflectionMapping;
@@ -70,13 +70,9 @@
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
-				title: "outline",
-			});
+		{@attach pane({ title: "outline" }, (pane) => {
 			pane.addBinding(outline, "visible");
-		}}
+		})}
 	/>
 	<canvas
 		class="aspect-square"

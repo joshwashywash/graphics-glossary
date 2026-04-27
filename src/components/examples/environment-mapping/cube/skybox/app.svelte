@@ -22,6 +22,7 @@
 
 <script lang="ts">
 	import { controls } from "@attachments/controls";
+	import { pane } from "@attachments/pane";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
@@ -43,7 +44,6 @@
 		Vector3,
 		WebGPURenderer,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const geometry = createDisposed(BoxGeometry);
 	const textures = await Promise.all(files.map((url) => loader.loadAsync(url)));
@@ -81,27 +81,27 @@
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
+		{@attach pane(
+			{
 				title: "controls",
-			});
-
-			pane
-				.addBinding(
-					{
-						showAll: camera === spyCamera,
-					},
-					"showAll",
-					{
-						label: "show all",
-					},
-				)
-				.on("change", (e) => {
-					camera = e.value ? spyCamera : sceneCamera;
-					orbit.enabled = helper.visible = e.value;
-				});
-		}}
+			},
+			(pane) => {
+				pane
+					.addBinding(
+						{
+							showAll: camera === spyCamera,
+						},
+						"showAll",
+						{
+							label: "show all",
+						},
+					)
+					.on("change", (e) => {
+						camera = e.value ? spyCamera : sceneCamera;
+						orbit.enabled = helper.visible = e.value;
+					});
+			},
+		)}
 	/>
 	<canvas
 		class="aspect-square"

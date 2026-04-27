@@ -13,6 +13,7 @@
 
 <script lang="ts">
 	import { controls } from "@attachments/controls";
+	import { pane } from "@attachments/pane";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
@@ -38,7 +39,6 @@
 		Vector3,
 		WebGPURenderer,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const uDarkness = uniform(1);
 	const uShadowOpacity = uniform(1);
@@ -102,12 +102,7 @@
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
-				title: "uniforms",
-			});
-
+		{@attach pane({ title: "uniforms" }, (pane) => {
 			pane.addBinding(uDarkness, "value", {
 				label: "darkness",
 				min: 0,
@@ -128,7 +123,7 @@
 				max: 5,
 				step: 0.5,
 			});
-		}}
+		})}
 	/>
 	<canvas
 		class="aspect-square"

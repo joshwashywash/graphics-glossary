@@ -10,6 +10,7 @@
 	import { createMask } from "./createMask";
 
 	import { controls } from "@attachments/controls";
+	import { pane } from "@attachments/pane";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
@@ -35,7 +36,6 @@
 		Vector3,
 		WebGPURenderer,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const stencilRef = 1;
 	const { maskedMaterialParameters, maskMaterialParameters } =
@@ -79,30 +79,32 @@
 	scene.background = scene.environment = equirectTexture;
 
 	const orbit = new OrbitControls(camera);
+
+	const KNOT_ROTATION_AMOUNT = Math.PI * (1 / 240);
 </script>
 
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
+		{@attach pane(
+			{
 				title: "controls",
-			});
-
-			pane
-				.addBinding(
-					{
-						invert: knotMaterial.stencilFunc === NotEqualStencilFunc,
-					},
-					"invert",
-				)
-				.on("change", (e) => {
-					knotMaterial.stencilFunc = e.value
-						? NotEqualStencilFunc
-						: EqualStencilFunc;
-				});
-		}}
+			},
+			(pane) => {
+				pane
+					.addBinding(
+						{
+							invert: knotMaterial.stencilFunc === NotEqualStencilFunc,
+						},
+						"invert",
+					)
+					.on("change", (e) => {
+						knotMaterial.stencilFunc = e.value
+							? NotEqualStencilFunc
+							: EqualStencilFunc;
+					});
+			},
+		)}
 	/>
 	<canvas
 		class="aspect-square"
@@ -120,6 +122,7 @@
 				const x = Math.cos(t);
 				const y = Math.sin(t);
 				mask.position.set(x, y, 0);
+				knot.rotateY(KNOT_ROTATION_AMOUNT);
 				if (resize(renderer)) {
 					const aspect = canvas.clientWidth / canvas.clientHeight;
 					setCameraAspect(camera, aspect);

@@ -17,6 +17,7 @@
 
 <script lang="ts">
 	import { controls } from "@attachments/controls";
+	import { pane } from "@attachments/pane";
 
 	import PaneContainer from "@components/controls/PaneContainer.svelte";
 
@@ -37,7 +38,6 @@
 		Vector3,
 		WebGPURenderer,
 	} from "three/webgpu";
-	import { Pane } from "tweakpane";
 
 	const geometry = createDisposed(SphereGeometry);
 
@@ -86,53 +86,53 @@
 <div class="relative">
 	<PaneContainer
 		class="absolute top-2 right-2"
-		{@attach (container) => {
-			const pane = createDisposed(Pane, {
-				container,
+		{@attach pane(
+			{
 				title: "controls",
-			});
-
-			const materialFolder = pane.addFolder({
-				title: "material",
-			});
-
-			materialFolder
-				.addBinding(material, "shininess", {
-					min: 0,
-					max: SHININESS_MAX,
-					step: 1,
-				})
-				.on("change", (e) => {
-					flatShadingMaterial.shininess = e.value;
+			},
+			(pane) => {
+				const materialFolder = pane.addFolder({
+					title: "material",
 				});
 
-			materialFolder
-				.addBinding(
-					{
-						color: `#${material.color.getHexString()}`,
-					},
-					"color",
-				)
-				.on("change", (e) => {
-					flatShadingMaterial.color.copy(material.color.set(e.value));
+				materialFolder
+					.addBinding(material, "shininess", {
+						min: 0,
+						max: SHININESS_MAX,
+						step: 1,
+					})
+					.on("change", (e) => {
+						flatShadingMaterial.shininess = e.value;
+					});
+
+				materialFolder
+					.addBinding(
+						{
+							color: `#${material.color.getHexString()}`,
+						},
+						"color",
+					)
+					.on("change", (e) => {
+						flatShadingMaterial.color.copy(material.color.set(e.value));
+					});
+
+				const sceneFolder = pane.addFolder({
+					title: "scene",
 				});
 
-			const sceneFolder = pane.addFolder({
-				title: "scene",
-			});
-
-			sceneFolder.addBinding(helper, "visible", {
-				label: "show light helper",
-			});
-
-			sceneFolder
-				.addBinding(flatShadingMesh, "visible", {
-					label: "flat shading",
-				})
-				.on("change", (e) => {
-					mesh.visible = !e.value;
+				sceneFolder.addBinding(helper, "visible", {
+					label: "show light helper",
 				});
-		}}
+
+				sceneFolder
+					.addBinding(flatShadingMesh, "visible", {
+						label: "flat shading",
+					})
+					.on("change", (e) => {
+						mesh.visible = !e.value;
+					});
+			},
+		)}
 	/>
 	<canvas
 		class="aspect-square"
