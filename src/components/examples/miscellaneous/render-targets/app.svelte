@@ -6,6 +6,8 @@
 	const cameraTranslationAxis = new Vector3(1, 0, 1).normalize();
 	const cameraTranslationAmount = 2;
 	const backgroundBlurriness = 0.1;
+
+	const hdrUrl = import.meta.env.BASE_URL + "/hdrs/university_workshop_1k.hdr";
 </script>
 
 <script lang="ts">
@@ -32,9 +34,7 @@
 	} from "three/webgpu";
 
 	const scene = new Scene();
-	const hdr = await hdrLoader.loadAsync(
-		import.meta.env.BASE_URL + "/hdrs/university_workshop_1k.hdr",
-	);
+	const hdr = await hdrLoader.loadAsync(hdrUrl);
 	hdr.mapping = EquirectangularReflectionMapping;
 	scene.background = hdr;
 	scene.environment = hdr;
