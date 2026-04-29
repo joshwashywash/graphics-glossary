@@ -31,7 +31,6 @@
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 	import {
 		CircleGeometry,
-		DoubleSide,
 		EquirectangularReflectionMapping,
 		Mesh,
 		MeshBasicMaterial,
@@ -64,7 +63,6 @@
 	const maskMaterial = createDisposed(MeshBasicMaterial, {
 		colorWrite: false,
 		depthTest: false,
-		side: DoubleSide,
 		...maskMaterialParameters,
 	});
 
