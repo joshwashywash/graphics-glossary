@@ -83,8 +83,6 @@
 		CAMERA_TRANSLATION_AMOUNT,
 	);
 
-	camera.lookAt(knot.position);
-
 	const mainScene = new Scene().add(mask, ring);
 	const portalScene = new Scene().add(knot);
 

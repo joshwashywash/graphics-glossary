@@ -92,7 +92,6 @@
 		CAMERA_TRANSLATION_AXIS,
 		CAMERA_TRANSLATION_AMOUNT,
 	);
-	camera.lookAt(scene.position);
 
 	const canvasSize = new Size();
 

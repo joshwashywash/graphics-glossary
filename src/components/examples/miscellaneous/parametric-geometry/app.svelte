@@ -55,7 +55,6 @@
 		cameraTranslationAxis,
 		cameraTranslationAmount,
 	);
-	camera.lookAt(group.position);
 
 	const orbit = new OrbitControls(camera);
 	orbit.autoRotate = true;

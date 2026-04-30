@@ -95,7 +95,6 @@
 		cameraTranslationAxis,
 		cameraTranslationAmount,
 	);
-	camera.lookAt(sphereMesh.position);
 
 	const orbit = new OrbitControls(camera);
 </script>

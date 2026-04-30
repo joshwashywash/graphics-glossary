@@ -53,7 +53,6 @@
 		cameraTranslationAxis,
 		cameraTranslationAmount,
 	);
-	camera.lookAt(scene.position);
 
 	const orbit = new OrbitControls(camera);
 
