@@ -92,11 +92,10 @@
 	box.getSize(size);
 
 	const camera = new PerspectiveCamera();
-
-	const orbit = new OrbitControls(camera);
-
 	const axis = new Vector3(0, 0.5, 1).normalize();
 	camera.translateOnAxis(axis, CAMERA_TRANSLATION_AMOUNT);
+
+	const orbit = new OrbitControls(camera);
 	orbit.target = center;
 	orbit.update();
 
@@ -135,6 +134,7 @@
 	class="hidden"
 	{@attach (video) => {
 		const videoTexture = new VideoTexture(video);
+		videoTexture.flipY = false;
 		videoTexture.colorSpace = SRGBColorSpace;
 
 		material.map = videoTexture;
