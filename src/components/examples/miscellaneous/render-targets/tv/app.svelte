@@ -23,18 +23,28 @@
 	const CONSTRAINT_FACTOR = 1000;
 
 	const isMesh = (m: any): m is Mesh => m?.isMesh === true;
+
+	const rendererSize = new Vector2();
+
+	const center = new Vector3();
+
+	const size = new Vector3();
+
+	const RENDER_TARGET_CAMERA_TRANSLATION_AMOUNT = 3;
+	const CAMERA_TRANSLATION_AMOUNT = 1;
 </script>
 
 <script>
 	import { controls } from "@attachments/controls";
 
+	import { boxFromIndexedPositionAttribute } from "@functions/boxFromIndexedPositionAttribute";
+	import { createDisposed } from "@functions/createDisposed.svelte";
 	import { onCleanup } from "@functions/onCleanup.svelte";
 	import { resize } from "@functions/resize";
 	import { setCameraAspect } from "@functions/setCameraAspect";
 
 	import { GLTFLoader, OrbitControls } from "three/examples/jsm/Addons.js";
 	import {
-		Box3,
 		BoxGeometry,
 		CubeTextureLoader,
 		Mesh,
@@ -75,30 +85,20 @@
 	const scene = new Scene().add(tvGltf.scene);
 	scene.environment = scene.background = environment;
 
-	const axis = new Vector3(0, 0.25, 1).normalize();
+	const positionAttribute = screenMesh.geometry.getAttribute("position");
+
+	const box = boxFromIndexedPositionAttribute(index, positionAttribute);
+	box.getCenter(center);
+	box.getSize(size);
+
 	const camera = new PerspectiveCamera();
 
 	const orbit = new OrbitControls(camera);
 
-	const positionAttribute = screenMesh.geometry.getAttribute("position");
-
-	const box = new Box3();
-	const point = new Vector3();
-	for (let i = 0; i < index.count; i += 1) {
-		const vertexIndex = index.getX(i);
-		const x = positionAttribute.getX(vertexIndex);
-		const y = positionAttribute.getY(vertexIndex);
-		const z = positionAttribute.getZ(vertexIndex);
-		box.expandByPoint(point.set(x, y, z));
-	}
-
-	const center = new Vector3();
-	box.getCenter(center);
-	camera.position.copy(center);
+	const axis = new Vector3(0, 0.5, 1).normalize();
+	camera.translateOnAxis(axis, CAMERA_TRANSLATION_AMOUNT);
 	orbit.target = center;
-	camera.translateOnAxis(axis, 1).lookAt(center);
-	const size = new Vector3();
-	box.getSize(size);
+	orbit.update();
 
 	const streamPromise = navigator.mediaDevices.getUserMedia({
 		video: {
@@ -108,28 +108,27 @@
 		},
 	});
 
-	axis.set(0, -1 * 0.5, 1).normalize();
-	const renderTargetCamera = new PerspectiveCamera().translateOnAxis(axis, 3);
-	const renderTargetScene = new Scene();
-	renderTargetCamera.lookAt(renderTargetScene.position);
+	const screenGeometry = createDisposed(PlaneGeometry, size.x, size.y);
 
-	const rendererSize = new Vector2();
-
-	const screenGeometry = new PlaneGeometry(size.x, size.y);
-
-	const renderTarget = new RenderTarget();
-	const screenMaterial = new MeshBasicMaterial({
+	const renderTarget = createDisposed(RenderTarget);
+	const screenMaterial = createDisposed(MeshBasicMaterial, {
 		map: renderTarget.texture,
 	});
 	const plane = new Mesh(screenGeometry, screenMaterial);
 	plane.position.copy(center);
 	scene.add(plane);
 
-	const geometry = new BoxGeometry();
-	const material = new MeshBasicMaterial();
+	const geometry = createDisposed(BoxGeometry);
+	const material = createDisposed(MeshBasicMaterial);
 
 	const mesh = new Mesh(geometry, material);
-	renderTargetScene.add(mesh);
+	const renderTargetScene = new Scene().add(mesh);
+
+	const renderTargetCamera = new PerspectiveCamera().translateOnAxis(
+		axis.set(0, -1 * 0.5, 1).normalize(),
+		RENDER_TARGET_CAMERA_TRANSLATION_AMOUNT,
+	);
+	renderTargetCamera.lookAt(renderTargetScene.position);
 </script>
 
 <video
@@ -140,13 +139,16 @@
 
 		material.map = videoTexture;
 
-		streamPromise.then((stream) => {
+		const videoSrcSet = streamPromise.then((stream) => {
 			video.srcObject = stream;
 			video.play();
 		});
 
 		return () => {
-			videoTexture.dispose();
+			videoSrcSet.then(() => {
+				video.pause();
+				videoTexture.dispose();
+			});
 		};
 	}}
 >
@@ -159,6 +161,7 @@
 			antialias: true,
 			canvas,
 		});
+
 		const setAnimationLoopPromise = renderer.setAnimationLoop(() => {
 			if (resize(renderer)) {
 				const aspect = canvas.clientWidth / canvas.clientHeight;
@@ -170,8 +173,8 @@
 			mesh.rotateY((1 / 240) * Math.PI);
 
 			const last = renderer.getRenderTarget();
-			renderer.setRenderTarget(renderTarget);
 
+			renderer.setRenderTarget(renderTarget);
 			renderer.render(renderTargetScene, renderTargetCamera);
 
 			renderer.setRenderTarget(last);
