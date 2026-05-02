@@ -182,13 +182,9 @@
 		});
 
 		return () => {
-			setAnimationLoopPromise
-				.then(() => {
-					return renderer.setAnimationLoop(null);
-				})
-				.then(() => {
-					renderer.dispose();
-				});
+			setAnimationLoopPromise.then(() => {
+				renderer.dispose();
+			});
 		};
 	}}
 >

@@ -128,13 +128,9 @@
 			});
 
 			return () => {
-				promise
-					.then(() => {
-						return renderer.setAnimationLoop(null);
-					})
-					.then(() => {
-						renderer.dispose();
-					});
+				promise.then(() => {
+					renderer.dispose();
+				});
 			};
 		}}
 	></canvas>
