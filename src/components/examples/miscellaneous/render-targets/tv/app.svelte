@@ -2,21 +2,26 @@
 	module
 	lang="ts"
 >
-	const gltfLoader = new GLTFLoader();
+	import negx from "@assets/cubemaps/Lycksele/negx.jpg";
+	import negy from "@assets/cubemaps/Lycksele/negy.jpg";
+	import negz from "@assets/cubemaps/Lycksele/negz.jpg";
+	import posx from "@assets/cubemaps/Lycksele/posx.jpg";
+	import posy from "@assets/cubemaps/Lycksele/posy.jpg";
+	import posz from "@assets/cubemaps/Lycksele/posz.jpg";
+	import tvGltfUrl from "@assets/gltfs/kenney/tv.glb";
 
-	const tvGltfUrl = import.meta.env.BASE_URL + "/gltfs/tv.glb";
+	const cubeLoader = new CubeTextureLoader();
 
-	const cubeLoader = new CubeTextureLoader().setPath(
-		import.meta.env.BASE_URL + "/cubemaps/Lycksele/",
-	);
 	const cubeMapFiles = [
-		"posx.jpg",
-		"negx.jpg",
-		"posy.jpg",
-		"negy.jpg",
-		"posz.jpg",
-		"negz.jpg",
+		posx.src,
+		negx.src,
+		posy.src,
+		negy.src,
+		posz.src,
+		negz.src,
 	] as const;
+
+	const gltfLoader = new GLTFLoader();
 
 	const screenMeshName = "Mesh_televisionModern_1";
 
@@ -153,39 +158,44 @@
 	}}
 >
 </video>
-<canvas
-	class="aspect-square"
-	{@attach controls(orbit)}
-	{@attach (canvas) => {
-		const renderer = new WebGPURenderer({
-			antialias: true,
-			canvas,
-		});
-
-		const setAnimationLoopPromise = renderer.setAnimationLoop(() => {
-			if (resize(renderer)) {
-				const aspect = canvas.clientWidth / canvas.clientHeight;
-				setCameraAspect(camera, aspect);
-				renderer.getSize(rendererSize);
-				renderTarget.setSize(rendererSize.width, rendererSize.height);
-			}
-
-			mesh.rotateY((1 / 240) * Math.PI);
-
-			const last = renderer.getRenderTarget();
-
-			renderer.setRenderTarget(renderTarget);
-			renderer.render(renderTargetScene, renderTargetCamera);
-
-			renderer.setRenderTarget(last);
-			renderer.render(scene, camera);
-		});
-
-		return () => {
-			setAnimationLoopPromise.then(() => {
-				renderer.dispose();
+<div class="relative">
+	<canvas
+		class="aspect-square"
+		{@attach controls(orbit)}
+		{@attach (canvas) => {
+			const renderer = new WebGPURenderer({
+				antialias: true,
+				canvas,
 			});
-		};
-	}}
->
-</canvas>
+
+			const setAnimationLoopPromise = renderer.setAnimationLoop(() => {
+				if (resize(renderer)) {
+					const aspect = canvas.clientWidth / canvas.clientHeight;
+					setCameraAspect(camera, aspect);
+					renderer.getSize(rendererSize);
+					renderTarget.setSize(rendererSize.width, rendererSize.height);
+				}
+
+				mesh.rotateY((1 / 240) * Math.PI);
+
+				const last = renderer.getRenderTarget();
+
+				renderer.setRenderTarget(renderTarget);
+				renderer.render(renderTargetScene, renderTargetCamera);
+
+				renderer.setRenderTarget(last);
+				renderer.render(scene, camera);
+			});
+
+			return () => {
+				setAnimationLoopPromise.then(() => {
+					renderer.dispose();
+				});
+			};
+		}}
+	>
+	</canvas>
+	<p class="absolute bottom-2 right-2">
+		tv model by <a href="https://kenney.nl">kenney</a>
+	</p>
+</div>

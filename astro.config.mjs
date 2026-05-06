@@ -75,6 +75,7 @@ export default defineConfig({
 	],
 	site,
 	vite: {
+		assetsInclude: ["**/*.hdr", "**/*.glb"],
 		plugins: [tailwindcss()],
 	},
 });

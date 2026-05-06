@@ -2,12 +2,12 @@
 	module
 	lang="ts"
 >
+	import audioUrl from "@assets/audio/Stadium-Rave-A.ogg";
+	import environmentTextureUrl from "@assets/hdrs/university_workshop_1k.hdr";
+
 	const hdrLoader = new HDRLoader();
-	const textureUrl =
-		import.meta.env.BASE_URL + "/hdrs/university_workshop_1k.hdr";
 
 	const audioLoader = new AudioLoader();
-	const audioUrl = import.meta.env.BASE_URL + "/audio/Stadium-Rave-A.ogg";
 </script>
 
 <script lang="ts">
@@ -49,7 +49,7 @@
 
 	const audioAnalyser = new AudioAnalyser(audio, 256);
 
-	const environmentTexture = await hdrLoader.loadAsync(textureUrl);
+	const environmentTexture = await hdrLoader.loadAsync(environmentTextureUrl);
 	environmentTexture.mapping = EquirectangularReflectionMapping;
 	onCleanup(() => {
 		environmentTexture.dispose();

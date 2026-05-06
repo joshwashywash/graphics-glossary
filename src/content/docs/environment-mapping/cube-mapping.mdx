@@ -6,15 +6,21 @@ title: Cube
 import App from "@components/examples/environment-mapping/cube/basic/app.svelte";
 import Net from "@components/examples/environment-mapping/cube/net/app.svelte";
 import Skybox from "@components/examples/environment-mapping/cube/skybox/app.svelte";
+import posx from '@assets/cubemaps/Lycksele/posx.jpg'
+import negx from '@assets/cubemaps/Lycksele/negx.jpg'
+import posy from '@assets/cubemaps/Lycksele/posy.jpg'
+import negy from '@assets/cubemaps/Lycksele/negy.jpg'
+import posz from '@assets/cubemaps/Lycksele/posz.jpg'
+import negz from '@assets/cubemaps/Lycksele/negz.jpg'
 
 <Skybox client:only="svelte" />
 <Net
 	client:visible="svelte"
-	posx="/cubemaps/Lycksele/posx.jpg"
-	negx="/cubemaps/Lycksele/negx.jpg"
-	posy="/cubemaps/Lycksele/posy.jpg"
-	negy="/cubemaps/Lycksele/negy.jpg"
-	posz="/cubemaps/Lycksele/posz.jpg"
-	negz="/cubemaps/Lycksele/negz.jpg"
+	posx={posx.src}
+	negx={negx.src}
+	posy={posy.src}
+	negy={negy.src}
+	posz={posz.src}
+	negz={negz.src}
 />
 <App client:only="svelte" />

@@ -2,16 +2,22 @@
 	module
 	lang="ts"
 >
-	const loader = new CubeTextureLoader().setPath(
-		import.meta.env.BASE_URL + "/cubemaps/Lycksele/",
-	);
-	const files = [
-		"posx.jpg",
-		"negx.jpg",
-		"posy.jpg",
-		"negy.jpg",
-		"posz.jpg",
-		"negz.jpg",
+	import negx from "@assets/cubemaps/Lycksele/negx.jpg";
+	import negy from "@assets/cubemaps/Lycksele/negy.jpg";
+	import negz from "@assets/cubemaps/Lycksele/negz.jpg";
+	import posx from "@assets/cubemaps/Lycksele/posx.jpg";
+	import posy from "@assets/cubemaps/Lycksele/posy.jpg";
+	import posz from "@assets/cubemaps/Lycksele/posz.jpg";
+
+	const loader = new CubeTextureLoader();
+
+	const cubeMapFiles = [
+		posx.src,
+		negx.src,
+		posy.src,
+		negy.src,
+		posz.src,
+		negz.src,
 	] as const;
 
 	const CAMERA_TRANSLATION_AMOUNT = 5;
@@ -38,7 +44,7 @@
 
 	const scene = new Scene();
 
-	const texture = await loader.loadAsync(files);
+	const texture = await loader.loadAsync(cubeMapFiles);
 	onCleanup(() => {
 		texture.dispose();
 	});

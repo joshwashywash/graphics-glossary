@@ -20,7 +20,7 @@
 <div class="grid grid-cols-4 grid-rows-3">
 	{#each faces as { name, longName, row, col }}
 		<img
-			src={import.meta.env.BASE_URL + props[name]}
+			src={props[name]}
 			alt={`cube map image for ${longName}`}
 			style:--row={row}
 			style:--col={col}

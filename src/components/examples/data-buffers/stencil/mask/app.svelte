@@ -2,13 +2,13 @@
 	module
 	lang="ts"
 >
+	import portalHdrUrl from "@assets/hdrs/cobblestone_street_night_1k.hdr";
+	import mainHdrUrl from "@assets/hdrs/suburban_garden_1k.hdr";
+
 	const CAMERA_TRANSLATION_AXIS = new Vector3(0.25, 0.25, 1).normalize();
 	const CAMERA_TRANSLATION_AMOUNT = 5;
 
 	const loader = new HDRLoader();
-	const portalHdrUrl =
-		import.meta.env.BASE_URL + "/hdrs/cobblestone_street_night_1k.hdr";
-	const mainHdrUrl = import.meta.env.BASE_URL + "/hdrs/suburban_garden_1k.hdr";
 
 	const MASK_SCALE = 2;
 

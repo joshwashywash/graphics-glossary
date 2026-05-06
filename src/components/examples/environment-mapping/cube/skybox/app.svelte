@@ -2,16 +2,22 @@
 	module
 	lang="ts"
 >
-	const loader = new TextureLoader().setPath(
-		import.meta.env.BASE_URL + "/cubemaps/Lycksele/",
-	);
-	const files = [
-		"posx.jpg",
-		"negx.jpg",
-		"posy.jpg",
-		"negy.jpg",
-		"posz.jpg",
-		"negz.jpg",
+	import negx from "@assets/cubemaps/Lycksele/negx.jpg";
+	import negy from "@assets/cubemaps/Lycksele/negy.jpg";
+	import negz from "@assets/cubemaps/Lycksele/negz.jpg";
+	import posx from "@assets/cubemaps/Lycksele/posx.jpg";
+	import posy from "@assets/cubemaps/Lycksele/posy.jpg";
+	import posz from "@assets/cubemaps/Lycksele/posz.jpg";
+
+	const loader = new TextureLoader();
+
+	const cubeMapFiles = [
+		posx.src,
+		negx.src,
+		posy.src,
+		negy.src,
+		posz.src,
+		negz.src,
 	] as const;
 
 	const SPY_CAMERA_TRANSLATION_AXIS = new Vector3(1, 0.5, 1).normalize();
@@ -46,7 +52,9 @@
 	} from "three/webgpu";
 
 	const geometry = createDisposed(BoxGeometry);
-	const textures = await Promise.all(files.map((url) => loader.loadAsync(url)));
+	const textures = await Promise.all(
+		cubeMapFiles.map((url) => loader.loadAsync(url)),
+	);
 	onCleanup(() => {
 		for (const texture of textures) texture.dispose();
 	});

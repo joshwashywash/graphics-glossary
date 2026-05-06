@@ -2,10 +2,10 @@
 	module
 	lang="ts"
 >
+	import backgroundTextureUrl from "@assets/equirect/suburban_garden.png";
+
 	const loader = new TextureLoader();
 	const CAMERA_TRANSLATION_AMOUNT = 1;
-
-	const textureUrl = import.meta.env.BASE_URL + "/equirect/suburban_garden.png";
 </script>
 
 <script lang="ts">
@@ -24,7 +24,7 @@
 		WebGPURenderer,
 	} from "three/webgpu";
 
-	const equirectTexture = await loader.loadAsync(textureUrl);
+	const equirectTexture = await loader.loadAsync(backgroundTextureUrl.src);
 	onCleanup(() => {
 		equirectTexture.dispose();
 	});
